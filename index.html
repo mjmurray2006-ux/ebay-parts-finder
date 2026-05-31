@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>eBay Parts Finder</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.2.0/dist/tabler-icons.min.css" />
+<style>
+  :root {
+    --bg: #f9f9f8;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.2);
+    --text: #1a1a1a;
+    --text-muted: #666;
+    --text-faint: #999;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --accent: #1a56db;
+    --accent-bg: #eff4ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141414;
+      --surface: #1e1e1e;
+      --border: rgba(255,255,255,0.1);
+      --border-strong: rgba(255,255,255,0.2);
+      --text: #f0f0f0;
+      --text-muted: #aaa;
+      --text-faint: #666;
+      --accent: #5b8dee;
+      --accent-bg: #1a2540;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  header { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+  header h1 { font-size: 17px; font-weight: 600; }
+  header span { font-size: 12px; color: var(--text-muted); background: var(--bg); border: 0.5px solid var(--border); padding: 3px 8px; border-radius: 99px; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
+
+  /* Backend URL notice */
+  .setup-card { background: var(--accent-bg); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 20px; font-size: 13px; }
+  .setup-card strong { font-weight: 600; }
+  .setup-card input { margin-top: 8px; width: 100%; height: 34px; padding: 0 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--surface); color: var(--text); font-family: monospace; }
+  .setup-card input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .setup-card .save-btn { margin-top: 6px; padding: 5px 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text); }
+  .setup-card .save-btn:hover { background: var(--bg); }
+  .backend-status { font-size: 12px; margin-top: 5px; color: var(--text-muted); }
+  .backend-status.ok { color: #3B6D11; }
+  .backend-status.err { color: #A32D2D; }
+
+  /* Search bar */
+  .search-wrap { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .search-wrap input[type=text] { flex: 1; min-width: 200px; height: 42px; padding: 0 14px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); font-size: 15px; background: var(--surface); color: var(--text); }
+  .search-wrap input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .search-wrap select { height: 42px; padding: 0 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); font-size: 13px; background: var(--surface); color: var(--text); }
+  .search-wrap button.go { height: 42px; padding: 0 22px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; }
+  .search-wrap button.go:hover { opacity: 0.9; }
+  .search-wrap button.go:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Filters */
+  .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+  .filters label { font-size: 13px; color: var(--text-muted); }
+  .filters input[type=number] { width: 90px; height: 32px; padding: 0 8px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--surface); color: var(--text); }
+  .pill { padding: 5px 12px; border: 0.5px solid var(--border); border-radius: 99px; font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text-muted); transition: all 0.1s; }
+  .pill.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+  /* Results */
+  .results-bar { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
+  .results-bar strong { color: var(--text); }
+  .export-btn { padding: 6px 12px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+  .export-btn:hover { color: var(--text); border-color: var(--border-strong); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.15s, box-shadow 0.15s; }
+  .card:hover { border-color: var(--border-strong); box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+
+  .card-img-wrap { width: 100%; height: 150px; border-radius: var(--radius-sm); overflow: hidden; background: var(--bg); display: flex; align-items: center; justify-content: center; }
+  .card-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .card-img-wrap .no-img { font-size: 32px; opacity: 0.2; }
+
+  .card-title { font-size: 13px; font-weight: 500; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .price-row { display: flex; align-items: baseline; gap: 8px; }
+  .price { font-size: 20px; font-weight: 600; }
+  .was { font-size: 12px; color: var(--text-muted); text-decoration: line-through; }
+  .saving { font-size: 11px; color: #3B6D11; background: #EAF3DE; padding: 2px 6px; border-radius: 4px; }
+
+  .badge { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
+  .badge-new    { background: #EAF3DE; color: #3B6D11; }
+  .badge-used   { background: #FAEEDA; color: #854F0B; }
+  .badge-refurb { background: #E6F1FB; color: #185FA5; }
+
+  .meta { display: flex; flex-direction: column; gap: 5px; }
+  .meta-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); overflow: hidden; }
+  .meta-row i { font-size: 14px; flex-shrink: 0; }
+  .meta-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .keywords { display: flex; flex-wrap: wrap; gap: 4px; }
+  .kw { font-size: 11px; padding: 2px 7px; background: var(--bg); border-radius: 99px; color: var(--text-muted); border: 0.5px solid var(--border); }
+
+  .card-link { display: block; text-align: center; padding: 8px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; text-decoration: none; color: var(--text-muted); margin-top: auto; transition: all 0.1s; }
+  .card-link:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-bg); }
+
+  .empty { text-align: center; padding: 4rem 1rem; color: var(--text-muted); }
+  .empty i { font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.3; }
+  .empty p { font-size: 15px; }
+
+  .error-bar { background: #FCEBEB; border: 0.5px solid #F09595; border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: #A32D2D; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <i class="ti ti-tool" style="font-size:22px;color:#1a56db"></i>
+  <h1>eBay Parts Finder</h1>
+  <span>Team tool</span>
+</header>
+
+<div class="container">
+
+  <!-- Backend URL setup (only needed once per browser) -->
+  <div class="setup-card" id="setup-card">
+    <strong>🔧 One-time setup:</strong> Paste your Railway backend URL below (e.g. <code>https://your-app.up.railway.app</code>). This is saved in your browser — your colleagues do the same once.
+    <br>
+    <input type="text" id="backend-url" placeholder="https://your-app.up.railway.app" />
+    <button class="save-btn" onclick="saveBackend()">Save & Test</button>
+    <div class="backend-status" id="backend-status"></div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <input type="text" id="query" placeholder="Search for a part, e.g. BMW E46 headlight, brake caliper..." onkeydown="if(event.key==='Enter')doSearch()" />
+    <select id="market">
+      <option value="EBAY_GB">🇬🇧 eBay UK</option>
+      <option value="EBAY_US">🇺🇸 eBay US</option>
+      <option value="EBAY_DE">🇩🇪 eBay DE</option>
+      <option value="EBAY_FR">🇫🇷 eBay FR</option>
+      <option value="EBAY_AU">🇦🇺 eBay AU</option>
+    </select>
+    <select id="sort">
+      <option value="relevance">Relevance</option>
+      <option value="price">Price ↑</option>
+      <option value="-price">Price ↓</option>
+      <option value="-date">Newest</option>
+    </select>
+    <button class="go" id="search-btn" onclick="doSearch()">
+      <i class="ti ti-search"></i> Search
+    </button>
+  </div>
+
+  <div class="filters">
+    <label>Price: £</label>
+    <input type="number" id="min-price" placeholder="min" min="0" />
+    <span style="color:var(--text-muted);font-size:13px">–</span>
+    <input type="number" id="max-price" placeholder="max" min="0" />
+    <span style="width:1px;height:20px;background:var(--border);display:inline-block;margin:0 4px"></span>
+    <label>Condition:</label>
+    <button class="pill active" data-cond="all"         onclick="setCond(this)">All</button>
+    <button class="pill"        data-cond="NEW"         onclick="setCond(this)">New</button>
+    <button class="pill"        data-cond="USED"        onclick="setCond(this)">Used</button>
+    <button class="pill"        data-cond="UNSPECIFIED" onclick="setCond(this)">Unspecified</button>
+  </div>
+
+  <div id="error-box"></div>
+  <div id="results-area">
+    <div class="empty">
+      <i class="ti ti-search"></i>
+      <p>Search for any part above to get started</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────
+let backendUrl = localStorage.getItem('ebay_backend_url') || '';
+let allResults = [];
+let condFilter = 'all';
+
+// Pre-fill saved backend URL
+if (backendUrl) {
+  document.getElementById('backend-url').value = backendUrl;
+  document.getElementById('setup-card').style.display = 'none';
+}
+
+// ── Backend setup ──────────────────────────────────────────
+async function saveBackend() {
+  const raw = document.getElementById('backend-url').value.trim().replace(/\/$/, '');
+  const status = document.getElementById('backend-status');
+  if (!raw) return;
+  status.textContent = 'Testing connection...';
+  status.className = 'backend-status';
+  try {
+    const res = await fetch(`${raw}/health`, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error('Bad response');
+    const data = await res.json();
+    if (data.status === 'ok') {
+      backendUrl = raw;
+      localStorage.setItem('ebay_backend_url', backendUrl);
+      status.textContent = '✓ Connected! You can hide this section and start searching.';
+      status.className = 'backend-status ok';
+    } else throw new Error('Unexpected response');
+  } catch {
+    status.textContent = '✗ Could not reach that URL. Make sure Railway is deployed and the URL is correct.';
+    status.className = 'backend-status err';
+  }
+}
+
+// ── Condition filter ───────────────────────────────────────
+function setCond(btn) {
+  document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  condFilter = btn.dataset.cond;
+  if (allResults.length) renderResults(allResults);
+}
+
+// ── Keyword extractor ──────────────────────────────────────
+function extractKeywords(title) {
+  const stop = new Set(['the','a','an','and','or','for','with','of','in','on','to','at','by','from','is','are','was','as','it','its','this','new','used','fits','fit','oem','genuine']);
+  return [...new Set(
+    title.split(/[\s\-\/,()[\]]+/)
+      .filter(w => w.length > 2 && !stop.has(w.toLowerCase()) && !/^\d+$/.test(w))
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+  )].slice(0, 7);
+}
+
+// ── Condition badge ────────────────────────────────────────
+function condBadge(cond) {
+  if (!cond) return '';
+  const c = cond.toUpperCase();
+  if (c.includes('NEW'))    return '<span class="badge badge-new">New</span>';
+  if (c.includes('REFURB') || c.includes('CERTIF')) return '<span class="badge badge-refurb">Refurbished</span>';
+  if (c.includes('USED'))   return '<span class="badge badge-used">Used</span>';
+  return `<span class="badge badge-used">${cond}</span>`;
+}
+
+// ── Currency symbol ────────────────────────────────────────
+function sym(currency) {
+  return { GBP:'£', USD:'$', EUR:'€', AUD:'A$' }[currency] || currency;
+}
+
+// ── Render results ─────────────────────────────────────────
+function renderResults(items) {
+  const minP = parseFloat(document.getElementById('min-price').value) || 0;
+  const maxP = parseFloat(document.getElementById('max-price').value) || Infinity;
+  const sort = document.getElementById('sort').value;
+
+  let filtered = items.filter(item => {
+    const price = parseFloat(item.price?.value || 0);
+    if (price < minP || price > maxP) return false;
+    if (condFilter !== 'all') {
+      const c = (item.condition || '').toUpperCase();
+      if (condFilter === 'NEW'  && !c.includes('NEW'))  return false;
+      if (condFilter === 'USED' && !c.includes('USED')) return false;
+      if (condFilter === 'UNSPECIFIED' && c !== '' && c !== 'UNSPECIFIED') return false;
+    }
+    return true;
+  });
+
+  if (sort === 'price')  filtered.sort((a,b) => parseFloat(a.price?.value||0) - parseFloat(b.price?.value||0));
+  if (sort === '-price') filtered.sort((a,b) => parseFloat(b.price?.value||0) - parseFloat(a.price?.value||0));
+
+  const area = document.getElementById('results-area');
+
+  if (!filtered.length) {
+    area.innerHTML = '<div class="empty"><i class="ti ti-package-off"></i><p>No listings match your filters</p></div>';
+    return;
+  }
+
+  const cards = filtered.map(item => {
+    const price    = parseFloat(item.price?.value || 0).toFixed(2);
+    const currency = item.price?.currency || 'GBP';
+    const S        = sym(currency);
+    const wasRaw   = item.marketingPrice?.originalPrice?.value;
+    const wasHtml  = wasRaw ? `<span class="was">${S}${parseFloat(wasRaw).toFixed(2)}</span>` : '';
+    const saving   = wasRaw ? Math.round((1 - price/parseFloat(wasRaw))*100) : 0;
+    const savingHtml = saving > 0 ? `<span class="saving">${saving}% off</span>` : '';
+    const title    = item.title || 'Untitled listing';
+    const seller   = item.seller?.username || '—';
+    const feedback = item.seller?.feedbackScore ? ` (${item.seller.feedbackScore.toLocaleString()} feedback)` : '';
+    const location = [item.itemLocation?.city, item.itemLocation?.country].filter(Boolean).join(', ') || '—';
+    const url      = item.itemWebUrl || '#';
+    const imgUrl   = item.image?.imageUrl || item.thumbnailImages?.[0]?.imageUrl || '';
+    const kws      = extractKeywords(title);
+    const ship     = item.shippingOptions?.[0]?.shippingCost;
+    const shipHtml = ship?.value === '0.00'
+      ? `<div class="meta-row"><i class="ti ti-truck"></i><span>Free shipping</span></div>`
+      : ship?.value
+      ? `<div class="meta-row"><i class="ti ti-truck"></i><span>+${S}${parseFloat(ship.value).toFixed(2)} shipping</span></div>`
+      : '';
+
+    return `
+    <div class="card">
+      <div class="card-img-wrap">
+        ${imgUrl
+          ? `<img src="${imgUrl}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\'ti ti-photo-off no-img\'></i>'" />`
+          : `<i class="ti ti-photo-off no-img"></i>`}
+      </div>
+      <div class="card-title">${title}</div>
+      <div class="price-row">
+        <span class="price">${S}${price}</span>
+        ${wasHtml}${savingHtml}
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        ${condBadge(item.condition)}
+      </div>
+      <div class="meta">
+        <div class="meta-row"><i class="ti ti-store"></i><span>${seller}${feedback}</span></div>
+        <div class="meta-row"><i class="ti ti-map-pin"></i><span>${location}</span></div>
+        ${shipHtml}
+      </div>
+      <div class="keywords">${kws.map(k=>`<span class="kw">${k}</span>`).join('')}</div>
+      <a class="card-link" href="${url}" target="_blank" rel="noopener">
+        <i class="ti ti-external-link"></i> View on eBay
+      </a>
+    </div>`;
+  }).join('');
+
+  area.innerHTML = `
+    <div class="results-bar">
+      <div><strong>${filtered.length}</strong> listings found</div>
+      <button class="export-btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+    </div>
+    <div class="grid">${cards}</div>`;
+}
+
+// ── Export CSV ─────────────────────────────────────────────
+function exportCSV() {
+  if (!allResults.length) return;
+  const rows = [['Title','Price','Currency','Condition','Seller','Feedback','Location','Keywords','URL']];
+  allResults.forEach(item => {
+    const kw = extractKeywords(item.title || '').join('; ');
+    rows.push([
+      `"${(item.title||'').replace(/"/g,'""')}"`,
+      item.price?.value || '',
+      item.price?.currency || '',
+      item.condition || '',
+      item.seller?.username || '',
+      item.seller?.feedbackScore || '',
+      [item.itemLocation?.city,item.itemLocation?.country].filter(Boolean).join(', '),
+      `"${kw}"`,
+      item.itemWebUrl || ''
+    ]);
+  });
+  const blob = new Blob([rows.map(r=>r.join(',')).join('\n')], { type:'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ebay-parts-${Date.now()}.csv`;
+  a.click();
+}
+
+// ── Search ─────────────────────────────────────────────────
+async function doSearch() {
+  const q = document.getElementById('query').value.trim();
+  if (!q) return;
+  if (!backendUrl) { showError('Please set your backend URL above first.'); return; }
+
+  const btn = document.getElementById('search-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Searching...';
+  document.getElementById('error-box').innerHTML = '';
+  document.getElementById('results-area').innerHTML = '<div class="empty"><p>Fetching listings from eBay…</p></div>';
+
+  const params = new URLSearchParams({
+    q,
+    limit: 50,
+    sort: document.getElementById('sort').value,
+    market: document.getElementById('market').value,
+  });
+  const minP = document.getElementById('min-price').value;
+  const maxP = document.getElementById('max-price').value;
+  if (minP) params.set('min', minP);
+  if (maxP) params.set('max', maxP);
+
+  try {
+    const res = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(20000) });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Server error ${res.status}`);
+    }
+    const data = await res.json();
+    allResults = data.itemSummaries || [];
+    if (!allResults.length) {
+      document.getElementById('results-area').innerHTML = '<div class="empty"><i class="ti ti-package-off"></i><p>No listings found for that search</p></div>';
+    } else {
+      renderResults(allResults);
+    }
+  } catch (err) {
+    showError(err.message || 'Something went wrong. Is your backend running?');
+    document.getElementById('results-area').innerHTML = '';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-search"></i> Search';
+  }
+}
+
+function showError(msg) {
+  document.getElementById('error-box').innerHTML = `<div class="error-bar"><i class="ti ti-alert-circle"></i> ${msg}</div>`;
+}
+</script>
+</body>
+</html>
