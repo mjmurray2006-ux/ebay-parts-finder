@@ -6,6 +6,7 @@
 <title>eBay Parts Finder</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.2.0/dist/tabler-icons.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx-js-style.min.js"></script>
 <style>
   :root {
     --bg: #f9f9f8;
@@ -212,6 +213,51 @@
   .days-badge.active  { background: #E6F1FB; color: #185FA5; }
   .days-badge.soon    { background: #FAEEDA; color: #854F0B; }
   .days-badge.expired { background: var(--bg); color: var(--text-muted); border: 0.5px solid var(--border); }
+
+  /* ── Bulk Search ───────────────────────────────────────── */
+  .bulk-form { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
+  .bulk-form h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 7px; }
+  .bulk-form p { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+  .bulk-textarea { width: 100%; min-height: 160px; padding: 10px 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; font-family: monospace; background: var(--bg); color: var(--text); resize: vertical; line-height: 1.6; }
+  .bulk-textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .bulk-options { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
+  .bulk-controls { display: flex; gap: 8px; align-items: center; }
+  .bulk-start-btn { height: 40px; padding: 0 20px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; }
+  .bulk-start-btn:hover { opacity: 0.9; }
+  .bulk-start-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .bulk-cancel-btn { height: 40px; padding: 0 16px; border: 0.5px solid #F09595; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; background: #FCEBEB; color: #A32D2D; display: none; align-items: center; gap: 6px; }
+  .bulk-cancel-btn:hover { background: #F8D7D7; }
+  .bulk-cancel-btn.show { display: flex; }
+  .bulk-progress { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; display: none; }
+  .bulk-progress.show { display: block; }
+  .progress-label { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .progress-track { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-bottom: 6px; border: 0.5px solid var(--border); }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.25s ease; width: 0%; }
+  .progress-current { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bulk-results-bar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .bulk-results-bar h3 { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+  .bulk-results-bar p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .bulk-export-btn { height: 36px; padding: 0 16px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; background: var(--surface); color: var(--text-muted); display: flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; }
+  .bulk-export-btn:hover { color: var(--text); border-color: var(--border-strong); }
+  .bulk-table-wrap { overflow-x: auto; border-radius: var(--radius); border: 0.5px solid var(--border); margin-bottom: 24px; }
+  .bulk-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .bulk-table thead th { background: var(--bg); padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 1; }
+  .bulk-table thead th.sortable { cursor: pointer; user-select: none; }
+  .bulk-table thead th.sortable:hover { color: var(--accent); }
+  .bulk-table thead th.sort-active { color: var(--accent); }
+  .bulk-table tbody td { padding: 8px 12px; border-bottom: 0.5px solid var(--border); vertical-align: top; }
+  .bulk-table tbody tr:last-child td { border-bottom: none; }
+  .bulk-table tbody tr:hover:not(.part-group-header) { background: var(--bg); }
+  .bulk-table tr.part-group-header td { background: var(--accent-bg); color: var(--accent); font-weight: 600; font-size: 12px; padding: 7px 12px; }
+  .bulk-table tr.not-found td { color: #A32D2D; font-style: italic; }
+  .bulk-table .col-price { font-weight: 600; white-space: nowrap; }
+  .bulk-table .col-title { max-width: 280px; min-width: 180px; }
+  .bulk-table .col-title a { color: var(--accent); text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+  .bulk-table .col-title a:hover { text-decoration: underline; }
+  .bulk-table .col-kw { max-width: 180px; color: var(--text-muted); font-size: 11px; }
+  .bulk-table .col-seller { white-space: nowrap; }
+  .bulk-table .col-loc { white-space: nowrap; color: var(--text-muted); }
+  .bulk-table .col-ship { white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -239,6 +285,7 @@
   <div class="tabs">
     <div class="tab active" onclick="switchTab('search')"><i class="ti ti-search"></i> Search</div>
     <div class="tab" onclick="switchTab('tracker')"><i class="ti ti-chart-line"></i> Price Tracker <span id="tracker-count" style="background:var(--accent);color:#fff;border-radius:99px;padding:1px 7px;font-size:11px;display:none">0</span></div>
+    <div class="tab" onclick="switchTab('bulk')"><i class="ti ti-list-search"></i> Bulk Search</div>
   </div>
 
   <!-- Search Tab -->
@@ -381,6 +428,46 @@
       </div>
     </div>
   </div>
+
+  <!-- Bulk Search Tab -->
+  <div id="tab-bulk" class="tab-content">
+    <div class="container">
+
+      <div class="bulk-form">
+        <h3><i class="ti ti-list-search" style="color:var(--accent)"></i> Bulk Part Search</h3>
+        <p>Enter part names or numbers below — one per line. The top 5 most relevant eBay listings will be fetched for each.</p>
+        <textarea class="bulk-textarea" id="bulk-textarea" placeholder="BMW E46 front brake pads&#10;Jaguar XF air filter&#10;C2D37455&#10;Ford Focus headlight assembly&#10;..."></textarea>
+        <div class="bulk-options">
+          <label class="seller-toggle">
+            <input type="checkbox" id="bulk-seller-filter" />
+            <i class="ti ti-store" style="font-size:14px"></i>
+            Trusted Sellers only
+          </label>
+          <span id="bulk-seller-hint" style="font-size:11px;color:var(--text-muted)"></span>
+        </div>
+        <div class="bulk-controls">
+          <button class="bulk-start-btn" id="bulk-start-btn" onclick="startBulkSearch()">
+            <i class="ti ti-player-play"></i> Start Bulk Search
+          </button>
+          <button class="bulk-cancel-btn" id="bulk-cancel-btn" onclick="cancelBulkSearch()">
+            <i class="ti ti-player-stop"></i> Cancel
+          </button>
+        </div>
+      </div>
+
+      <div class="bulk-progress" id="bulk-progress">
+        <div class="progress-label">
+          <span>Searching <strong><span id="bulk-done">0</span> of <span id="bulk-total">0</span></strong> parts</span>
+          <span id="bulk-pct" style="color:var(--accent);font-weight:500">0%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="bulk-fill"></div></div>
+        <div class="progress-current" id="bulk-current"></div>
+      </div>
+
+      <div id="bulk-results-area"></div>
+
+    </div>
+  </div>
 </div>
 
 <script>
@@ -415,6 +502,13 @@ function switchTab(name) {
     renderTracker();
     autoRefreshStale();
   }
+  if (name === 'bulk') {
+    renderBulkResults();
+    const hint = document.getElementById('bulk-seller-hint');
+    if (hint) hint.textContent = savedSellers.length
+      ? `(${savedSellers.length} seller${savedSellers.length > 1 ? 's' : ''} saved: ${savedSellers.slice(0, 3).join(', ')}${savedSellers.length > 3 ? '…' : ''})`
+      : '(no sellers saved yet — add them in the Search tab)';
+  }
 }
 
 // ── State ──────────────────────────────────────────────────
@@ -427,6 +521,10 @@ let trackedParts = JSON.parse(localStorage.getItem('tracked_parts') || '[]');
 let charts       = {};
 let priceDrops   = [];
 let isAutoRefreshing = false;
+let bulkResults   = JSON.parse(localStorage.getItem('bulk_search_results') || '[]');
+let bulkCancelled = false;
+let bulkSortField = null;
+let bulkSortDir   = 'asc';
 
 function initApp() {
   if (backendUrl) {
@@ -949,6 +1047,234 @@ async function refreshAll() {
   for (const part of trackedParts) {
     if (!isExpired(part)) await refreshPart(part.id);
   }
+}
+
+// ── Bulk Search ────────────────────────────────────────────
+async function startBulkSearch() {
+  const raw   = document.getElementById('bulk-textarea').value;
+  const parts = raw.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+
+  if (!parts.length) { alert('Please enter at least one part name or number.'); return; }
+  if (!backendUrl)   { alert('Please configure your backend URL in the Search tab first.'); return; }
+
+  bulkCancelled = false;
+  bulkResults   = [];
+  bulkSortField = null;
+  document.getElementById('bulk-results-area').innerHTML = '';
+
+  const startBtn  = document.getElementById('bulk-start-btn');
+  const cancelBtn = document.getElementById('bulk-cancel-btn');
+  const progress  = document.getElementById('bulk-progress');
+
+  startBtn.disabled = true;
+  cancelBtn.classList.add('show');
+  progress.classList.add('show');
+  document.getElementById('bulk-total').textContent = parts.length;
+  document.getElementById('bulk-done').textContent  = '0';
+  document.getElementById('bulk-pct').textContent   = '0%';
+  document.getElementById('bulk-fill').style.width  = '0%';
+
+  for (let i = 0; i < parts.length; i++) {
+    if (bulkCancelled) break;
+
+    document.getElementById('bulk-done').textContent    = i + 1;
+    document.getElementById('bulk-current').textContent = `Searching: ${parts[i]}`;
+    const pct = Math.round((i + 1) / parts.length * 100);
+    document.getElementById('bulk-fill').style.width = `${pct}%`;
+    document.getElementById('bulk-pct').textContent  = `${pct}%`;
+
+    const items = await searchBulkPart(parts[i]);
+    bulkResults.push({ query: parts[i], items });
+    localStorage.setItem('bulk_search_results', JSON.stringify(bulkResults));
+    renderBulkResults();
+  }
+
+  startBtn.disabled = false;
+  cancelBtn.classList.remove('show');
+  if (bulkCancelled) {
+    document.getElementById('bulk-current').textContent = 'Search cancelled.';
+  } else {
+    progress.classList.remove('show');
+    document.getElementById('bulk-current').textContent = '';
+  }
+}
+
+function cancelBulkSearch() { bulkCancelled = true; }
+
+async function searchBulkPart(query) {
+  const sellerOn = document.getElementById('bulk-seller-filter').checked;
+  try {
+    const params = new URLSearchParams({ q: query, limit: 5, sort: 'relevance', market: 'EBAY_GB' });
+    const res    = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(15000) });
+    const data   = await res.json();
+    let   items  = data.itemSummaries || [];
+
+    if (sellerOn && savedSellers.length) {
+      items = items.filter(i => savedSellers.includes((i.seller?.username || '').toLowerCase()));
+    }
+
+    return items.slice(0, 5).map(item => {
+      const shipVal = item.shippingOptions?.[0]?.shippingCost?.value;
+      const S       = sym(item.price?.currency || 'GBP');
+      return {
+        title:     item.title || '',
+        price:     parseFloat(item.price?.value || 0),
+        currency:  item.price?.currency || 'GBP',
+        condition: item.condition || '',
+        seller:    item.seller?.username || '',
+        feedback:  item.seller?.feedbackScore != null ? item.seller.feedbackScore : '',
+        shipping:  shipVal === '0.00' ? 'Free' : (shipVal ? `${S}${parseFloat(shipVal).toFixed(2)}` : '—'),
+        location:  [item.itemLocation?.city, item.itemLocation?.country].filter(Boolean).join(', '),
+        url:       item.itemWebUrl || '#',
+        keywords:  extractKeywords(item.title || '').join(', ')
+      };
+    });
+  } catch { return []; }
+}
+
+function sortBulk(field) {
+  bulkSortDir   = bulkSortField === field && bulkSortDir === 'asc' ? 'desc' : 'asc';
+  bulkSortField = field;
+  renderBulkResults();
+}
+
+function renderBulkResults() {
+  const area = document.getElementById('bulk-results-area');
+  if (!area) return;
+  if (!bulkResults.length) { area.innerHTML = ''; return; }
+
+  const getSorted = items => {
+    if (!bulkSortField || !items.length) return items;
+    return [...items].sort((a, b) => {
+      const va = a[bulkSortField], vb = b[bulkSortField];
+      if (typeof va === 'number') return bulkSortDir === 'asc' ? va - vb : vb - va;
+      return bulkSortDir === 'asc'
+        ? String(va).localeCompare(String(vb))
+        : String(vb).localeCompare(String(va));
+    });
+  };
+
+  const si = f => {
+    if (bulkSortField !== f) return '<span style="opacity:0.3;font-size:10px">↕</span>';
+    return bulkSortDir === 'asc' ? '<span style="font-size:10px">↑</span>' : '<span style="font-size:10px">↓</span>';
+  };
+
+  const totalFound  = bulkResults.filter(r => r.items.length > 0).length;
+  const totalMissed = bulkResults.filter(r => r.items.length === 0).length;
+
+  const rows = bulkResults.map(group => {
+    const sorted = getSorted(group.items);
+    const hdr = `<tr class="part-group-header"><td colspan="8"><i class="ti ti-search" style="font-size:11px;margin-right:5px"></i>${group.query}</td></tr>`;
+    if (!sorted.length) {
+      return hdr + `<tr class="not-found"><td colspan="8"><i class="ti ti-alert-circle" style="font-size:12px;margin-right:5px"></i>No results found</td></tr>`;
+    }
+    return hdr + sorted.map(item => {
+      const S = sym(item.currency);
+      return `<tr>
+        <td class="col-title"><a href="${item.url}" target="_blank" rel="noopener">${item.title}</a></td>
+        <td class="col-price">${S}${item.price.toFixed(2)}</td>
+        <td>${item.condition}</td>
+        <td class="col-seller">${item.seller || '—'}</td>
+        <td style="text-align:right;white-space:nowrap">${item.feedback !== '' ? Number(item.feedback).toLocaleString() : '—'}</td>
+        <td class="col-ship">${item.shipping}</td>
+        <td class="col-loc">${item.location || '—'}</td>
+        <td class="col-kw">${item.keywords}</td>
+      </tr>`;
+    }).join('');
+  }).join('');
+
+  area.innerHTML = `
+    <div class="bulk-results-bar">
+      <div>
+        <h3><i class="ti ti-table" style="color:var(--accent)"></i> Results</h3>
+        <p>${bulkResults.length} parts searched &middot; ${totalFound} with results &middot; <span style="color:#A32D2D">${totalMissed} not found</span></p>
+      </div>
+      <button class="bulk-export-btn" onclick="exportBulkExcel()"><i class="ti ti-file-spreadsheet"></i> Export to Excel</button>
+    </div>
+    <div class="bulk-table-wrap">
+      <table class="bulk-table">
+        <thead><tr>
+          <th class="col-title sortable${bulkSortField==='title'?' sort-active':''}" onclick="sortBulk('title')">Title ${si('title')}</th>
+          <th class="sortable${bulkSortField==='price'?' sort-active':''}" onclick="sortBulk('price')">Price ${si('price')}</th>
+          <th>Condition</th>
+          <th class="sortable${bulkSortField==='seller'?' sort-active':''}" onclick="sortBulk('seller')">Seller ${si('seller')}</th>
+          <th style="text-align:right">Feedback</th>
+          <th>Shipping</th>
+          <th>Location</th>
+          <th>Keywords</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function exportBulkExcel() {
+  if (!bulkResults.length) return;
+  if (typeof XLSXStyle === 'undefined') { alert('Excel library not loaded — please refresh the page.'); return; }
+
+  const wb  = XLSXStyle.utils.book_new();
+  const aoa = [['Part Searched','Title','Price','Condition','Seller','Feedback Score','Shipping','Location','eBay URL','Keywords']];
+
+  bulkResults.forEach(group => {
+    if (!group.items.length) {
+      aoa.push([group.query, 'Not found', '', '', '', '', '', '', '', '']);
+    } else {
+      group.items.forEach((item, idx) => {
+        aoa.push([
+          idx === 0 ? group.query : '',
+          item.title,
+          item.price,
+          item.condition,
+          item.seller,
+          item.feedback !== '' ? Number(item.feedback) : '',
+          item.shipping,
+          item.location,
+          item.url,
+          item.keywords
+        ]);
+      });
+    }
+  });
+
+  const ws = XLSXStyle.utils.aoa_to_sheet(aoa);
+
+  // Bold + shaded header row
+  const hdrStyle = {
+    font:  { bold: true },
+    fill:  { patternType: 'solid', fgColor: { rgb: 'DCE6FF' } },
+    border: { bottom: { style: 'thin', color: { rgb: '1A56DB' } } }
+  };
+  ['A','B','C','D','E','F','G','H','I','J'].forEach(col => {
+    if (ws[`${col}1`]) ws[`${col}1`].s = hdrStyle;
+  });
+
+  // Price format + row styles
+  let rowIdx = 2;
+  bulkResults.forEach(group => {
+    const count = group.items.length || 1;
+    for (let i = 0; i < count; i++) {
+      if (i === 0) {
+        const aCell = ws[`A${rowIdx}`];
+        if (aCell) aCell.s = { font: { bold: true } };
+      }
+      const pCell = ws[`C${rowIdx}`];
+      if (pCell && group.items[i]) { pCell.t = 'n'; pCell.z = '"£"#,##0.00'; }
+      if (!group.items.length) {
+        const bCell = ws[`B${rowIdx}`];
+        if (bCell) bCell.s = { font: { color: { rgb: 'A32D2D' }, italic: true } };
+      }
+      rowIdx++;
+    }
+  });
+
+  ws['!cols'] = [
+    { wch: 30 }, { wch: 50 }, { wch: 10 }, { wch: 16 },
+    { wch: 22 }, { wch: 14 }, { wch: 12 }, { wch: 20 },
+    { wch: 55 }, { wch: 35 }
+  ];
+
+  XLSXStyle.utils.book_append_sheet(wb, ws, 'Bulk Search Results');
+  XLSXStyle.writeFile(wb, `ebay-bulk-search-${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 // ── Render tracker tab ─────────────────────────────────────
