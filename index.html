@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>eBay Parts Finder</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.2.0/dist/tabler-icons.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   :root {
     --bg: #f9f9f8;
@@ -33,7 +34,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-  /* ── Login screen ── */
+  /* Login */
   #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
   .login-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 36px 32px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 16px; }
   .login-card h2 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
@@ -44,26 +45,53 @@
   .login-card button:hover { opacity: 0.9; }
   .login-error { font-size: 13px; color: #A32D2D; background: #FCEBEB; border: 0.5px solid #F09595; border-radius: var(--radius-sm); padding: 8px 12px; display: none; }
 
-  /* ── Main app ── */
+  /* App */
   #app { display: none; }
-  header { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+  header { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 0 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; height: 52px; }
   header h1 { font-size: 17px; font-weight: 600; flex: 1; }
-  header span { font-size: 12px; color: var(--text-muted); background: var(--bg); border: 0.5px solid var(--border); padding: 3px 8px; border-radius: 99px; }
   .logout-btn { font-size: 12px; color: var(--text-muted); cursor: pointer; background: none; border: 0.5px solid var(--border); padding: 4px 10px; border-radius: 99px; }
-  .logout-btn:hover { color: var(--text); border-color: var(--border-strong); }
+  .logout-btn:hover { color: var(--text); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 0.5px solid var(--border); background: var(--surface); padding: 0 24px; }
+  .tab { padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; display: flex; align-items: center; gap: 6px; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
 
   .container { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
 
+  /* Setup card */
   .setup-card { background: var(--accent-bg); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 20px; font-size: 13px; }
   .setup-card strong { font-weight: 600; }
   .setup-card input { margin-top: 8px; width: 100%; height: 34px; padding: 0 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--surface); color: var(--text); font-family: monospace; }
   .setup-card input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   .setup-card .save-btn { margin-top: 6px; padding: 5px 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text); }
-  .setup-card .save-btn:hover { background: var(--bg); }
   .backend-status { font-size: 12px; margin-top: 5px; color: var(--text-muted); }
   .backend-status.ok { color: #3B6D11; }
   .backend-status.err { color: #A32D2D; }
 
+  /* Seller filter panel */
+  .seller-panel { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 16px; }
+  .seller-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .seller-panel-header h3 { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+  .seller-toggle { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text-muted); }
+  .seller-toggle input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+  .seller-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .seller-input-row input { flex: 1; height: 34px; padding: 0 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--bg); color: var(--text); }
+  .seller-input-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .seller-input-row button { height: 34px; padding: 0 14px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; }
+  .seller-input-row button:hover { opacity: 0.9; }
+  .seller-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .seller-tag { display: flex; align-items: center; gap: 5px; background: var(--accent-bg); color: var(--accent); border: 0.5px solid var(--accent); border-radius: 99px; padding: 4px 10px; font-size: 12px; font-weight: 500; }
+  .seller-tag button { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 14px; padding: 0; line-height: 1; display: flex; align-items: center; }
+  .seller-tag button:hover { color: #A32D2D; }
+  .no-sellers { font-size: 12px; color: var(--text-muted); font-style: italic; }
+  .seller-active-bar { font-size: 12px; color: #3B6D11; background: #EAF3DE; border: 0.5px solid #9FE1CB; border-radius: var(--radius-sm); padding: 6px 10px; margin-bottom: 12px; display: none; align-items: center; gap: 6px; }
+
+  /* Search */
   .search-wrap { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
   .search-wrap input[type=text] { flex: 1; min-width: 200px; height: 42px; padding: 0 14px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); font-size: 15px; background: var(--surface); color: var(--text); }
   .search-wrap input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -87,17 +115,18 @@
   .pill { padding: 5px 12px; border: 0.5px solid var(--border); border-radius: 99px; font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text-muted); transition: all 0.1s; }
   .pill.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
 
+  /* Results */
   .results-bar { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
   .results-bar strong { color: var(--text); }
   .export-btn { padding: 6px 12px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
   .export-btn:hover { color: var(--text); border-color: var(--border-strong); }
-
   .exact-banner { background: #EAF3DE; border: 0.5px solid #9FE1CB; border-radius: var(--radius-sm); padding: 7px 12px; font-size: 12px; color: #3B6D11; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
-
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
 
+  /* Cards */
   .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.15s, box-shadow 0.15s; }
   .card:hover { border-color: var(--border-strong); box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .card.seller-match { border-color: var(--accent); }
   .card-img-wrap { width: 100%; height: 150px; border-radius: var(--radius-sm); overflow: hidden; background: var(--bg); display: flex; align-items: center; justify-content: center; }
   .card-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
   .card-img-wrap .no-img { font-size: 32px; opacity: 0.2; }
@@ -117,20 +146,51 @@
   .meta-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .keywords { display: flex; flex-wrap: wrap; gap: 4px; }
   .kw { font-size: 11px; padding: 2px 7px; background: var(--bg); border-radius: 99px; color: var(--text-muted); border: 0.5px solid var(--border); }
-  .card-link { display: block; text-align: center; padding: 8px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; text-decoration: none; color: var(--text-muted); margin-top: auto; transition: all 0.1s; }
+  .card-actions { display: flex; gap: 6px; margin-top: auto; }
+  .card-link { flex: 1; display: block; text-align: center; padding: 8px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; text-decoration: none; color: var(--text-muted); transition: all 0.1s; }
   .card-link:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-bg); }
+  .track-btn { padding: 8px 10px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text-muted); display: flex; align-items: center; gap: 4px; white-space: nowrap; transition: all 0.1s; }
+  .track-btn:hover { color: #854F0B; border-color: #854F0B; background: #FAEEDA; }
+  .track-btn.tracking { color: #3B6D11; border-color: #3B6D11; background: #EAF3DE; }
 
+  /* Empty / error */
   .empty { text-align: center; padding: 4rem 1rem; color: var(--text-muted); }
   .empty i { font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.3; }
   .empty p { font-size: 15px; }
   .error-bar { background: #FCEBEB; border: 0.5px solid #F09595; border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: #A32D2D; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
   .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Price tracker tab */
+  .tracker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .tracker-header h2 { font-size: 18px; font-weight: 600; }
+  .tracker-empty { text-align: center; padding: 4rem 1rem; color: var(--text-muted); }
+  .tracker-empty i { font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.3; }
+  .tracker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .tracker-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .tracker-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; gap: 8px; }
+  .tracker-card-title { font-size: 13px; font-weight: 500; line-height: 1.4; flex: 1; }
+  .tracker-card-price { font-size: 20px; font-weight: 600; white-space: nowrap; }
+  .tracker-card-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .price-change { font-size: 12px; font-weight: 500; padding: 2px 7px; border-radius: 4px; }
+  .price-up   { background: #FCEBEB; color: #A32D2D; }
+  .price-down { background: #EAF3DE; color: #3B6D11; }
+  .price-same { background: var(--bg); color: var(--text-muted); }
+  .chart-wrap { position: relative; height: 120px; margin-bottom: 10px; }
+  .tracker-card-footer { display: flex; gap: 6px; }
+  .tracker-card-footer a { flex: 1; text-align: center; padding: 7px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; text-decoration: none; color: var(--text-muted); }
+  .tracker-card-footer a:hover { color: var(--accent); border-color: var(--accent); }
+  .untrack-btn { padding: 7px 10px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text-muted); }
+  .untrack-btn:hover { color: #A32D2D; border-color: #A32D2D; }
+  .last-checked { font-size: 11px; color: var(--text-muted); }
+  .refresh-all-btn { padding: 7px 14px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; background: var(--surface); color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+  .refresh-all-btn:hover { color: var(--text); border-color: var(--border-strong); }
+  .tracker-limit { font-size: 12px; color: var(--text-muted); }
 </style>
 </head>
 <body>
 
-<!-- Login screen -->
+<!-- Login -->
 <div id="login-screen">
   <div class="login-card">
     <h2><i class="ti ti-tool" style="color:#1a56db"></i> eBay Parts Finder</h2>
@@ -141,85 +201,136 @@
   </div>
 </div>
 
-<!-- Main app (hidden until logged in) -->
+<!-- App -->
 <div id="app">
   <header>
     <i class="ti ti-tool" style="font-size:22px;color:#1a56db"></i>
     <h1>eBay Parts Finder</h1>
-    <span>Team tool</span>
+    <span style="font-size:12px;color:var(--text-muted);background:var(--bg);border:0.5px solid var(--border);padding:3px 8px;border-radius:99px;">Team tool</span>
     <button class="logout-btn" onclick="logout()"><i class="ti ti-logout" style="font-size:13px"></i> Sign out</button>
   </header>
 
-  <div class="container">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('search')"><i class="ti ti-search"></i> Search</div>
+    <div class="tab" onclick="switchTab('tracker')"><i class="ti ti-chart-line"></i> Price Tracker <span id="tracker-count" style="background:var(--accent);color:#fff;border-radius:99px;padding:1px 7px;font-size:11px;display:none">0</span></div>
+  </div>
 
-    <div class="setup-card" id="setup-card">
-      <strong>🔧 One-time setup:</strong> Paste your Railway backend URL below (e.g. <code>https://your-app.up.railway.app</code>). This is saved in your browser — your colleagues do the same once.
-      <br>
-      <input type="text" id="backend-url" placeholder="https://your-app.up.railway.app" />
-      <button class="save-btn" onclick="saveBackend()">Save & Test</button>
-      <div class="backend-status" id="backend-status"></div>
-    </div>
+  <!-- Search Tab -->
+  <div id="tab-search" class="tab-content active">
+    <div class="container">
 
-    <div class="search-wrap">
-      <input type="text" id="query" placeholder="Search by part name or part number..." onkeydown="if(event.key==='Enter')doSearch()" />
-      <select id="market">
-        <option value="EBAY_GB">🇬🇧 eBay UK</option>
-        <option value="EBAY_US">🇺🇸 eBay US</option>
-        <option value="EBAY_DE">🇩🇪 eBay DE</option>
-        <option value="EBAY_FR">🇫🇷 eBay FR</option>
-        <option value="EBAY_AU">🇦🇺 eBay AU</option>
-      </select>
-      <select id="sort">
-        <option value="relevance">Relevance</option>
-        <option value="price">Price ↑</option>
-        <option value="-price">Price ↓</option>
-        <option value="-date">Newest</option>
-      </select>
-      <button class="go" id="search-btn" onclick="doSearch()">
-        <i class="ti ti-search"></i> Search
-      </button>
-    </div>
-
-    <div class="search-options">
-      <div class="toggle-wrap">
-        <label>
-          <input type="checkbox" id="exact-mode" />
-          <i class="ti ti-hash" style="font-size:15px"></i>
-          Exact part number match
-        </label>
-        <span class="hint">— wraps search in quotes for precise results</span>
+      <div class="setup-card" id="setup-card">
+        <strong>🔧 One-time setup:</strong> Paste your Railway backend URL below.
+        <input type="text" id="backend-url" placeholder="https://your-app.up.railway.app" />
+        <button class="save-btn" onclick="saveBackend()">Save & Test</button>
+        <div class="backend-status" id="backend-status"></div>
       </div>
-      <div class="limit-wrap">
-        <label>Results:</label>
-        <select id="limit">
-          <option value="50">50</option>
-          <option value="100">100</option>
-          <option value="200">200 (max)</option>
+
+      <!-- Seller filter panel -->
+      <div class="seller-panel">
+        <div class="seller-panel-header">
+          <h3><i class="ti ti-store"></i> Trusted Sellers</h3>
+          <label class="seller-toggle">
+            <input type="checkbox" id="seller-filter-on" onchange="toggleSellerFilter()" />
+            Filter to saved sellers only
+          </label>
+        </div>
+        <div class="seller-input-row">
+          <input type="text" id="seller-input" placeholder="Enter eBay seller username e.g. gsfcarparts" onkeydown="if(event.key==='Enter')addSeller()" />
+          <button onclick="addSeller()"><i class="ti ti-plus"></i> Add</button>
+        </div>
+        <div class="seller-tags" id="seller-tags">
+          <span class="no-sellers">No sellers saved yet — add some above</span>
+        </div>
+      </div>
+
+      <div class="seller-active-bar" id="seller-active-bar">
+        <i class="ti ti-filter"></i> <span id="seller-active-text"></span>
+      </div>
+
+      <div class="search-wrap">
+        <input type="text" id="query" placeholder="Search by part name or part number..." onkeydown="if(event.key==='Enter')doSearch()" />
+        <select id="market">
+          <option value="EBAY_GB">🇬🇧 eBay UK</option>
+          <option value="EBAY_US">🇺🇸 eBay US</option>
+          <option value="EBAY_DE">🇩🇪 eBay DE</option>
+          <option value="EBAY_FR">🇫🇷 eBay FR</option>
+          <option value="EBAY_AU">🇦🇺 eBay AU</option>
         </select>
+        <select id="sort">
+          <option value="relevance">Relevance</option>
+          <option value="price">Price ↑</option>
+          <option value="-price">Price ↓</option>
+          <option value="-date">Newest</option>
+        </select>
+        <button class="go" id="search-btn" onclick="doSearch()">
+          <i class="ti ti-search"></i> Search
+        </button>
+      </div>
+
+      <div class="search-options">
+        <div class="toggle-wrap">
+          <label>
+            <input type="checkbox" id="exact-mode" />
+            <i class="ti ti-hash" style="font-size:15px"></i>
+            Exact part number match
+          </label>
+          <span class="hint">— wraps search in quotes for precise results</span>
+        </div>
+        <div class="limit-wrap">
+          <label>Results:</label>
+          <select id="limit">
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="200">200 (max)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filters">
+        <label>Price: £</label>
+        <input type="number" id="min-price" placeholder="min" min="0" />
+        <span style="color:var(--text-muted);font-size:13px">–</span>
+        <input type="number" id="max-price" placeholder="max" min="0" />
+        <span style="width:1px;height:20px;background:var(--border);display:inline-block;margin:0 4px"></span>
+        <label>Condition:</label>
+        <button class="pill active" data-cond="all"         onclick="setCond(this)">All</button>
+        <button class="pill"        data-cond="NEW"         onclick="setCond(this)">New</button>
+        <button class="pill"        data-cond="USED"        onclick="setCond(this)">Used</button>
+        <button class="pill"        data-cond="UNSPECIFIED" onclick="setCond(this)">Unspecified</button>
+      </div>
+
+      <div id="error-box"></div>
+      <div id="results-area">
+        <div class="empty">
+          <i class="ti ti-search"></i>
+          <p>Search by part name or paste an exact part number above</p>
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class="filters">
-      <label>Price: £</label>
-      <input type="number" id="min-price" placeholder="min" min="0" />
-      <span style="color:var(--text-muted);font-size:13px">–</span>
-      <input type="number" id="max-price" placeholder="max" min="0" />
-      <span style="width:1px;height:20px;background:var(--border);display:inline-block;margin:0 4px"></span>
-      <label>Condition:</label>
-      <button class="pill active" data-cond="all"         onclick="setCond(this)">All</button>
-      <button class="pill"        data-cond="NEW"         onclick="setCond(this)">New</button>
-      <button class="pill"        data-cond="USED"        onclick="setCond(this)">Used</button>
-      <button class="pill"        data-cond="UNSPECIFIED" onclick="setCond(this)">Unspecified</button>
-    </div>
-
-    <div id="error-box"></div>
-    <div id="results-area">
-      <div class="empty">
-        <i class="ti ti-search"></i>
-        <p>Search by part name or paste an exact part number above</p>
+  <!-- Price Tracker Tab -->
+  <div id="tab-tracker" class="tab-content">
+    <div class="container">
+      <div class="tracker-header">
+        <div>
+          <h2><i class="ti ti-chart-line" style="color:var(--accent)"></i> Price Tracker</h2>
+          <p style="font-size:13px;color:var(--text-muted);margin-top:4px">Track up to 10 parts — prices update when you click Refresh</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="tracker-limit" id="tracker-limit">0 / 10 parts tracked</span>
+          <button class="refresh-all-btn" onclick="refreshAll()"><i class="ti ti-refresh"></i> Refresh all</button>
+        </div>
+      </div>
+      <div id="tracker-area">
+        <div class="tracker-empty">
+          <i class="ti ti-chart-line"></i>
+          <p>No parts tracked yet</p>
+          <p style="font-size:13px;margin-top:8px">Search for a part and click <strong>Track price</strong> on any listing</p>
+        </div>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -228,48 +339,52 @@ const PASSWORD = 'Apd123';
 
 // ── Auth ───────────────────────────────────────────────────
 function checkPassword() {
-  const val = document.getElementById('pw-input').value;
-  if (val === PASSWORD) {
+  if (document.getElementById('pw-input').value === PASSWORD) {
     sessionStorage.setItem('parts_auth', '1');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     initApp();
   } else {
-    const err = document.getElementById('login-error');
-    err.style.display = 'block';
+    document.getElementById('login-error').style.display = 'block';
     document.getElementById('pw-input').value = '';
     document.getElementById('pw-input').focus();
   }
 }
-
-function logout() {
-  sessionStorage.removeItem('parts_auth');
-  location.reload();
-}
-
-// Check if already logged in this session
+function logout() { sessionStorage.removeItem('parts_auth'); location.reload(); }
 if (sessionStorage.getItem('parts_auth') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
 }
 
-// ── App init ───────────────────────────────────────────────
-let backendUrl = localStorage.getItem('ebay_backend_url') || '';
-let allResults = [];
-let condFilter = 'all';
-let lastExact  = false;
+// ── Tabs ───────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab[onclick="switchTab('${name}')"]`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+  if (name === 'tracker') renderTracker();
+}
+
+// ── State ──────────────────────────────────────────────────
+let backendUrl  = localStorage.getItem('ebay_backend_url') || '';
+let allResults  = [];
+let condFilter  = 'all';
+let lastExact   = false;
+let savedSellers = JSON.parse(localStorage.getItem('saved_sellers') || '[]');
+let trackedParts = JSON.parse(localStorage.getItem('tracked_parts') || '[]');
+let charts = {};
 
 function initApp() {
   if (backendUrl) {
     document.getElementById('backend-url').value = backendUrl;
     document.getElementById('setup-card').style.display = 'none';
   }
+  renderSellerTags();
+  updateTrackerCount();
 }
-
-// Run initApp if already authed on load
 if (sessionStorage.getItem('parts_auth') === '1') initApp();
 
-// ── Backend setup ──────────────────────────────────────────
+// ── Backend ────────────────────────────────────────────────
 async function saveBackend() {
   const raw = document.getElementById('backend-url').value.trim().replace(/\/$/, '');
   const status = document.getElementById('backend-status');
@@ -278,21 +393,71 @@ async function saveBackend() {
   status.className = 'backend-status';
   try {
     const res = await fetch(`${raw}/health`, { signal: AbortSignal.timeout(8000) });
-    if (!res.ok) throw new Error('Bad response');
     const data = await res.json();
     if (data.status === 'ok') {
       backendUrl = raw;
       localStorage.setItem('ebay_backend_url', backendUrl);
-      status.textContent = '✓ Connected! You can start searching.';
+      status.textContent = '✓ Connected!';
       status.className = 'backend-status ok';
-    } else throw new Error('Unexpected response');
+    } else throw new Error();
   } catch {
-    status.textContent = '✗ Could not reach that URL. Make sure Railway is deployed and the URL is correct.';
+    status.textContent = '✗ Could not reach that URL.';
     status.className = 'backend-status err';
   }
 }
 
-// ── Filters ────────────────────────────────────────────────
+// ── Seller filter ──────────────────────────────────────────
+function addSeller() {
+  const input = document.getElementById('seller-input');
+  const val = input.value.trim().toLowerCase();
+  if (!val) return;
+  if (savedSellers.includes(val)) { input.value = ''; return; }
+  savedSellers.push(val);
+  localStorage.setItem('saved_sellers', JSON.stringify(savedSellers));
+  input.value = '';
+  renderSellerTags();
+  if (allResults.length) renderResults(allResults);
+}
+
+function removeSeller(name) {
+  savedSellers = savedSellers.filter(s => s !== name);
+  localStorage.setItem('saved_sellers', JSON.stringify(savedSellers));
+  renderSellerTags();
+  if (allResults.length) renderResults(allResults);
+}
+
+function toggleSellerFilter() {
+  if (allResults.length) renderResults(allResults);
+  updateSellerBar();
+}
+
+function updateSellerBar() {
+  const on = document.getElementById('seller-filter-on').checked;
+  const bar = document.getElementById('seller-active-bar');
+  if (on && savedSellers.length) {
+    bar.style.display = 'flex';
+    document.getElementById('seller-active-text').textContent =
+      `Showing results from: ${savedSellers.join(', ')}`;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function renderSellerTags() {
+  const container = document.getElementById('seller-tags');
+  if (!savedSellers.length) {
+    container.innerHTML = '<span class="no-sellers">No sellers saved yet — add some above</span>';
+    return;
+  }
+  container.innerHTML = savedSellers.map(s => `
+    <span class="seller-tag">
+      <i class="ti ti-store" style="font-size:12px"></i> ${s}
+      <button onclick="removeSeller('${s}')" title="Remove"><i class="ti ti-x"></i></button>
+    </span>`).join('');
+  updateSellerBar();
+}
+
+// ── Helpers ────────────────────────────────────────────────
 function setCond(btn) {
   document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -302,31 +467,37 @@ function setCond(btn) {
 
 function extractKeywords(title) {
   const stop = new Set(['the','a','an','and','or','for','with','of','in','on','to','at','by','from','is','are','was','as','it','its','this','new','used','fits','fit','oem','genuine']);
-  return [...new Set(
-    title.split(/[\s\-\/,()[\]]+/)
-      .filter(w => w.length > 2 && !stop.has(w.toLowerCase()) && !/^\d+$/.test(w))
-      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-  )].slice(0, 7);
+  return [...new Set(title.split(/[\s\-\/,()[\]]+/).filter(w => w.length > 2 && !stop.has(w.toLowerCase()) && !/^\d+$/.test(w)).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()))].slice(0, 7);
 }
 
 function condBadge(cond) {
   if (!cond) return '';
   const c = cond.toUpperCase();
-  if (c.includes('NEW'))    return '<span class="badge badge-new">New</span>';
+  if (c.includes('NEW')) return '<span class="badge badge-new">New</span>';
   if (c.includes('REFURB') || c.includes('CERTIF')) return '<span class="badge badge-refurb">Refurbished</span>';
-  if (c.includes('USED'))   return '<span class="badge badge-used">Used</span>';
+  if (c.includes('USED')) return '<span class="badge badge-used">Used</span>';
   return `<span class="badge badge-used">${cond}</span>`;
 }
 
-function sym(currency) {
-  return { GBP:'£', USD:'$', EUR:'€', AUD:'A$' }[currency] || currency;
+function sym(currency) { return { GBP:'£', USD:'$', EUR:'€', AUD:'A$' }[currency] || currency; }
+
+function isTracked(itemId) { return trackedParts.some(p => p.id === itemId); }
+
+function updateTrackerCount() {
+  const n = trackedParts.length;
+  const badge = document.getElementById('tracker-count');
+  const limit = document.getElementById('tracker-limit');
+  badge.textContent = n;
+  badge.style.display = n > 0 ? 'inline' : 'none';
+  if (limit) limit.textContent = `${n} / 10 parts tracked`;
 }
 
-// ── Render ─────────────────────────────────────────────────
+// ── Render results ─────────────────────────────────────────
 function renderResults(items) {
   const minP = parseFloat(document.getElementById('min-price').value) || 0;
   const maxP = parseFloat(document.getElementById('max-price').value) || Infinity;
   const sort = document.getElementById('sort').value;
+  const sellerOn = document.getElementById('seller-filter-on').checked;
 
   let filtered = items.filter(item => {
     const price = parseFloat(item.price?.value || 0);
@@ -337,6 +508,10 @@ function renderResults(items) {
       if (condFilter === 'USED' && !c.includes('USED')) return false;
       if (condFilter === 'UNSPECIFIED' && c !== '' && c !== 'UNSPECIFIED') return false;
     }
+    if (sellerOn && savedSellers.length) {
+      const seller = (item.seller?.username || '').toLowerCase();
+      if (!savedSellers.includes(seller)) return false;
+    }
     return true;
   });
 
@@ -345,7 +520,10 @@ function renderResults(items) {
 
   const area = document.getElementById('results-area');
   if (!filtered.length) {
-    area.innerHTML = '<div class="empty"><i class="ti ti-package-off"></i><p>No listings match your filters</p></div>';
+    const msg = document.getElementById('seller-filter-on').checked && savedSellers.length
+      ? 'No listings from your saved sellers — try turning off the seller filter'
+      : 'No listings match your filters';
+    area.innerHTML = `<div class="empty"><i class="ti ti-package-off"></i><p>${msg}</p></div>`;
     return;
   }
 
@@ -367,24 +545,23 @@ function renderResults(items) {
     const imgUrl   = item.image?.imageUrl || item.thumbnailImages?.[0]?.imageUrl || '';
     const kws      = extractKeywords(title);
     const ship     = item.shippingOptions?.[0]?.shippingCost;
-    const shipHtml = ship?.value === '0.00'
-      ? `<div class="meta-row"><i class="ti ti-truck"></i><span>Free shipping</span></div>`
-      : ship?.value
-      ? `<div class="meta-row"><i class="ti ti-truck"></i><span>+${S}${parseFloat(ship.value).toFixed(2)} shipping</span></div>`
-      : '';
+    const shipHtml = ship?.value === '0.00' ? `<div class="meta-row"><i class="ti ti-truck"></i><span>Free shipping</span></div>`
+      : ship?.value ? `<div class="meta-row"><i class="ti ti-truck"></i><span>+${S}${parseFloat(ship.value).toFixed(2)} shipping</span></div>` : '';
+    const isSavedSeller = savedSellers.includes(seller.toLowerCase());
+    const tracked  = isTracked(item.itemId || url);
+    const trackLabel = tracked ? '<i class="ti ti-chart-line"></i> Tracking' : '<i class="ti ti-chart-line"></i> Track price';
 
     return `
-    <div class="card">
+    <div class="card${isSavedSeller ? ' seller-match' : ''}">
       <div class="card-img-wrap">
-        ${imgUrl
-          ? `<img src="${imgUrl}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\'ti ti-photo-off no-img\'></i>'" />`
-          : `<i class="ti ti-photo-off no-img"></i>`}
+        ${imgUrl ? `<img src="${imgUrl}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\'ti ti-photo-off no-img\'></i>'" />` : `<i class="ti ti-photo-off no-img"></i>`}
       </div>
       <div class="card-title">${title}</div>
       <div class="price-row"><span class="price">${S}${price}</span>${wasHtml}${savingHtml}</div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         ${condBadge(item.condition)}
         ${lastExact ? '<span class="badge badge-exact"><i class="ti ti-hash"></i> Exact</span>' : ''}
+        ${isSavedSeller ? '<span class="badge" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-store"></i> Saved seller</span>' : ''}
       </div>
       <div class="meta">
         <div class="meta-row"><i class="ti ti-store"></i><span>${seller}${feedback}</span></div>
@@ -392,7 +569,12 @@ function renderResults(items) {
         ${shipHtml}
       </div>
       <div class="keywords">${kws.map(k=>`<span class="kw">${k}</span>`).join('')}</div>
-      <a class="card-link" href="${url}" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> View on eBay</a>
+      <div class="card-actions">
+        <a class="card-link" href="${url}" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> View on eBay</a>
+        <button class="track-btn${tracked?' tracking':''}" onclick='trackPart(${JSON.stringify({id:item.itemId||url,title,price,currency,url,seller,imgUrl})})'>
+          ${trackLabel}
+        </button>
+      </div>
     </div>`;
   }).join('');
 
@@ -411,23 +593,10 @@ function exportCSV() {
   const rows = [['Title','Price','Currency','Condition','Seller','Feedback','Location','Keywords','URL']];
   allResults.forEach(item => {
     const kw = extractKeywords(item.title || '').join('; ');
-    rows.push([
-      `"${(item.title||'').replace(/"/g,'""')}"`,
-      item.price?.value || '',
-      item.price?.currency || '',
-      item.condition || '',
-      item.seller?.username || '',
-      item.seller?.feedbackScore || '',
-      [item.itemLocation?.city,item.itemLocation?.country].filter(Boolean).join(', '),
-      `"${kw}"`,
-      item.itemWebUrl || ''
-    ]);
+    rows.push([`"${(item.title||'').replace(/"/g,'""')}"`,item.price?.value||'',item.price?.currency||'',item.condition||'',item.seller?.username||'',item.seller?.feedbackScore||'',[item.itemLocation?.city,item.itemLocation?.country].filter(Boolean).join(', '),`"${kw}"`,item.itemWebUrl||'']);
   });
-  const blob = new Blob([rows.map(r=>r.join(',')).join('\n')], { type:'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `ebay-parts-${Date.now()}.csv`;
-  a.click();
+  const blob = new Blob([rows.map(r=>r.join(',')).join('\n')], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ebay-parts-${Date.now()}.csv`; a.click();
 }
 
 // ── Search ─────────────────────────────────────────────────
@@ -455,19 +624,14 @@ async function doSearch() {
 
   try {
     const res = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(20000) });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || `Server error ${res.status}`);
-    }
+    if (!res.ok) { const err = await res.json().catch(()=>({})); throw new Error(err.error||`Server error ${res.status}`); }
     const data = await res.json();
     allResults = data.itemSummaries || [];
     if (!allResults.length) {
-      document.getElementById('results-area').innerHTML = '<div class="empty"><i class="ti ti-package-off"></i><p>No listings found — try a broader search or turn off exact match</p></div>';
-    } else {
-      renderResults(allResults);
-    }
+      document.getElementById('results-area').innerHTML = '<div class="empty"><i class="ti ti-package-off"></i><p>No listings found</p></div>';
+    } else { renderResults(allResults); }
   } catch (err) {
-    showError(err.message || 'Something went wrong. Is your backend running?');
+    showError(err.message || 'Something went wrong.');
     document.getElementById('results-area').innerHTML = '';
   } finally {
     btn.disabled = false;
@@ -477,6 +641,137 @@ async function doSearch() {
 
 function showError(msg) {
   document.getElementById('error-box').innerHTML = `<div class="error-bar"><i class="ti ti-alert-circle"></i> ${msg}</div>`;
+}
+
+// ── Price tracker ──────────────────────────────────────────
+function trackPart(item) {
+  if (isTracked(item.id)) return;
+  if (trackedParts.length >= 10) { alert('You can track up to 10 parts at once. Remove one first from the Price Tracker tab.'); return; }
+  trackedParts.push({
+    id: item.id,
+    title: item.title,
+    currency: item.currency,
+    url: item.url,
+    seller: item.seller,
+    imgUrl: item.imgUrl,
+    history: [{ price: parseFloat(item.price), date: new Date().toLocaleDateString('en-GB') }],
+    lastChecked: new Date().toISOString()
+  });
+  localStorage.setItem('tracked_parts', JSON.stringify(trackedParts));
+  updateTrackerCount();
+  renderResults(allResults);
+}
+
+function untrackPart(id) {
+  trackedParts = trackedParts.filter(p => p.id !== id);
+  localStorage.setItem('tracked_parts', JSON.stringify(trackedParts));
+  // destroy chart
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  updateTrackerCount();
+  renderTracker();
+  if (allResults.length) renderResults(allResults);
+}
+
+async function refreshPart(id) {
+  const part = trackedParts.find(p => p.id === id);
+  if (!part || !backendUrl) return;
+  try {
+    const params = new URLSearchParams({ q: `"${part.title}"`, limit: 5, market: 'EBAY_GB' });
+    const res = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(15000) });
+    const data = await res.json();
+    const items = data.itemSummaries || [];
+    const match = items.find(i => (i.itemId || i.itemWebUrl) === id) || items[0];
+    if (match) {
+      const newPrice = parseFloat(match.price?.value || 0);
+      const today = new Date().toLocaleDateString('en-GB');
+      const last = part.history[part.history.length - 1];
+      if (last.date !== today) { part.history.push({ price: newPrice, date: today }); }
+      else { last.price = newPrice; }
+      if (part.history.length > 30) part.history = part.history.slice(-30);
+      part.lastChecked = new Date().toISOString();
+      localStorage.setItem('tracked_parts', JSON.stringify(trackedParts));
+    }
+  } catch {}
+  renderTracker();
+}
+
+async function refreshAll() {
+  for (const part of trackedParts) await refreshPart(part.id);
+}
+
+function renderTracker() {
+  const area = document.getElementById('tracker-area');
+  updateTrackerCount();
+  if (!trackedParts.length) {
+    area.innerHTML = `<div class="tracker-empty"><i class="ti ti-chart-line"></i><p>No parts tracked yet</p><p style="font-size:13px;margin-top:8px">Search for a part and click <strong>Track price</strong> on any listing</p></div>`;
+    return;
+  }
+
+  area.innerHTML = `<div class="tracker-grid">${trackedParts.map(part => {
+    const S = sym(part.currency || 'GBP');
+    const latest = part.history[part.history.length - 1]?.price || 0;
+    const prev   = part.history.length > 1 ? part.history[part.history.length - 2]?.price : null;
+    const diff   = prev !== null ? latest - prev : 0;
+    const diffHtml = prev === null ? '' : diff > 0
+      ? `<span class="price-change price-up">▲ ${S}${Math.abs(diff).toFixed(2)}</span>`
+      : diff < 0
+      ? `<span class="price-change price-down">▼ ${S}${Math.abs(diff).toFixed(2)}</span>`
+      : `<span class="price-change price-same">No change</span>`;
+    const checked = part.lastChecked ? new Date(part.lastChecked).toLocaleString('en-GB') : 'Never';
+
+    return `
+    <div class="tracker-card">
+      <div class="tracker-card-header">
+        <div class="tracker-card-title">${part.title}</div>
+        <div class="tracker-card-price">${S}${latest.toFixed(2)}</div>
+      </div>
+      <div class="tracker-card-meta">
+        <span><i class="ti ti-store" style="font-size:12px"></i> ${part.seller || '—'}</span>
+        ${diffHtml}
+        <span class="last-checked">Updated: ${checked}</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chart-${part.id.replace(/[^a-z0-9]/gi,'_')}"></canvas>
+      </div>
+      <div class="tracker-card-footer">
+        <a href="${part.url}" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> View listing</a>
+        <button class="export-btn" onclick="refreshPart('${part.id}')"><i class="ti ti-refresh"></i> Refresh</button>
+        <button class="untrack-btn" onclick="untrackPart('${part.id}')"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+
+  // Draw charts
+  trackedParts.forEach(part => {
+    const canvasId = `chart-${part.id.replace(/[^a-z0-9]/gi,'_')}`;
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    if (charts[part.id]) { charts[part.id].destroy(); }
+    const S = sym(part.currency || 'GBP');
+    charts[part.id] = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: part.history.map(h => h.date),
+        datasets: [{
+          data: part.history.map(h => h.price),
+          borderColor: '#1a56db',
+          backgroundColor: 'rgba(26,86,219,0.08)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 3,
+          pointBackgroundColor: '#1a56db',
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${S}${ctx.parsed.y.toFixed(2)}` } } },
+        scales: {
+          x: { ticks: { font: { size: 10 }, maxTicksLimit: 6 }, grid: { display: false } },
+          y: { ticks: { font: { size: 10 }, callback: v => `${S}${v.toFixed(0)}` }, grid: { color: 'rgba(0,0,0,0.05)' } }
+        }
+      }
+    });
+  });
 }
 </script>
 </body>
