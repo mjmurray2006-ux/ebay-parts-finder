@@ -6,7 +6,7 @@
 <title>eBay Parts Finder</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.2.0/dist/tabler-icons.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx-js-style.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
 <style>
   :root {
     --bg: #f9f9f8;
@@ -1210,9 +1210,9 @@ function renderBulkResults() {
 
 function exportBulkExcel() {
   if (!bulkResults.length) return;
-  if (typeof XLSXStyle === 'undefined') { alert('Excel library not loaded — please refresh the page.'); return; }
+  if (typeof XLSX === 'undefined') { alert('Excel library not loaded — please refresh the page.'); return; }
 
-  const wb  = XLSXStyle.utils.book_new();
+  const wb  = XLSX.utils.book_new();
   const aoa = [['Part Searched','Title','Price','Condition','Seller','Feedback Score','Shipping','Location','eBay URL','Keywords']];
 
   bulkResults.forEach(group => {
@@ -1236,7 +1236,7 @@ function exportBulkExcel() {
     }
   });
 
-  const ws = XLSXStyle.utils.aoa_to_sheet(aoa);
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
 
   // Bold + shaded header row
   const hdrStyle = {
@@ -1273,8 +1273,8 @@ function exportBulkExcel() {
     { wch: 55 }, { wch: 35 }
   ];
 
-  XLSXStyle.utils.book_append_sheet(wb, ws, 'Bulk Search Results');
-  XLSXStyle.writeFile(wb, `ebay-bulk-search-${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, ws, 'Bulk Search Results');
+  XLSX.writeFile(wb, `ebay-bulk-search-${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 // ── Render tracker tab ─────────────────────────────────────
