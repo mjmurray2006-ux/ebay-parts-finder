@@ -997,9 +997,9 @@ function renderTracker() {
       </div>
       <div class="tracker-card-footer">
         <a href="${part.url}" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> View listing</a>
-        <button class="export-btn" onclick="exportPartHistory(${JSON.stringify(part.id)})"><i class="ti ti-download"></i> Export CSV</button>
-        <button class="export-btn" onclick="refreshPart(${JSON.stringify(part.id)})" ${expired ? 'disabled title="Tracking period ended"' : ''}><i class="ti ti-refresh"></i></button>
-        <button class="untrack-btn" onclick="untrackPart(${JSON.stringify(part.id)})"><i class="ti ti-trash"></i></button>
+        <button class="export-btn" onclick='exportPartHistory(${JSON.stringify(part.id)})'><i class="ti ti-download"></i> Export CSV</button>
+        <button class="export-btn" onclick='refreshPart(${JSON.stringify(part.id)})' ${expired ? 'disabled title="Tracking period ended"' : ''}><i class="ti ti-refresh"></i></button>
+        <button class="untrack-btn" onclick='untrackPart(${JSON.stringify(part.id)})'><i class="ti ti-trash"></i></button>
       </div>
     </div>`;
   }).join('')}</div>`;
