@@ -57,10 +57,8 @@
   .tab { padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; display: flex; align-items: center; gap: 6px; }
   .tab:hover { color: var(--text); }
   .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
   .tab-content { display: none; }
   .tab-content.active { display: block; }
-
   .container { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
 
   /* Setup card */
@@ -99,7 +97,6 @@
   .search-wrap button.go { height: 42px; padding: 0 22px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; }
   .search-wrap button.go:hover { opacity: 0.9; }
   .search-wrap button.go:disabled { opacity: 0.5; cursor: not-allowed; }
-
   .search-options { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
   .toggle-wrap { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 6px 12px; }
   .toggle-wrap label { font-size: 13px; color: var(--text-muted); cursor: pointer; user-select: none; display: flex; align-items: center; gap: 7px; }
@@ -108,7 +105,6 @@
   .limit-wrap { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 6px 12px; }
   .limit-wrap label { font-size: 13px; color: var(--text-muted); }
   .limit-wrap select { height: 28px; padding: 0 6px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--bg); color: var(--text); }
-
   .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
   .filters label { font-size: 13px; color: var(--text-muted); }
   .filters input[type=number] { width: 90px; height: 32px; padding: 0 8px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--surface); color: var(--text); }
@@ -120,6 +116,7 @@
   .results-bar strong { color: var(--text); }
   .export-btn { padding: 6px 12px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
   .export-btn:hover { color: var(--text); border-color: var(--border-strong); }
+  .export-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .exact-banner { background: #EAF3DE; border: 0.5px solid #9FE1CB; border-radius: var(--radius-sm); padding: 7px 12px; font-size: 12px; color: #3B6D11; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
 
@@ -168,17 +165,17 @@
   .tracker-empty i { font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.3; }
   .tracker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
   .tracker-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
-  .tracker-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; gap: 8px; }
-  .tracker-card-title { font-size: 13px; font-weight: 500; line-height: 1.4; flex: 1; }
+  .tracker-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
+  .tracker-card-title { font-size: 13px; font-weight: 500; line-height: 1.4; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .tracker-card-price { font-size: 20px; font-weight: 600; white-space: nowrap; }
-  .tracker-card-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .tracker-card-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .price-change { font-size: 12px; font-weight: 500; padding: 2px 7px; border-radius: 4px; }
   .price-up   { background: #FCEBEB; color: #A32D2D; }
   .price-down { background: #EAF3DE; color: #3B6D11; }
   .price-same { background: var(--bg); color: var(--text-muted); }
   .chart-wrap { position: relative; height: 120px; margin-bottom: 10px; }
-  .tracker-card-footer { display: flex; gap: 6px; }
-  .tracker-card-footer a { flex: 1; text-align: center; padding: 7px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; text-decoration: none; color: var(--text-muted); }
+  .tracker-card-footer { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tracker-card-footer a { flex: 1; text-align: center; padding: 7px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; text-decoration: none; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 4px; }
   .tracker-card-footer a:hover { color: var(--accent); border-color: var(--accent); }
   .untrack-btn { padding: 7px 10px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text-muted); }
   .untrack-btn:hover { color: #A32D2D; border-color: #A32D2D; }
@@ -186,6 +183,35 @@
   .refresh-all-btn { padding: 7px 14px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; background: var(--surface); color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
   .refresh-all-btn:hover { color: var(--text); border-color: var(--border-strong); }
   .tracker-limit { font-size: 12px; color: var(--text-muted); }
+
+  /* Add-part form */
+  .add-part-form { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 20px; }
+  .add-part-form h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+  .add-part-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .add-part-row input[type=text] { flex: 1; min-width: 200px; height: 38px; padding: 0 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 14px; background: var(--bg); color: var(--text); }
+  .add-part-row input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .add-part-row select { height: 38px; padding: 0 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--bg); color: var(--text); }
+  .add-part-btn { height: 38px; padding: 0 18px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .add-part-btn:hover { opacity: 0.9; }
+  .add-part-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .add-part-status { font-size: 12px; color: var(--text-muted); margin-top: 8px; min-height: 18px; }
+  .add-part-status.ok  { color: #3B6D11; }
+  .add-part-status.err { color: #A32D2D; }
+
+  /* Price drop notification banner */
+  .drop-banner { background: #EAF3DE; border: 0.5px solid #9FE1CB; border-radius: var(--radius); padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 10px; }
+  .drop-banner-content { flex: 1; color: #3B6D11; }
+  .drop-banner-content strong { font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; }
+  .drop-banner-content ul { margin: 0; padding: 0 0 0 18px; }
+  .drop-banner-content ul li { font-size: 12px; margin-bottom: 2px; }
+  .drop-banner-close { background: none; border: none; cursor: pointer; font-size: 18px; color: #3B6D11; padding: 0; line-height: 1; flex-shrink: 0; opacity: 0.7; }
+  .drop-banner-close:hover { opacity: 1; }
+
+  /* Days remaining badge */
+  .days-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500; white-space: nowrap; }
+  .days-badge.active  { background: #E6F1FB; color: #185FA5; }
+  .days-badge.soon    { background: #FAEEDA; color: #854F0B; }
+  .days-badge.expired { background: var(--bg); color: var(--text-muted); border: 0.5px solid var(--border); }
 </style>
 </head>
 <body>
@@ -222,11 +248,10 @@
       <div class="setup-card" id="setup-card">
         <strong>🔧 One-time setup:</strong> Paste your Railway backend URL below.
         <input type="text" id="backend-url" placeholder="https://your-app.up.railway.app" />
-        <button class="save-btn" onclick="saveBackend()">Save & Test</button>
+        <button class="save-btn" onclick="saveBackend()">Save &amp; Test</button>
         <div class="backend-status" id="backend-status"></div>
       </div>
 
-      <!-- Seller filter panel -->
       <div class="seller-panel">
         <div class="seller-panel-header">
           <h3><i class="ti ti-store"></i> Trusted Sellers</h3>
@@ -313,21 +338,45 @@
   <!-- Price Tracker Tab -->
   <div id="tab-tracker" class="tab-content">
     <div class="container">
+
+      <!-- Add part form -->
+      <div class="add-part-form">
+        <h3><i class="ti ti-plus" style="color:var(--accent)"></i> Add part to track</h3>
+        <div class="add-part-row">
+          <input type="text" id="add-part-query" placeholder="Part name or number e.g. BMW E46 front brake pads" onkeydown="if(event.key==='Enter')trackPartManually()" />
+          <select id="add-part-days">
+            <option value="7">7 days</option>
+            <option value="14">14 days</option>
+            <option value="30" selected>30 days</option>
+            <option value="60">60 days</option>
+            <option value="90">90 days</option>
+          </select>
+          <button class="add-part-btn" id="add-part-btn" onclick="trackPartManually()">
+            <i class="ti ti-player-play"></i> Start Tracking
+          </button>
+        </div>
+        <div class="add-part-status" id="add-part-status"></div>
+      </div>
+
+      <!-- Price drop notification area -->
+      <div id="drop-banner-area"></div>
+
       <div class="tracker-header">
         <div>
           <h2><i class="ti ti-chart-line" style="color:var(--accent)"></i> Price Tracker</h2>
-          <p style="font-size:13px;color:var(--text-muted);margin-top:4px">Track up to 10 parts — prices update when you click Refresh</p>
+          <p style="font-size:13px;color:var(--text-muted);margin-top:4px">Track up to 10 parts — prices auto-update once per day</p>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
           <span class="tracker-limit" id="tracker-limit">0 / 10 parts tracked</span>
           <button class="refresh-all-btn" onclick="refreshAll()"><i class="ti ti-refresh"></i> Refresh all</button>
         </div>
       </div>
+
       <div id="tracker-area">
         <div class="tracker-empty">
           <i class="ti ti-chart-line"></i>
           <p>No parts tracked yet</p>
-          <p style="font-size:13px;margin-top:8px">Search for a part and click <strong>Track price</strong> on any listing</p>
+          <p style="font-size:13px;margin-top:8px">Add a part above or click <strong>Track price</strong> on any search result</p>
         </div>
       </div>
     </div>
@@ -362,17 +411,22 @@ function switchTab(name) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelector(`.tab[onclick="switchTab('${name}')"]`).classList.add('active');
   document.getElementById(`tab-${name}`).classList.add('active');
-  if (name === 'tracker') renderTracker();
+  if (name === 'tracker') {
+    renderTracker();
+    autoRefreshStale();
+  }
 }
 
 // ── State ──────────────────────────────────────────────────
-let backendUrl  = localStorage.getItem('ebay_backend_url') || '';
-let allResults  = [];
-let condFilter  = 'all';
-let lastExact   = false;
+let backendUrl   = localStorage.getItem('ebay_backend_url') || '';
+let allResults   = [];
+let condFilter   = 'all';
+let lastExact    = false;
 let savedSellers = JSON.parse(localStorage.getItem('saved_sellers') || '[]');
 let trackedParts = JSON.parse(localStorage.getItem('tracked_parts') || '[]');
-let charts = {};
+let charts       = {};
+let priceDrops   = [];
+let isAutoRefreshing = false;
 
 function initApp() {
   if (backendUrl) {
@@ -381,6 +435,8 @@ function initApp() {
   }
   renderSellerTags();
   updateTrackerCount();
+  // Auto-refresh stale parts in background on page load
+  setTimeout(autoRefreshStale, 1200);
 }
 if (sessionStorage.getItem('parts_auth') === '1') initApp();
 
@@ -418,19 +474,16 @@ function addSeller() {
   renderSellerTags();
   if (allResults.length) renderResults(allResults);
 }
-
 function removeSeller(name) {
   savedSellers = savedSellers.filter(s => s !== name);
   localStorage.setItem('saved_sellers', JSON.stringify(savedSellers));
   renderSellerTags();
   if (allResults.length) renderResults(allResults);
 }
-
 function toggleSellerFilter() {
   if (allResults.length) renderResults(allResults);
   updateSellerBar();
 }
-
 function updateSellerBar() {
   const on = document.getElementById('seller-filter-on').checked;
   const bar = document.getElementById('seller-active-bar');
@@ -442,7 +495,6 @@ function updateSellerBar() {
     bar.style.display = 'none';
   }
 }
-
 function renderSellerTags() {
   const container = document.getElementById('seller-tags');
   if (!savedSellers.length) {
@@ -464,12 +516,10 @@ function setCond(btn) {
   condFilter = btn.dataset.cond;
   if (allResults.length) renderResults(allResults);
 }
-
 function extractKeywords(title) {
   const stop = new Set(['the','a','an','and','or','for','with','of','in','on','to','at','by','from','is','are','was','as','it','its','this','new','used','fits','fit','oem','genuine']);
   return [...new Set(title.split(/[\s\-\/,()[\]]+/).filter(w => w.length > 2 && !stop.has(w.toLowerCase()) && !/^\d+$/.test(w)).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()))].slice(0, 7);
 }
-
 function condBadge(cond) {
   if (!cond) return '';
   const c = cond.toUpperCase();
@@ -478,11 +528,8 @@ function condBadge(cond) {
   if (c.includes('USED')) return '<span class="badge badge-used">Used</span>';
   return `<span class="badge badge-used">${cond}</span>`;
 }
-
 function sym(currency) { return { GBP:'£', USD:'$', EUR:'€', AUD:'A$' }[currency] || currency; }
-
 function isTracked(itemId) { return trackedParts.some(p => p.id === itemId); }
-
 function updateTrackerCount() {
   const n = trackedParts.length;
   const badge = document.getElementById('tracker-count');
@@ -490,6 +537,67 @@ function updateTrackerCount() {
   badge.textContent = n;
   badge.style.display = n > 0 ? 'inline' : 'none';
   if (limit) limit.textContent = `${n} / 10 parts tracked`;
+}
+
+// ── Tracking period helpers ────────────────────────────────
+function isExpired(part) {
+  if (!part.startDate || !part.trackingDays) return false;
+  const end = new Date(part.startDate);
+  end.setDate(end.getDate() + part.trackingDays);
+  return new Date() > end;
+}
+function daysRemaining(part) {
+  if (!part.startDate || !part.trackingDays) return null;
+  const end = new Date(part.startDate);
+  end.setDate(end.getDate() + part.trackingDays);
+  return Math.max(0, Math.ceil((end - new Date()) / 86400000));
+}
+function daysBadgeHtml(part) {
+  const days = daysRemaining(part);
+  if (days === null) return '';
+  if (days === 0) return '<span class="days-badge expired">Tracking ended</span>';
+  if (days <= 5) return `<span class="days-badge soon">${days} day${days === 1 ? '' : 's'} remaining</span>`;
+  return `<span class="days-badge active">${days} days remaining</span>`;
+}
+
+// ── Auto-refresh stale parts ───────────────────────────────
+async function autoRefreshStale() {
+  if (isAutoRefreshing || !backendUrl) return;
+  const today = new Date().toLocaleDateString('en-GB');
+  const stale = trackedParts.filter(p => {
+    if (isExpired(p)) return false;
+    const lastDate = p.lastChecked ? new Date(p.lastChecked).toLocaleDateString('en-GB') : null;
+    return lastDate !== today;
+  });
+  if (!stale.length) return;
+  isAutoRefreshing = true;
+  try {
+    for (const part of stale) await refreshPart(part.id);
+  } finally {
+    isAutoRefreshing = false;
+  }
+}
+
+// ── Price drop banner ──────────────────────────────────────
+function renderDropBanner() {
+  const area = document.getElementById('drop-banner-area');
+  if (!area || !priceDrops.length) { if (area) area.innerHTML = ''; return; }
+  const items = priceDrops.map(d =>
+    `<li><strong>${d.title}</strong> dropped by <strong>${d.S}${d.drop}</strong></li>`
+  ).join('');
+  area.innerHTML = `
+    <div class="drop-banner">
+      <i class="ti ti-trending-down" style="font-size:20px;color:#3B6D11;flex-shrink:0;margin-top:2px"></i>
+      <div class="drop-banner-content">
+        <strong>Price drop${priceDrops.length > 1 ? 's' : ''} detected!</strong>
+        <ul>${items}</ul>
+      </div>
+      <button class="drop-banner-close" onclick="closeBanner()" title="Dismiss"><i class="ti ti-x"></i></button>
+    </div>`;
+}
+function closeBanner() {
+  priceDrops = [];
+  renderDropBanner();
 }
 
 // ── Render results ─────────────────────────────────────────
@@ -587,7 +695,7 @@ function renderResults(items) {
     <div class="grid">${cards}</div>`;
 }
 
-// ── Export ─────────────────────────────────────────────────
+// ── Export search results CSV ──────────────────────────────
 function exportCSV() {
   if (!allResults.length) return;
   const rows = [['Title','Price','Currency','Condition','Seller','Feedback','Location','Keywords','URL']];
@@ -597,6 +705,28 @@ function exportCSV() {
   });
   const blob = new Blob([rows.map(r=>r.join(',')).join('\n')], {type:'text/csv'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ebay-parts-${Date.now()}.csv`; a.click();
+}
+
+// ── Export single part price history to CSV ────────────────
+function exportPartHistory(id) {
+  const part = trackedParts.find(p => p.id === id);
+  if (!part) return;
+  const currency = part.currency || 'GBP';
+  const rows = [['Date', `Price (${currency})`, `Change (${currency})`]];
+  part.history.forEach((h, i) => {
+    const prev = i > 0 ? part.history[i - 1].price : null;
+    const change = prev !== null
+      ? (h.price - prev >= 0 ? '+' : '') + (h.price - prev).toFixed(2)
+      : '';
+    rows.push([h.date, h.price.toFixed(2), change]);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const safeName = (part.searchQuery || part.title).slice(0, 40).replace(/[^a-z0-9]/gi, '-').toLowerCase();
+  a.download = `price-history-${safeName}.csv`;
+  a.click();
 }
 
 // ── Search ─────────────────────────────────────────────────
@@ -638,12 +768,11 @@ async function doSearch() {
     btn.innerHTML = '<i class="ti ti-search"></i> Search';
   }
 }
-
 function showError(msg) {
   document.getElementById('error-box').innerHTML = `<div class="error-bar"><i class="ti ti-alert-circle"></i> ${msg}</div>`;
 }
 
-// ── Price tracker ──────────────────────────────────────────
+// ── Track part from search results ─────────────────────────
 function trackPart(item) {
   if (isTracked(item.id)) return;
   if (trackedParts.length >= 10) { alert('You can track up to 10 parts at once. Remove one first from the Price Tracker tab.'); return; }
@@ -654,70 +783,199 @@ function trackPart(item) {
     url: item.url,
     seller: item.seller,
     imgUrl: item.imgUrl,
+    searchQuery: item.title,
     history: [{ price: parseFloat(item.price), date: new Date().toLocaleDateString('en-GB') }],
-    lastChecked: new Date().toISOString()
+    lastChecked: new Date().toISOString(),
+    startDate: new Date().toISOString(),
+    trackingDays: 30
   });
   localStorage.setItem('tracked_parts', JSON.stringify(trackedParts));
   updateTrackerCount();
   renderResults(allResults);
 }
 
+// ── Track part manually (from add-part form) ───────────────
+async function trackPartManually() {
+  const input  = document.getElementById('add-part-query');
+  const query  = input.value.trim();
+  const days   = parseInt(document.getElementById('add-part-days').value, 10);
+  const status = document.getElementById('add-part-status');
+
+  if (!query) {
+    status.className = 'add-part-status err';
+    status.textContent = 'Please enter a part name or number.';
+    return;
+  }
+  if (!backendUrl) {
+    status.className = 'add-part-status err';
+    status.textContent = 'Please configure your backend URL in the Search tab first.';
+    return;
+  }
+  if (trackedParts.length >= 10) {
+    status.className = 'add-part-status err';
+    status.textContent = 'Maximum 10 parts tracked. Remove one first.';
+    return;
+  }
+
+  const btn = document.getElementById('add-part-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px"></div> Searching…';
+  status.className = 'add-part-status';
+  status.textContent = 'Searching eBay for the cheapest listing…';
+
+  try {
+    const params = new URLSearchParams({ q: query, limit: 10, sort: 'price', market: 'EBAY_GB' });
+    const res = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(15000) });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const data = await res.json();
+    const items = (data.itemSummaries || []).filter(i => i.price?.value);
+
+    if (!items.length) {
+      status.className = 'add-part-status err';
+      status.textContent = 'No listings found — try a different search term.';
+      return;
+    }
+
+    items.sort((a, b) => parseFloat(a.price.value) - parseFloat(b.price.value));
+    const cheapest = items[0];
+    const itemId   = cheapest.itemId || cheapest.itemWebUrl;
+
+    if (isTracked(itemId)) {
+      status.className = 'add-part-status err';
+      status.textContent = 'This item is already being tracked.';
+      return;
+    }
+
+    const price    = parseFloat(cheapest.price.value);
+    const currency = cheapest.price.currency || 'GBP';
+    const S        = sym(currency);
+
+    trackedParts.push({
+      id: itemId,
+      title: cheapest.title,
+      currency,
+      url: cheapest.itemWebUrl || '#',
+      seller: cheapest.seller?.username || '—',
+      imgUrl: cheapest.image?.imageUrl || cheapest.thumbnailImages?.[0]?.imageUrl || '',
+      searchQuery: query,
+      history: [{ price, date: new Date().toLocaleDateString('en-GB') }],
+      lastChecked: new Date().toISOString(),
+      startDate: new Date().toISOString(),
+      trackingDays: days
+    });
+
+    localStorage.setItem('tracked_parts', JSON.stringify(trackedParts));
+    updateTrackerCount();
+
+    const shortTitle = cheapest.title.length > 55 ? cheapest.title.slice(0, 55) + '…' : cheapest.title;
+    status.className = 'add-part-status ok';
+    status.textContent = `✓ Now tracking: ${shortTitle} — cheapest found at ${S}${price.toFixed(2)}`;
+    input.value = '';
+    renderTracker();
+
+    setTimeout(() => {
+      const s = document.getElementById('add-part-status');
+      if (s && s.className === 'add-part-status ok') { s.textContent = ''; s.className = 'add-part-status'; }
+    }, 8000);
+
+  } catch (err) {
+    status.className = 'add-part-status err';
+    status.textContent = `Error: ${err.message || 'Could not reach eBay.'}`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-player-play"></i> Start Tracking';
+  }
+}
+
+// ── Untrack ────────────────────────────────────────────────
 function untrackPart(id) {
   trackedParts = trackedParts.filter(p => p.id !== id);
   localStorage.setItem('tracked_parts', JSON.stringify(trackedParts));
-  // destroy chart
   if (charts[id]) { charts[id].destroy(); delete charts[id]; }
   updateTrackerCount();
   renderTracker();
   if (allResults.length) renderResults(allResults);
 }
 
+// ── Refresh single part ────────────────────────────────────
 async function refreshPart(id) {
   const part = trackedParts.find(p => p.id === id);
   if (!part || !backendUrl) return;
+  const oldPrice = part.history.length ? part.history[part.history.length - 1].price : null;
+
   try {
-    const params = new URLSearchParams({ q: `"${part.title}"`, limit: 5, market: 'EBAY_GB' });
+    const q = part.searchQuery || part.title;
+    const params = new URLSearchParams({ q, limit: 10, sort: 'price', market: 'EBAY_GB' });
     const res = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(15000) });
     const data = await res.json();
-    const items = data.itemSummaries || [];
-    const match = items.find(i => (i.itemId || i.itemWebUrl) === id) || items[0];
-    if (match) {
-      const newPrice = parseFloat(match.price?.value || 0);
-      const today = new Date().toLocaleDateString('en-GB');
-      const last = part.history[part.history.length - 1];
-      if (last.date !== today) { part.history.push({ price: newPrice, date: today }); }
-      else { last.price = newPrice; }
-      if (part.history.length > 30) part.history = part.history.slice(-30);
+    const items = (data.itemSummaries || []).filter(i => i.price?.value);
+
+    if (items.length) {
+      items.sort((a, b) => parseFloat(a.price.value) - parseFloat(b.price.value));
+      const cheapest = items[0];
+      const newPrice = parseFloat(cheapest.price.value);
+      const today    = new Date().toLocaleDateString('en-GB');
+      const last     = part.history[part.history.length - 1];
+
+      if (last && last.date !== today) {
+        part.history.push({ price: newPrice, date: today });
+      } else if (last) {
+        last.price = newPrice;
+      } else {
+        part.history.push({ price: newPrice, date: today });
+      }
+
+      if (part.history.length > 90) part.history = part.history.slice(-90);
       part.lastChecked = new Date().toISOString();
+
+      if (oldPrice !== null && newPrice < oldPrice) {
+        const S    = sym(part.currency || 'GBP');
+        const drop = (oldPrice - newPrice).toFixed(2);
+        const title = part.title.length > 50 ? part.title.slice(0, 50) + '…' : part.title;
+        priceDrops.push({ title, S, drop });
+      }
+
       localStorage.setItem('tracked_parts', JSON.stringify(trackedParts));
     }
   } catch {}
+
   renderTracker();
+  renderDropBanner();
 }
 
+// ── Refresh all non-expired parts ─────────────────────────
 async function refreshAll() {
-  for (const part of trackedParts) await refreshPart(part.id);
+  if (!backendUrl) { alert('Please configure your backend URL in the Search tab first.'); return; }
+  for (const part of trackedParts) {
+    if (!isExpired(part)) await refreshPart(part.id);
+  }
 }
 
+// ── Render tracker tab ─────────────────────────────────────
 function renderTracker() {
   const area = document.getElementById('tracker-area');
   updateTrackerCount();
+
   if (!trackedParts.length) {
-    area.innerHTML = `<div class="tracker-empty"><i class="ti ti-chart-line"></i><p>No parts tracked yet</p><p style="font-size:13px;margin-top:8px">Search for a part and click <strong>Track price</strong> on any listing</p></div>`;
+    area.innerHTML = `<div class="tracker-empty"><i class="ti ti-chart-line"></i><p>No parts tracked yet</p><p style="font-size:13px;margin-top:8px">Add a part above or click <strong>Track price</strong> on any search result</p></div>`;
     return;
   }
 
   area.innerHTML = `<div class="tracker-grid">${trackedParts.map(part => {
-    const S = sym(part.currency || 'GBP');
-    const latest = part.history[part.history.length - 1]?.price || 0;
-    const prev   = part.history.length > 1 ? part.history[part.history.length - 2]?.price : null;
-    const diff   = prev !== null ? latest - prev : 0;
+    const S       = sym(part.currency || 'GBP');
+    const latest  = part.history[part.history.length - 1]?.price || 0;
+    const prev    = part.history.length > 1 ? part.history[part.history.length - 2]?.price : null;
+    const diff    = prev !== null ? latest - prev : 0;
     const diffHtml = prev === null ? '' : diff > 0
       ? `<span class="price-change price-up">▲ ${S}${Math.abs(diff).toFixed(2)}</span>`
       : diff < 0
       ? `<span class="price-change price-down">▼ ${S}${Math.abs(diff).toFixed(2)}</span>`
       : `<span class="price-change price-same">No change</span>`;
-    const checked = part.lastChecked ? new Date(part.lastChecked).toLocaleString('en-GB') : 'Never';
+    const checked  = part.lastChecked ? new Date(part.lastChecked).toLocaleString('en-GB') : 'Never';
+    const expired  = isExpired(part);
+    const periodLabel = part.trackingDays ? `${part.trackingDays}-day tracking` : '';
+    const badge    = daysBadgeHtml(part);
+    const safeId   = part.id.replace(/[^a-z0-9]/gi, '_');
 
     return `
     <div class="tracker-card">
@@ -728,43 +986,72 @@ function renderTracker() {
       <div class="tracker-card-meta">
         <span><i class="ti ti-store" style="font-size:12px"></i> ${part.seller || '—'}</span>
         ${diffHtml}
-        <span class="last-checked">Updated: ${checked}</span>
+      </div>
+      <div class="tracker-card-meta" style="margin-top:-2px">
+        <span class="last-checked">Checked: ${checked}</span>
+        ${periodLabel ? `<span style="font-size:11px;color:var(--text-muted)">${periodLabel}</span>` : ''}
+        ${badge}
       </div>
       <div class="chart-wrap">
-        <canvas id="chart-${part.id.replace(/[^a-z0-9]/gi,'_')}"></canvas>
+        <canvas id="chart-${safeId}"></canvas>
       </div>
       <div class="tracker-card-footer">
         <a href="${part.url}" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> View listing</a>
-        <button class="export-btn" onclick="refreshPart('${part.id}')"><i class="ti ti-refresh"></i> Refresh</button>
-        <button class="untrack-btn" onclick="untrackPart('${part.id}')"><i class="ti ti-trash"></i></button>
+        <button class="export-btn" onclick="exportPartHistory(${JSON.stringify(part.id)})"><i class="ti ti-download"></i> Export CSV</button>
+        <button class="export-btn" onclick="refreshPart(${JSON.stringify(part.id)})" ${expired ? 'disabled title="Tracking period ended"' : ''}><i class="ti ti-refresh"></i></button>
+        <button class="untrack-btn" onclick="untrackPart(${JSON.stringify(part.id)})"><i class="ti ti-trash"></i></button>
       </div>
     </div>`;
   }).join('')}</div>`;
 
-  // Draw charts
+  // Draw colour-coded charts
   trackedParts.forEach(part => {
-    const canvasId = `chart-${part.id.replace(/[^a-z0-9]/gi,'_')}`;
-    const canvas = document.getElementById(canvasId);
+    const canvasId = `chart-${part.id.replace(/[^a-z0-9]/gi, '_')}`;
+    const canvas   = document.getElementById(canvasId);
     if (!canvas) return;
     if (charts[part.id]) { charts[part.id].destroy(); }
-    const S = sym(part.currency || 'GBP');
+
+    const S    = sym(part.currency || 'GBP');
+    const data = part.history.map(h => h.price);
+
+    const pointColor = (idx) => {
+      if (idx === 0 || data.length <= 1) return '#3b82f6';
+      if (data[idx] < data[idx - 1]) return '#22c55e';
+      if (data[idx] > data[idx - 1]) return '#ef4444';
+      return '#3b82f6';
+    };
+
     charts[part.id] = new Chart(canvas, {
       type: 'line',
       data: {
         labels: part.history.map(h => h.date),
         datasets: [{
-          data: part.history.map(h => h.price),
-          borderColor: '#1a56db',
-          backgroundColor: 'rgba(26,86,219,0.08)',
+          data,
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59,130,246,0.06)',
           tension: 0.3,
           fill: true,
-          pointRadius: 3,
-          pointBackgroundColor: '#1a56db',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: (ctx) => pointColor(ctx.dataIndex),
+          pointBorderColor:     (ctx) => pointColor(ctx.dataIndex),
+          segment: {
+            borderColor: (ctx) => {
+              const a = ctx.p0.parsed.y, b = ctx.p1.parsed.y;
+              if (b < a) return '#22c55e';
+              if (b > a) return '#ef4444';
+              return '#3b82f6';
+            }
+          }
         }]
       },
       options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${S}${ctx.parsed.y.toFixed(2)}` } } },
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => `${S}${ctx.parsed.y.toFixed(2)}` } }
+        },
         scales: {
           x: { ticks: { font: { size: 10 }, maxTicksLimit: 6 }, grid: { display: false } },
           y: { ticks: { font: { size: 10 }, callback: v => `${S}${v.toFixed(0)}` }, grid: { color: 'rgba(0,0,0,0.05)' } }
