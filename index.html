@@ -321,6 +321,69 @@
   .pp-price-tag.costlier { background: #EAF3DE; color: #3B6D11; }
   .pp-price-tag.equal    { background: var(--bg); color: var(--text-muted); border: 0.5px solid var(--border); }
 
+  /* ── Keyword Analyser ───────────────────────────────────── */
+  .ka-form { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
+  .ka-form h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 7px; }
+  .ka-form > p { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+  .ka-search-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ka-search-row input { flex: 1; min-width: 200px; height: 42px; padding: 0 14px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); font-size: 15px; background: var(--bg); color: var(--text); }
+  .ka-search-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .ka-btn { height: 42px; padding: 0 22px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .ka-btn:hover { opacity: 0.9; }
+  .ka-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ka-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
+  .ka-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+
+  /* Word cloud */
+  .ka-cloud { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 0 4px; line-height: 1.8; }
+  .ka-cloud-word { cursor: default; font-weight: 600; border-radius: 4px; padding: 2px 6px; transition: opacity 0.15s; white-space: nowrap; }
+  .ka-cloud-word:hover { opacity: 0.75; }
+
+  /* Keyword table */
+  .ka-table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 0.5px solid var(--border); }
+  .ka-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ka-table thead th { background: var(--bg); padding: 9px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; border-bottom: 0.5px solid var(--border); }
+  .ka-table thead th.ka-th-r { text-align: right; }
+  .ka-table tbody td { padding: 8px 14px; border-bottom: 0.5px solid var(--border); }
+  .ka-table tbody tr:last-child td { border-bottom: none; }
+  .ka-table tbody tr:hover { background: var(--bg); }
+  .ka-bar-cell { width: 160px; }
+  .ka-bar-bg { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; border: 0.5px solid var(--border); }
+  .ka-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; }
+  .ka-pct-cell { text-align: right; font-weight: 600; font-size: 12px; width: 50px; }
+  .ka-count-cell { text-align: right; color: var(--text-muted); font-size: 12px; width: 70px; }
+
+  /* Title analyser */
+  .ka-title-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
+  .ka-title-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 7px; }
+  .ka-title-section > p { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+  .ka-title-input-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .ka-title-input-row input { flex: 1; min-width: 200px; height: 40px; padding: 0 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 14px; background: var(--bg); color: var(--text); }
+  .ka-title-input-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .ka-title-check-btn { height: 40px; padding: 0 18px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+  .ka-title-check-btn:hover { opacity: 0.9; }
+  .ka-title-words { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .ka-tw { font-size: 13px; font-weight: 500; padding: 4px 10px; border-radius: 5px; }
+  .ka-tw-have { background: #EAF3DE; color: #3B6D11; }
+  .ka-tw-miss { background: #FCEBEB; color: #A32D2D; }
+  .ka-tw-stop { background: var(--bg); color: var(--text-muted); border: 0.5px solid var(--border); }
+  .ka-miss-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ka-miss-tag { font-size: 12px; font-weight: 600; padding: 4px 10px; background: #FCEBEB; color: #A32D2D; border: 0.5px solid #F09595; border-radius: 99px; }
+
+  /* Suggested title */
+  .ka-suggested-wrap { background: var(--accent-bg); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 6px; }
+  .ka-suggested-title { font-size: 15px; font-weight: 600; color: var(--accent); line-height: 1.5; word-break: break-word; }
+  .ka-suggested-meta { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+  .ka-copy-btn { margin-top: 10px; padding: 6px 14px; border: 0.5px solid var(--accent); border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; background: var(--surface); color: var(--accent); display: inline-flex; align-items: center; gap: 5px; }
+  .ka-copy-btn:hover { background: var(--accent-bg); }
+
+  /* Phrases */
+  .ka-phrases-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+  .ka-phrase-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .ka-phrase-text { font-size: 13px; font-weight: 600; }
+  .ka-phrase-meta { font-size: 11px; color: var(--text-muted); white-space: nowrap; text-align: right; }
+  .ka-phrase-rank { width: 22px; height: 22px; background: var(--accent); color: #fff; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
   /* ── My Stores / Gold theme ─────────────────────────────── */
   .card.own-store { border-color: #f59e0b !important; background: #fffbeb; }
   @media (prefers-color-scheme: dark) { .card.own-store { background: #1e1500; } }
@@ -493,6 +556,7 @@
     <div class="tab" onclick="switchTab('bulk')"><i class="ti ti-list-search"></i> Bulk Search</div>
     <div class="tab" onclick="switchTab('pricing')"><i class="ti ti-tag"></i> Price Positioning</div>
     <div class="tab" onclick="switchTab('stores')"><i class="ti ti-star" style="color:#d97706"></i> My Stores</div>
+    <div class="tab" onclick="switchTab('keywords')"><i class="ti ti-typography"></i> Keyword Analyser</div>
   </div>
 
   <!-- Search Tab -->
@@ -737,6 +801,25 @@
 
     </div>
   </div>
+
+  <!-- Keyword Analyser Tab -->
+  <div id="tab-keywords" class="tab-content">
+    <div class="container">
+
+      <div class="ka-form">
+        <h3><i class="ti ti-typography" style="color:var(--accent)"></i> Keyword Analyser</h3>
+        <p>Fetches the top 200 eBay listings for your part and ranks every keyword by how often it appears across titles — so you know exactly which words drive visibility.</p>
+        <div class="ka-search-row">
+          <input type="text" id="ka-query" placeholder="Part name or number e.g. BMW E46 front brake pads" onkeydown="if(event.key==='Enter')runKA()" />
+          <button class="ka-btn" id="ka-btn" onclick="runKA()"><i class="ti ti-zoom-in"></i> Analyse Keywords</button>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:8px;min-height:18px" id="ka-status"></div>
+      </div>
+
+      <div id="ka-results"></div>
+
+    </div>
+  </div>
 </div>
 
 <script>
@@ -785,6 +868,7 @@ function switchTab(name) {
       : '(no sellers saved — add them in the Search tab)';
   }
   if (name === 'stores') renderStoresDash();
+  if (name === 'keywords') { /* nothing to pre-render */ }
 }
 
 // ── State ──────────────────────────────────────────────────
@@ -2326,6 +2410,302 @@ function renderTracker() {
       }
     });
   });
+}
+
+// ── Keyword Analyser ───────────────────────────────────────
+const KA_STOP = new Set([
+  'the','a','an','and','or','for','with','to','in','of','on','at','by','from',
+  'is','it','its','fits','fit','oem','genuine','new','used','ref','part','parts',
+  'car','auto','vehicle','original','brand','quality','good','will','this',
+  'that','these','those','not','no','as','be','was','are','has','have','do',
+  'does','did','but','if','so','up','out','inc','set','kit','pair','x2','x1',
+  '1x','2x','pcs','pc','nos','nos.','each','genuine','aftermarket'
+]);
+
+let kaData = null; // last analysis results
+
+async function runKA() {
+  const query = document.getElementById('ka-query').value.trim();
+  if (!query) return;
+  if (!backendUrl) {
+    document.getElementById('ka-status').textContent = 'Please set your backend URL in the Search tab first.';
+    return;
+  }
+  const btn = document.getElementById('ka-btn');
+  const status = document.getElementById('ka-status');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Fetching…';
+  status.textContent = 'Fetching top 200 listings from eBay…';
+  document.getElementById('ka-results').innerHTML = '';
+
+  try {
+    const params = new URLSearchParams({ q: query, limit: 200, sort: 'relevance', market: 'EBAY_GB' });
+    const res  = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(25000) });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const data = await res.json();
+    const titles = (data.itemSummaries || []).map(i => i.title || '').filter(Boolean);
+
+    if (!titles.length) {
+      status.textContent = 'No listings found — try a different search term.';
+      return;
+    }
+
+    status.textContent = `Analysing ${titles.length} listing titles…`;
+    kaData = kaAnalyse(titles);
+    status.textContent = '';
+    renderKA(query, titles.length);
+  } catch (err) {
+    status.textContent = `Error: ${err.message || 'Could not reach eBay.'}`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-zoom-in"></i> Analyse Keywords';
+  }
+}
+
+function kaAnalyse(titles) {
+  // Single-word frequency
+  const wordFreq = {};
+  const wordDocs = {}; // how many titles contain the word
+  titles.forEach(title => {
+    const words = title.toLowerCase()
+      .replace(/[^a-z0-9\s\-]/g, ' ')
+      .split(/[\s\-]+/)
+      .filter(w => w.length > 1 && !KA_STOP.has(w) && !/^\d{1,2}$/.test(w));
+    const unique = [...new Set(words)];
+    unique.forEach(w => { wordDocs[w] = (wordDocs[w] || 0) + 1; });
+    words.forEach(w  => { wordFreq[w]  = (wordFreq[w]  || 0) + 1; });
+  });
+
+  const ranked = Object.entries(wordDocs)
+    .sort((a, b) => b[1] - a[1])
+    .map(([word, docCount]) => ({
+      word,
+      docCount,
+      totalCount: wordFreq[word] || 0,
+      pct: Math.round(docCount / titles.length * 100)
+    }));
+
+  // 2-3 word phrase frequency
+  const phraseFreq = {};
+  titles.forEach(title => {
+    const words = title.toLowerCase()
+      .replace(/[^a-z0-9\s\-]/g, ' ')
+      .split(/[\s\-]+/)
+      .filter(w => w.length > 1);
+    for (let i = 0; i < words.length - 1; i++) {
+      // bigrams
+      const bi = `${words[i]} ${words[i+1]}`;
+      if (!KA_STOP.has(words[i]) || !KA_STOP.has(words[i+1])) {
+        phraseFreq[bi] = (phraseFreq[bi] || 0) + 1;
+      }
+      // trigrams
+      if (i < words.length - 2) {
+        const tri = `${words[i]} ${words[i+1]} ${words[i+2]}`;
+        phraseFreq[tri] = (phraseFreq[tri] || 0) + 1;
+      }
+    }
+  });
+
+  // Filter phrases: at least 2 non-stop words, min 3 appearances
+  const topPhrases = Object.entries(phraseFreq)
+    .filter(([phrase, cnt]) => {
+      if (cnt < 3) return false;
+      const pw = phrase.split(' ');
+      return pw.filter(w => !KA_STOP.has(w)).length >= 2;
+    })
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([phrase, cnt]) => ({ phrase, cnt, pct: Math.round(cnt / titles.length * 100) }));
+
+  return { ranked, topPhrases, total: titles.length };
+}
+
+function renderKA(query, total) {
+  if (!kaData) return;
+  const { ranked, topPhrases } = kaData;
+  const top50  = ranked.slice(0, 50);
+  const top20  = ranked.slice(0, 20);
+  const maxDoc = top50[0]?.docCount || 1;
+
+  // Cloud colours by frequency tier
+  const cloudWords = top50.map(({ word, pct }) => {
+    const tier = pct >= 60 ? 0 : pct >= 40 ? 1 : pct >= 25 ? 2 : pct >= 12 ? 3 : 4;
+    const sizes  = ['2.2rem','1.7rem','1.3rem','1.05rem','0.88rem'];
+    const colors = ['#1a56db','#1668c0','#2563eb','#3b82f6','#93c5fd'];
+    return `<span class="ka-cloud-word" style="font-size:${sizes[tier]};color:${colors[tier]}"
+      title="${word}: ${pct}% of listings">${word}</span>`;
+  }).join('');
+
+  // Ranked table rows (top 50)
+  const tableRows = top50.map(({ word, docCount, pct }) => {
+    const barPct = Math.round(docCount / maxDoc * 100);
+    return `<tr>
+      <td style="font-weight:600">${word}</td>
+      <td class="ka-bar-cell"><div class="ka-bar-bg"><div class="ka-bar-fill" style="width:${barPct}%"></div></div></td>
+      <td class="ka-count-cell">${docCount}</td>
+      <td class="ka-pct-cell">${pct}%</td>
+    </tr>`;
+  }).join('');
+
+  // Suggested title: build from top keywords up to 80 chars
+  const suggestedTitle = buildSuggestedTitle(top20, query);
+  const charCount = suggestedTitle.length;
+  const charColor = charCount > 80 ? '#A32D2D' : charCount > 70 ? '#d97706' : '#3B6D11';
+
+  // Phrase cards
+  const phraseCards = topPhrases.map((p, i) => `
+    <div class="ka-phrase-card">
+      <div class="ka-phrase-rank">${i + 1}</div>
+      <div class="ka-phrase-text">${p.phrase}</div>
+      <div class="ka-phrase-meta">${p.cnt} listings<br>${p.pct}%</div>
+    </div>`).join('');
+
+  document.getElementById('ka-results').innerHTML = `
+    <!-- Word Cloud -->
+    <div class="ka-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <h3 style="margin:0"><i class="ti ti-cloud" style="color:var(--accent)"></i> Keyword Cloud <span style="font-size:12px;font-weight:400;color:var(--text-muted)">(top 50 by listing count)</span></h3>
+        <button class="export-btn" onclick="exportKACSV()"><i class="ti ti-download"></i> Export CSV</button>
+      </div>
+      <div class="ka-cloud">${cloudWords}</div>
+    </div>
+
+    <!-- Ranked table -->
+    <div class="ka-section">
+      <h3><i class="ti ti-table" style="color:var(--accent)"></i> Keyword Rankings <span style="font-size:12px;font-weight:400;color:var(--text-muted)">(top 50 of ${ranked.length} keywords from ${total} listings)</span></h3>
+      <div class="ka-table-wrap">
+        <table class="ka-table">
+          <thead><tr>
+            <th>Keyword</th>
+            <th class="ka-bar-cell">Frequency</th>
+            <th class="ka-th-r">Listings</th>
+            <th class="ka-th-r">% of total</th>
+          </tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Title analyser -->
+    <div class="ka-title-section" id="ka-title-section">
+      <h3><i class="ti ti-pencil" style="color:var(--accent)"></i> Title Analyser</h3>
+      <p>Paste your current eBay listing title to see which top keywords you're already using (green) and which high-value ones you're missing (red).</p>
+      <div class="ka-title-input-row">
+        <input type="text" id="ka-user-title" placeholder="Paste your current listing title here…" onkeydown="if(event.key==='Enter')checkKATitle()" />
+        <button class="ka-title-check-btn" onclick="checkKATitle()"><i class="ti ti-check"></i> Check Title</button>
+      </div>
+      <div id="ka-title-output"></div>
+    </div>
+
+    <!-- Suggested title -->
+    <div class="ka-section">
+      <h3><i class="ti ti-wand" style="color:var(--accent)"></i> Suggested Optimised Title</h3>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Built from the highest-frequency keywords, within eBay's 80-character limit.</p>
+      <div class="ka-suggested-wrap">
+        <div class="ka-suggested-title" id="ka-suggested-title">${suggestedTitle}</div>
+        <div class="ka-suggested-meta" id="ka-suggested-meta">
+          <span style="color:${charColor};font-weight:600">${charCount} characters</span>
+          ${charCount > 80 ? ' — <span style="color:#A32D2D">over eBay\'s 80-char limit</span>' : ' — within eBay limit ✓'}
+        </div>
+      </div>
+      <button class="ka-copy-btn" onclick="copyKATitle()"><i class="ti ti-copy"></i> Copy title</button>
+    </div>
+
+    <!-- Top phrases -->
+    ${topPhrases.length ? `<div class="ka-section">
+      <h3><i class="ti ti-quote" style="color:var(--accent)"></i> Top Keyword Combinations <span style="font-size:12px;font-weight:400;color:var(--text-muted)">(most-used 2–3 word phrases)</span></h3>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">These phrases appear together frequently — include them in your titles for maximum relevance.</p>
+      <div class="ka-phrases-grid">${phraseCards}</div>
+    </div>` : ''}`;
+}
+
+function buildSuggestedTitle(topWords, originalQuery) {
+  // Start with the original query words, then add top keywords until 80 chars
+  const queryWords = originalQuery.toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 1);
+  const parts = [...new Set(queryWords)];
+  const topWordList = topWords.map(t => t.word);
+
+  for (const word of topWordList) {
+    if (parts.includes(word)) continue;
+    const candidate = [...parts, word].join(' ');
+    if (candidate.length > 80) break;
+    parts.push(word);
+  }
+
+  return parts.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+function checkKATitle() {
+  const title = document.getElementById('ka-user-title').value.trim();
+  if (!title || !kaData) return;
+  const top20 = kaData.ranked.slice(0, 20);
+  const titleWords = new Set(
+    title.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 1)
+  );
+  const have = top20.filter(({ word }) => titleWords.has(word));
+  const miss = top20.filter(({ word }) => !titleWords.has(word));
+
+  // Annotated title (colour each word)
+  const annotated = title.split(/(\s+)/).map(token => {
+    const clean = token.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!clean) return token;
+    const isHave = have.some(k => k.word === clean);
+    const isMiss = miss.some(k => k.word === clean);
+    if (isHave) return `<span class="ka-tw ka-tw-have">${token}</span>`;
+    if (KA_STOP.has(clean)) return `<span class="ka-tw ka-tw-stop">${token}</span>`;
+    return `<span class="ka-tw" style="background:var(--bg);color:var(--text)">${token}</span>`;
+  }).join('');
+
+  const missTags = miss.map(k =>
+    `<span class="ka-miss-tag" title="${k.pct}% of listings">${k.word} <span style="opacity:0.7;font-size:10px">${k.pct}%</span></span>`
+  ).join('');
+
+  document.getElementById('ka-title-output').innerHTML = `
+    <div style="margin-bottom:10px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:6px">Your title — green = high-value keyword present, red = stop word</div>
+      <div class="ka-title-words">${annotated}</div>
+    </div>
+    <div style="margin-bottom:6px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:#A32D2D;margin-bottom:6px">
+        Missing top keywords (${miss.length} of top 20)
+      </div>
+      ${miss.length ? `<div class="ka-miss-list">${missTags}</div>` : '<div style="font-size:13px;color:#3B6D11">✓ Your title contains all top 20 keywords!</div>'}
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:8px">
+      <strong style="color:#3B6D11">${have.length}</strong> of top 20 keywords present &nbsp;·&nbsp;
+      <strong style="color:#A32D2D">${miss.length}</strong> missing &nbsp;·&nbsp;
+      <strong>${title.length}</strong> characters (eBay limit: 80)
+      ${title.length > 80 ? ' <span style="color:#A32D2D">— over limit!</span>' : ''}
+    </div>`;
+}
+
+function copyKATitle() {
+  const el = document.getElementById('ka-suggested-title');
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const btn = document.querySelector('.ka-copy-btn');
+    if (btn) { btn.innerHTML = '<i class="ti ti-check"></i> Copied!'; setTimeout(() => { btn.innerHTML = '<i class="ti ti-copy"></i> Copy title'; }, 2000); }
+  });
+}
+
+function exportKACSV() {
+  if (!kaData) return;
+  const rows = [['Rank', 'Keyword', 'Listings containing word', '% of listings', 'Total occurrences']];
+  kaData.ranked.forEach(({ word, docCount, pct, totalCount }, i) => {
+    rows.push([i + 1, word, docCount, pct + '%', totalCount]);
+  });
+  rows.push([]);
+  rows.push(['Top Phrases', 'Appearances', '% of listings']);
+  kaData.topPhrases.forEach(({ phrase, cnt, pct }) => rows.push([`"${phrase}"`, cnt, pct + '%']));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `keyword-analysis-${Date.now()}.csv`;
+  a.click();
 }
 </script>
 </body>
