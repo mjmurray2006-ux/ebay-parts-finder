@@ -320,6 +320,127 @@
   .pp-price-tag.cheaper  { background: #FCEBEB; color: #A32D2D; }
   .pp-price-tag.costlier { background: #EAF3DE; color: #3B6D11; }
   .pp-price-tag.equal    { background: var(--bg); color: var(--text-muted); border: 0.5px solid var(--border); }
+
+  /* ── My Stores / Gold theme ─────────────────────────────── */
+  .card.own-store { border-color: #f59e0b !important; background: #fffbeb; }
+  @media (prefers-color-scheme: dark) { .card.own-store { background: #1e1500; } }
+  .badge-own-store { background: #FEF3C7; color: #92400E; border: 0.5px solid #f59e0b; }
+
+  /* Settings panel */
+  .settings-btn { padding: 5px 10px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); background: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 13px; }
+  .settings-btn:hover { color: #d97706; border-color: #f59e0b; }
+  .settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200; display: none; }
+  .settings-overlay.open { display: block; }
+  .settings-panel { position: fixed; right: 0; top: 0; bottom: 0; width: 370px; max-width: 95vw; background: var(--surface); border-left: 0.5px solid var(--border); z-index: 201; transform: translateX(100%); transition: transform 0.2s ease; overflow-y: auto; display: flex; flex-direction: column; }
+  .settings-panel.open { transform: translateX(0); }
+  .settings-hdr { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 0.5px solid var(--border); flex-shrink: 0; }
+  .settings-hdr h2 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .settings-hdr button { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 20px; display: flex; align-items: center; }
+  .settings-hdr button:hover { color: var(--text); }
+  .settings-body { padding: 18px 20px; flex: 1; }
+  .settings-body h3 { font-size: 12px; font-weight: 700; color: #d97706; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .settings-body > p { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5; }
+  .settings-store-row { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+  .settings-store-row input { flex: 1; min-width: 100px; height: 34px; padding: 0 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--bg); color: var(--text); }
+  .settings-store-row input:focus { outline: 2px solid #f59e0b; outline-offset: 1px; }
+  .settings-add-btn { height: 34px; padding: 0 14px; background: #d97706; color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+  .settings-add-btn:hover { opacity: 0.9; }
+  .my-store-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .my-store-item { display: flex; align-items: center; justify-content: space-between; background: #FEF3C7; border: 0.5px solid #f59e0b; border-radius: var(--radius-sm); padding: 8px 12px; }
+  @media (prefers-color-scheme: dark) { .my-store-item { background: #1e1500; } }
+  .my-store-item strong { font-size: 13px; color: #92400E; display: block; }
+  @media (prefers-color-scheme: dark) { .my-store-item strong { color: #fbbf24; } }
+  .my-store-item span { font-size: 11px; color: #d97706; }
+  .my-store-del { background: none; border: none; cursor: pointer; color: #92400E; opacity: 0.65; display: flex; align-items: center; padding: 2px; }
+  @media (prefers-color-scheme: dark) { .my-store-del { color: #fbbf24; } }
+  .my-store-del:hover { opacity: 1; }
+  .no-my-stores { font-size: 12px; color: var(--text-muted); font-style: italic; }
+
+  /* My Stores tab */
+  .stores-empty { text-align: center; padding: 4rem 1rem; color: var(--text-muted); }
+  .stores-empty i { font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.3; }
+  .store-tab-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+  .store-tab-pill { padding: 7px 16px; border: 0.5px solid var(--border); border-radius: 99px; font-size: 13px; font-weight: 500; cursor: pointer; background: var(--surface); color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+  .store-tab-pill:hover { border-color: #f59e0b; color: #d97706; }
+  .store-tab-pill.active { background: #FEF3C7; color: #92400E; border-color: #f59e0b; }
+  @media (prefers-color-scheme: dark) { .store-tab-pill.active { background: #1e1500; color: #fbbf24; } }
+  .store-sec-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+  .store-sec-hdr h2 { font-size: 18px; font-weight: 600; color: #d97706; display: flex; align-items: center; gap: 8px; margin: 0; }
+  .store-load-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .store-load-row input { flex: 1; min-width: 180px; height: 36px; padding: 0 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--bg); color: var(--text); }
+  .store-load-row input:focus { outline: 2px solid #f59e0b; outline-offset: 1px; }
+  .store-load-btn { height: 36px; padding: 0 16px; background: #d97706; color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .store-load-btn:hover { opacity: 0.9; }
+  .store-load-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .store-stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .store-stat-card { background: var(--surface); border: 0.5px solid #f59e0b; border-radius: var(--radius); padding: 12px 14px; }
+  .store-stat-val { font-size: 20px; font-weight: 700; color: #d97706; line-height: 1.2; }
+  .store-stat-lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; margin-top: 3px; }
+  .store-cond-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px; }
+  .store-cond-section h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .cond-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; }
+  .cond-lbl { width: 80px; flex-shrink: 0; color: var(--text-muted); }
+  .cond-bar-outer { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 0.5px solid var(--border); }
+  .cond-bar-inner { height: 100%; border-radius: 4px; }
+  .cond-pct { width: 52px; text-align: right; font-weight: 600; font-size: 11px; }
+  .store-kw-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px; }
+  .store-kw-section h4 { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .store-kw-cloud { display: flex; flex-wrap: wrap; gap: 6px; }
+  .store-kw-chip { font-size: 11px; padding: 3px 9px; background: #FEF3C7; color: #92400E; border: 0.5px solid #f59e0b; border-radius: 99px; font-weight: 500; }
+  @media (prefers-color-scheme: dark) { .store-kw-chip { background: #1e1500; color: #fbbf24; border-color: #d97706; } }
+  .store-listings-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; }
+  .store-listings-hdr { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 0.5px solid #f59e0b; background: #FEF3C7; }
+  @media (prefers-color-scheme: dark) { .store-listings-hdr { background: #1e1500; border-color: #d97706; } }
+  .store-listings-hdr h3 { font-size: 14px; font-weight: 600; color: #92400E; display: flex; align-items: center; gap: 7px; margin: 0; }
+  @media (prefers-color-scheme: dark) { .store-listings-hdr h3 { color: #fbbf24; } }
+  .store-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .store-tbl thead th { background: var(--bg); padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; border-bottom: 0.5px solid var(--border); }
+  .store-tbl tbody td { padding: 7px 12px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+  .store-tbl tbody tr:last-child td { border-bottom: none; }
+  .store-tbl tbody tr:hover { background: #fffbeb; }
+  .store-tbl .tl { max-width: 280px; min-width: 150px; }
+  .store-tbl .tl a { color: #d97706; text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+  .store-tbl .tl a:hover { text-decoration: underline; }
+  .store-msg { font-size: 13px; color: var(--text-muted); min-height: 20px; padding: 4px 0; }
+  .store-msg.err { color: #A32D2D; }
+  .store-msg.ok  { color: #3B6D11; }
+
+  /* Head to Head */
+  .h2h-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 20px; }
+  .h2h-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 7px; }
+  .h2h-section > p { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+  .h2h-controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .h2h-controls select, .h2h-controls input[type=text] { flex: 1; min-width: 150px; height: 38px; padding: 0 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--bg); color: var(--text); }
+  .h2h-controls input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .h2h-vs { font-size: 14px; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
+  .h2h-go { height: 38px; padding: 0 20px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .h2h-go:hover { opacity: 0.9; }
+  .h2h-go:disabled { opacity: 0.5; cursor: not-allowed; }
+  .h2h-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  @media (max-width: 700px) { .h2h-grid { grid-template-columns: 1fr; } }
+  .h2h-col { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .h2h-col.h2h-own { border-color: #f59e0b; }
+  .h2h-col.h2h-comp { border-color: var(--accent); }
+  .h2h-col-hdr { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+  .h2h-col.h2h-own .h2h-col-hdr { color: #d97706; }
+  .h2h-col.h2h-comp .h2h-col-hdr { color: var(--accent); }
+  .h2h-metric { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 0.5px solid var(--border); font-size: 12px; }
+  .h2h-metric:last-child { border-bottom: none; }
+  .h2h-metric span:first-child { color: var(--text-muted); }
+  .h2h-metric span:last-child { font-weight: 600; }
+  .h2h-score-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 14px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .h2h-score-num { font-size: 52px; font-weight: 800; line-height: 1; flex-shrink: 0; }
+  .h2h-score-detail h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .h2h-score-detail p { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-top: 4px; }
+  .h2h-kw-gap { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px; }
+  .h2h-kw-gap h4 { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .h2h-kw-gap p { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+  .h2h-gap-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .h2h-gap-tag { font-size: 11px; padding: 3px 9px; background: #FCEBEB; color: #A32D2D; border: 0.5px solid #F09595; border-radius: 99px; font-weight: 500; }
+
+  /* PP own-store rows */
+  .pp-table tbody tr.pp-row-own { background: rgba(254,243,199,0.7); }
+  .pp-table tbody tr.pp-row-own:hover { background: rgba(254,243,199,0.95); }
 </style>
 </head>
 <body>
@@ -341,14 +462,37 @@
     <i class="ti ti-tool" style="font-size:22px;color:#1a56db"></i>
     <h1>eBay Parts Finder</h1>
     <span style="font-size:12px;color:var(--text-muted);background:var(--bg);border:0.5px solid var(--border);padding:3px 8px;border-radius:99px;">Team tool</span>
+    <button class="settings-btn" onclick="openSettings()"><i class="ti ti-star" style="font-size:15px;color:#d97706"></i> My Stores</button>
     <button class="logout-btn" onclick="logout()"><i class="ti ti-logout" style="font-size:13px"></i> Sign out</button>
   </header>
+
+  <!-- Settings panel -->
+  <div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
+  <div class="settings-panel" id="settings-panel">
+    <div class="settings-hdr">
+      <h2><i class="ti ti-star" style="color:#d97706"></i> My Stores</h2>
+      <button onclick="closeSettings()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="settings-body">
+      <h3><i class="ti ti-star" style="color:#d97706"></i> Own Store Usernames</h3>
+      <p>Add your own eBay store usernames. Your listings will be highlighted in gold throughout all tabs — clearly separated from competitors.</p>
+      <div class="settings-store-row">
+        <input type="text" id="my-store-username" placeholder="eBay username" onkeydown="if(event.key==='Enter')addMyStore()" />
+        <input type="text" id="my-store-label" placeholder="Label e.g. Main Store" onkeydown="if(event.key==='Enter')addMyStore()" />
+        <button class="settings-add-btn" onclick="addMyStore()">Add</button>
+      </div>
+      <div class="my-store-list" id="my-store-list">
+        <span class="no-my-stores">No stores added yet</span>
+      </div>
+    </div>
+  </div>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab('search')"><i class="ti ti-search"></i> Search</div>
     <div class="tab" onclick="switchTab('tracker')"><i class="ti ti-chart-line"></i> Price Tracker <span id="tracker-count" style="background:var(--accent);color:#fff;border-radius:99px;padding:1px 7px;font-size:11px;display:none">0</span></div>
     <div class="tab" onclick="switchTab('bulk')"><i class="ti ti-list-search"></i> Bulk Search</div>
     <div class="tab" onclick="switchTab('pricing')"><i class="ti ti-tag"></i> Price Positioning</div>
+    <div class="tab" onclick="switchTab('stores')"><i class="ti ti-star" style="color:#d97706"></i> My Stores</div>
   </div>
 
   <!-- Search Tab -->
@@ -570,6 +714,29 @@
 
     </div>
   </div>
+
+  <!-- My Stores Tab -->
+  <div id="tab-stores" class="tab-content">
+    <div class="container">
+
+      <!-- Head to Head -->
+      <div class="h2h-section">
+        <h3><i class="ti ti-arrows-left-right" style="color:var(--accent)"></i> Head to Head Comparison</h3>
+        <p>Compare one of your stores against a competitor seller for a specific search term.</p>
+        <div class="h2h-controls">
+          <select id="h2h-own"><option value="">Your store…</option></select>
+          <span class="h2h-vs">vs</span>
+          <select id="h2h-comp"><option value="">Competitor…</option></select>
+          <input type="text" id="h2h-query" placeholder="Search term e.g. BMW E46 brake pads" onkeydown="if(event.key==='Enter')runH2H()" />
+          <button class="h2h-go" id="h2h-go-btn" onclick="runH2H()"><i class="ti ti-arrows-left-right"></i> Compare</button>
+        </div>
+        <div id="h2h-results" style="margin-top:16px"></div>
+      </div>
+
+      <div id="stores-area"></div>
+
+    </div>
+  </div>
 </div>
 
 <script>
@@ -617,6 +784,7 @@ function switchTab(name) {
       ? `(${savedSellers.length} seller${savedSellers.length > 1 ? 's' : ''} saved)`
       : '(no sellers saved — add them in the Search tab)';
   }
+  if (name === 'stores') renderStoresDash();
 }
 
 // ── State ──────────────────────────────────────────────────
@@ -633,6 +801,17 @@ let bulkResults   = JSON.parse(localStorage.getItem('bulk_search_results') || '[
 let bulkCancelled = false;
 let bulkSortField = null;
 let bulkSortDir   = 'asc';
+let myStores      = JSON.parse(localStorage.getItem('my_stores') || '[]');
+let storeCache    = JSON.parse(localStorage.getItem('store_cache') || '{}');
+let activeStore   = null;
+
+function isOwnStore(username) {
+  return myStores.some(s => s.username.toLowerCase() === (username || '').toLowerCase());
+}
+function ownStoreLabel(username) {
+  const s = myStores.find(s => s.username.toLowerCase() === (username || '').toLowerCase());
+  return s ? (s.label || s.username) : username;
+}
 
 function initApp() {
   if (backendUrl) {
@@ -641,7 +820,7 @@ function initApp() {
   }
   renderSellerTags();
   updateTrackerCount();
-  // Auto-refresh stale parts in background on page load
+  renderMyStoreList();
   setTimeout(autoRefreshStale, 1200);
 }
 if (sessionStorage.getItem('parts_auth') === '1') initApp();
@@ -862,11 +1041,12 @@ function renderResults(items) {
     const shipHtml = ship?.value === '0.00' ? `<div class="meta-row"><i class="ti ti-truck"></i><span>Free shipping</span></div>`
       : ship?.value ? `<div class="meta-row"><i class="ti ti-truck"></i><span>+${S}${parseFloat(ship.value).toFixed(2)} shipping</span></div>` : '';
     const isSavedSeller = savedSellers.includes(seller.toLowerCase());
+    const isOwn        = isOwnStore(seller);
     const tracked  = isTracked(item.itemId || url);
     const trackLabel = tracked ? '<i class="ti ti-chart-line"></i> Tracking' : '<i class="ti ti-chart-line"></i> Track price';
 
     return `
-    <div class="card${isSavedSeller ? ' seller-match' : ''}">
+    <div class="card${isOwn ? ' own-store' : isSavedSeller ? ' seller-match' : ''}">
       <div class="card-img-wrap">
         ${imgUrl ? `<img src="${imgUrl}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\'ti ti-photo-off no-img\'></i>'" />` : `<i class="ti ti-photo-off no-img"></i>`}
       </div>
@@ -875,7 +1055,7 @@ function renderResults(items) {
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         ${condBadge(item.condition)}
         ${lastExact ? '<span class="badge badge-exact"><i class="ti ti-hash"></i> Exact</span>' : ''}
-        ${isSavedSeller ? '<span class="badge" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-store"></i> Saved seller</span>' : ''}
+        ${isOwn ? `<span class="badge badge-own-store"><i class="ti ti-star" style="font-size:10px"></i> My Listing — ${ownStoreLabel(seller)}</span>` : isSavedSeller ? '<span class="badge" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-store"></i> Saved seller</span>' : ''}
       </div>
       <div class="meta">
         <div class="meta-row"><i class="ti ti-store"></i><span>${seller}${feedback}</span></div>
@@ -1399,9 +1579,9 @@ function runPricingAnalysis() {
     status.textContent = 'Please enter a part name or number.';
     return;
   }
-  if (!priceRaw || isNaN(parseFloat(priceRaw)) || parseFloat(priceRaw) <= 0) {
+  if (priceRaw && (isNaN(parseFloat(priceRaw)) || parseFloat(priceRaw) <= 0)) {
     status.className = 'pp-status err';
-    status.textContent = 'Please enter a valid selling price.';
+    status.textContent = 'Please enter a valid selling price (or leave blank to auto-detect from your stores).';
     return;
   }
   if (!backendUrl) {
@@ -1410,7 +1590,7 @@ function runPricingAnalysis() {
     return;
   }
 
-  ppUserPrice = parseFloat(priceRaw);
+  ppUserPrice = priceRaw ? parseFloat(priceRaw) : 0;
   const condition = document.getElementById('pp-condition').value;
   const sellerOn  = document.getElementById('pp-seller-filter').checked;
 
@@ -1449,25 +1629,40 @@ function runPricingAnalysis() {
         .filter(i => i.price?.value)
         .map(item => {
           const shipVal = item.shippingOptions?.[0]?.shippingCost?.value;
+          const sellerName = item.seller?.username || '';
           return {
             title:     item.title || '',
             price:     parseFloat(item.price.value),
             currency:  item.price?.currency || 'GBP',
             condition: item.condition || '',
-            seller:    item.seller?.username || '',
+            seller:    sellerName,
             shipping:  shipVal === '0.00' ? 'Free' : (shipVal ? `£${parseFloat(shipVal).toFixed(2)}` : '—'),
-            url:       item.itemWebUrl || '#'
+            url:       item.itemWebUrl || '#',
+            isOwn:     isOwnStore(sellerName)
           };
         });
 
       if (!ppCompetitors.length) {
         status.className = 'pp-status err';
-        status.textContent = 'No competitor listings found — try a broader search term or turn off the filters.';
+        status.textContent = 'No listings found — try a broader search term or turn off the filters.';
         return;
       }
 
+      // Auto-fill price from cheapest own listing if not entered
+      if (!ppUserPrice) {
+        const ownListing = ppCompetitors.filter(c => c.isOwn).sort((a,b) => a.price - b.price)[0];
+        if (ownListing) {
+          ppUserPrice = ownListing.price;
+          document.getElementById('pp-price').value = ownListing.price.toFixed(2);
+          status.textContent = `Price auto-filled from your listing: £${ownListing.price.toFixed(2)} (${ownStoreLabel(ownListing.seller)})`;
+        } else {
+          status.className = 'pp-status err';
+          status.textContent = 'No price entered and no own store listings found. Please enter your selling price.';
+          return;
+        }
+      }
+
       status.className = 'pp-status';
-      status.textContent = '';
       renderPricingResults();
     })
     .catch(err => {
@@ -1481,7 +1676,10 @@ function runPricingAnalysis() {
 }
 
 function renderPricingResults() {
-  const prices = ppCompetitors.map(c => c.price).sort((a, b) => a - b);
+  const ownListings  = ppCompetitors.filter(c => c.isOwn);
+  const compListings = ppCompetitors.filter(c => !c.isOwn);
+  const useList      = compListings.length ? compListings : ppCompetitors;
+  const prices = useList.map(c => c.price).sort((a, b) => a - b);
   const n = prices.length;
   if (!n) return;
 
@@ -1532,9 +1730,25 @@ function renderPricingResults() {
     </div>`;
   }
 
+  // Build own-store rows (gold, at top)
+  const ownRows = ownListings.sort((a,b) => a.price - b.price).map(c => {
+    const S = sym(c.currency || 'GBP');
+    const diff = c.price - ppUserPrice;
+    const diffTxt = diff === 0 ? 'Same' : diff > 0 ? `+£${diff.toFixed(2)}` : `-£${Math.abs(diff).toFixed(2)}`;
+    return `<tr class="pp-row-own">
+      <td class="col-num" style="color:#d97706">★</td>
+      <td class="col-title-v"><a href="${c.url}" target="_blank" rel="noopener" style="color:#d97706">${c.title}</a></td>
+      <td class="col-price-v" style="color:#d97706">${S}${c.price.toFixed(2)}<span class="pp-price-tag equal" style="background:#FEF3C7;color:#92400E;border-color:#f59e0b">My Listing</span></td>
+      <td>${condBadge(c.condition)}</td>
+      <td style="color:#d97706;font-weight:500">${ownStoreLabel(c.seller)}</td>
+      <td>${c.shipping}</td>
+      <td><a href="${c.url}" target="_blank" rel="noopener" style="color:#d97706"><i class="ti ti-external-link"></i></a></td>
+    </tr>`;
+  }).join('');
+
   // Competitor table rows (sorted cheapest first)
-  const sorted = [...ppCompetitors].sort((a, b) => a.price - b.price);
-  const tableRows = sorted.map((c, idx) => {
+  const sorted = [...compListings].sort((a, b) => a.price - b.price);
+  const tableRows = ownRows + sorted.map((c, idx) => {
     const isCheaper  = c.price < ppUserPrice;
     const isCostlier = c.price > ppUserPrice;
     const rowClass   = isCheaper ? 'pp-row-cheaper' : isCostlier ? 'pp-row-costlier' : '';
@@ -1627,7 +1841,7 @@ function renderPricingResults() {
 
     <div class="pp-table-section">
       <div class="pp-table-header">
-        <h3><i class="ti ti-list" style="color:var(--accent)"></i> Competitor Listings <span style="font-weight:400;color:var(--text-muted)">(${n} listings, sorted cheapest first)</span></h3>
+        <h3><i class="ti ti-list" style="color:var(--accent)"></i> All Listings <span style="font-weight:400;color:var(--text-muted)">(${ownListings.length ? `★ ${ownListings.length} own + ` : ''}${compListings.length} competitor, sorted cheapest first)</span></h3>
         <button class="export-btn" onclick="exportPricingCSV()"><i class="ti ti-download"></i> Export CSV</button>
       </div>
       <div class="pp-table-wrap">
@@ -1672,6 +1886,336 @@ function exportPricingCSV() {
   a.href = URL.createObjectURL(blob);
   a.download = `price-positioning-${Date.now()}.csv`;
   a.click();
+}
+
+// ── My Stores — settings panel ────────────────────────────
+function openSettings() {
+  document.getElementById('settings-overlay').classList.add('open');
+  document.getElementById('settings-panel').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('open');
+  document.getElementById('settings-panel').classList.remove('open');
+}
+function addMyStore() {
+  const uInput = document.getElementById('my-store-username');
+  const lInput = document.getElementById('my-store-label');
+  const username = uInput.value.trim().toLowerCase();
+  const label    = lInput.value.trim();
+  if (!username) return;
+  if (myStores.some(s => s.username === username)) { uInput.value = ''; return; }
+  myStores.push({ username, label: label || username });
+  localStorage.setItem('my_stores', JSON.stringify(myStores));
+  uInput.value = '';
+  lInput.value = '';
+  renderMyStoreList();
+  if (allResults.length) renderResults(allResults);
+}
+function removeMyStore(username) {
+  myStores = myStores.filter(s => s.username !== username);
+  localStorage.setItem('my_stores', JSON.stringify(myStores));
+  renderMyStoreList();
+  if (allResults.length) renderResults(allResults);
+}
+function renderMyStoreList() {
+  const el = document.getElementById('my-store-list');
+  if (!el) return;
+  if (!myStores.length) {
+    el.innerHTML = '<span class="no-my-stores">No stores added yet</span>';
+  } else {
+    el.innerHTML = myStores.map(s => `
+      <div class="my-store-item">
+        <div>
+          <strong>${s.label}</strong>
+          <span>${s.username}</span>
+        </div>
+        <button class="my-store-del" onclick="removeMyStore('${s.username}')" title="Remove"><i class="ti ti-trash" style="font-size:15px"></i></button>
+      </div>`).join('');
+  }
+  refreshH2HSelects();
+}
+function refreshH2HSelects() {
+  const ownSel  = document.getElementById('h2h-own');
+  const compSel = document.getElementById('h2h-comp');
+  if (ownSel)  ownSel.innerHTML  = '<option value="">Your store…</option>' + myStores.map(s => `<option value="${s.username}">${s.label} (@${s.username})</option>`).join('');
+  if (compSel) compSel.innerHTML = '<option value="">Competitor…</option>' + savedSellers.map(s => `<option value="${s}">${s}</option>`).join('');
+}
+
+// ── My Stores — dashboard tab ──────────────────────────────
+function renderStoresDash() {
+  refreshH2HSelects();
+  const area = document.getElementById('stores-area');
+  if (!area) return;
+
+  if (!myStores.length) {
+    area.innerHTML = `<div class="stores-empty">
+      <i class="ti ti-star"></i>
+      <p>No stores configured yet</p>
+      <p style="font-size:13px;margin-top:8px">Click <strong style="color:#d97706">⭐ My Stores</strong> in the header to add your eBay store usernames.</p>
+    </div>`;
+    return;
+  }
+
+  if (!activeStore || !myStores.find(s => s.username === activeStore)) {
+    activeStore = myStores[0].username;
+  }
+  const store  = myStores.find(s => s.username === activeStore);
+  const cached = storeCache[activeStore];
+
+  const pills = myStores.map(s =>
+    `<button class="store-tab-pill${s.username === activeStore ? ' active' : ''}" onclick="selectStore('${s.username}')">
+      <i class="ti ti-star" style="font-size:12px"></i> ${s.label}
+    </button>`).join('');
+
+  area.innerHTML = `
+    <div class="store-tab-row">${pills}</div>
+    <div class="store-sec-hdr">
+      <h2><i class="ti ti-star" style="font-size:20px"></i> ${store.label}</h2>
+      <span style="font-size:12px;color:var(--text-muted)">@${store.username}</span>
+    </div>
+    <div class="store-load-row">
+      <input type="text" id="store-query" placeholder="Search term e.g. BMW E46 brake pads (blank = search by seller name)" value="${cached ? cached.query : ''}" onkeydown="if(event.key==='Enter')loadStoreData()" />
+      <button class="store-load-btn" id="store-load-btn" onclick="loadStoreData()">
+        <i class="ti ti-refresh"></i> Load Listings
+      </button>
+    </div>
+    <div class="store-msg" id="store-msg">${cached ? `Last fetched: ${new Date(cached.fetchedAt).toLocaleString('en-GB')} — ${cached.items.length} listing${cached.items.length !== 1 ? 's' : ''}` : ''}</div>
+    <div id="store-content">${cached ? buildStoreContent(cached.items) : '<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:13px">Enter a search term and click Load Listings.</div>'}</div>`;
+}
+
+function selectStore(username) {
+  activeStore = username;
+  renderStoresDash();
+}
+
+async function loadStoreData() {
+  const store = myStores.find(s => s.username === activeStore);
+  if (!store || !backendUrl) return;
+  const query = (document.getElementById('store-query')?.value || '').trim() || store.username;
+  const btn   = document.getElementById('store-load-btn');
+  const msg   = document.getElementById('store-msg');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Loading…';
+  msg.className = 'store-msg';
+  msg.textContent = `Searching eBay for listings from ${store.label}…`;
+
+  try {
+    const params = new URLSearchParams({ q: query, limit: 200, sort: 'relevance', market: 'EBAY_GB' });
+    const res    = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(20000) });
+    const data   = await res.json();
+    const items  = (data.itemSummaries || []).filter(i =>
+      (i.seller?.username || '').toLowerCase() === store.username.toLowerCase() && i.price?.value
+    ).map(item => {
+      const shipVal = item.shippingOptions?.[0]?.shippingCost?.value;
+      const qty     = item.estimatedAvailabilities?.[0]?.estimatedAvailableQuantity ?? null;
+      return {
+        title:     item.title || '',
+        price:     parseFloat(item.price.value),
+        currency:  item.price?.currency || 'GBP',
+        condition: item.condition || '',
+        shipping:  shipVal === '0.00' ? 'Free' : (shipVal ? `£${parseFloat(shipVal).toFixed(2)}` : '—'),
+        url:       item.itemWebUrl || '#',
+        qty,
+        keywords:  extractKeywords(item.title || '')
+      };
+    });
+
+    if (!items.length) {
+      msg.className = 'store-msg err';
+      msg.textContent = `No listings found for @${store.username} with that search term. Try a different term, or check the username is correct.`;
+    } else {
+      storeCache[store.username] = { query, items, fetchedAt: new Date().toISOString() };
+      localStorage.setItem('store_cache', JSON.stringify(storeCache));
+      msg.className = 'store-msg ok';
+      msg.textContent = `Found ${items.length} listing${items.length !== 1 ? 's' : ''} for ${store.label}`;
+      document.getElementById('store-content').innerHTML = buildStoreContent(items);
+    }
+  } catch (err) {
+    msg.className = 'store-msg err';
+    msg.textContent = `Error: ${err.message || 'Could not reach eBay.'}`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-refresh"></i> Load Listings';
+  }
+}
+
+function buildStoreContent(items) {
+  if (!items.length) return '<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:13px">No listings to display.</div>';
+  const n = items.length;
+  const prices = items.map(i => i.price);
+  const avgP  = prices.reduce((a,b) => a+b, 0) / n;
+  const freeN = items.filter(i => i.shipping === 'Free').length;
+  const condCounts = { new:0, used:0, refurb:0, other:0 };
+  items.forEach(i => {
+    const c = (i.condition||'').toUpperCase();
+    if (c.includes('NEW')) condCounts.new++;
+    else if (c.includes('REFURB')||c.includes('CERTIF')) condCounts.refurb++;
+    else if (c.includes('USED')) condCounts.used++;
+    else condCounts.other++;
+  });
+  const kwFreq = {};
+  items.forEach(i => (i.keywords||[]).forEach(k => { kwFreq[k] = (kwFreq[k]||0)+1; }));
+  const topKws = Object.entries(kwFreq).sort((a,b) => b[1]-a[1]).slice(0,20).map(([k]) => k);
+
+  const condBar = (lbl, cnt, col) => {
+    const pct = Math.round(cnt/n*100);
+    return pct > 0 ? `<div class="cond-row">
+      <span class="cond-lbl">${lbl}</span>
+      <div class="cond-bar-outer"><div class="cond-bar-inner" style="width:${pct}%;background:${col}"></div></div>
+      <span class="cond-pct">${cnt} (${pct}%)</span>
+    </div>` : '';
+  };
+
+  const rows = [...items].sort((a,b)=>a.price-b.price).map(item => {
+    const S = sym(item.currency||'GBP');
+    const qtyHtml = item.qty !== null ? item.qty : '—';
+    return `<tr>
+      <td class="tl"><a href="${item.url}" target="_blank" rel="noopener">${item.title}</a></td>
+      <td style="font-weight:600;white-space:nowrap;color:#d97706">${S}${item.price.toFixed(2)}</td>
+      <td>${condBadge(item.condition)}</td>
+      <td style="text-align:center">${qtyHtml}</td>
+      <td>${item.shipping}</td>
+      <td style="max-width:180px;color:var(--text-muted);font-size:11px">${(item.keywords||[]).join(', ')}</td>
+      <td><a href="${item.url}" target="_blank" rel="noopener" style="color:#d97706"><i class="ti ti-external-link"></i></a></td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <div class="store-stats-grid">
+    <div class="store-stat-card"><div class="store-stat-val">${n}</div><div class="store-stat-lbl">Listings Found</div></div>
+    <div class="store-stat-card"><div class="store-stat-val">£${avgP.toFixed(2)}</div><div class="store-stat-lbl">Average Price</div></div>
+    <div class="store-stat-card"><div class="store-stat-val">£${Math.min(...prices).toFixed(2)}</div><div class="store-stat-lbl">Lowest Price</div></div>
+    <div class="store-stat-card"><div class="store-stat-val">£${Math.max(...prices).toFixed(2)}</div><div class="store-stat-lbl">Highest Price</div></div>
+    <div class="store-stat-card"><div class="store-stat-val">${Math.round(freeN/n*100)}%</div><div class="store-stat-lbl">Free Shipping</div></div>
+  </div>
+  <div class="store-cond-section">
+    <h4>Condition Breakdown</h4>
+    ${condBar('New', condCounts.new,'#22c55e')}
+    ${condBar('Used', condCounts.used,'#f59e0b')}
+    ${condBar('Refurbished', condCounts.refurb,'#3b82f6')}
+    ${condBar('Other', condCounts.other,'#94a3b8')}
+  </div>
+  ${topKws.length ? `<div class="store-kw-section"><h4>Top Keywords Across Your Listings</h4>
+    <div class="store-kw-cloud">${topKws.map(k=>`<span class="store-kw-chip">${k}</span>`).join('')}</div></div>` : ''}
+  <div class="store-listings-wrap">
+    <div class="store-listings-hdr"><h3><i class="ti ti-list"></i> My Listings (${n})</h3></div>
+    <div style="overflow-x:auto">
+      <table class="store-tbl">
+        <thead><tr>
+          <th class="tl">Title</th><th>Price</th><th>Condition</th>
+          <th>Stock</th><th>Shipping</th><th>Keywords</th><th>Link</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── Head to Head ───────────────────────────────────────────
+async function runH2H() {
+  const ownU  = document.getElementById('h2h-own').value;
+  const compU = document.getElementById('h2h-comp').value;
+  const query = document.getElementById('h2h-query').value.trim();
+  const out   = document.getElementById('h2h-results');
+  if (!ownU)  { alert('Please select one of your stores.'); return; }
+  if (!compU) { alert('Please select a competitor seller.'); return; }
+  if (!query) { alert('Please enter a search term.'); return; }
+  if (!backendUrl) { alert('Please configure your backend URL in the Search tab first.'); return; }
+
+  const btn = document.getElementById('h2h-go-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px"></div> Comparing…';
+  out.innerHTML = '';
+
+  try {
+    const params = new URLSearchParams({ q: query, limit: 50, sort: 'relevance', market: 'EBAY_GB' });
+    const res    = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(20000) });
+    const data   = await res.json();
+    const all    = (data.itemSummaries || []).filter(i => i.price?.value);
+    const ownItems  = all.filter(i => (i.seller?.username||'').toLowerCase() === ownU.toLowerCase());
+    const compItems = all.filter(i => (i.seller?.username||'').toLowerCase() === compU.toLowerCase());
+
+    const calc = items => {
+      if (!items.length) return null;
+      const prices = items.map(i => parseFloat(i.price.value));
+      const avg    = prices.reduce((a,b)=>a+b,0) / prices.length;
+      const freeN  = items.filter(i => (i.shippingOptions?.[0]?.shippingCost?.value||'') === '0.00').length;
+      const newN   = items.filter(i => (i.condition||'').toUpperCase().includes('NEW')).length;
+      const kws = {};
+      items.forEach(i => extractKeywords(i.title||'').forEach(k => { kws[k]=(kws[k]||0)+1; }));
+      const topKws = Object.entries(kws).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([k])=>k);
+      return { count:items.length, avg, min:Math.min(...prices), max:Math.max(...prices),
+               freeShipPct:Math.round(freeN/items.length*100), newPct:Math.round(newN/items.length*100), topKws };
+    };
+
+    const ownS  = calc(ownItems);
+    const compS = calc(compItems);
+
+    let score = 5;
+    if (ownS && compS) {
+      if (ownS.avg < compS.avg) score += Math.min(3, Math.round((compS.avg-ownS.avg)/compS.avg*10));
+      else score -= Math.min(3, Math.round((ownS.avg-compS.avg)/ownS.avg*10));
+      if (ownS.freeShipPct > compS.freeShipPct) score++;
+      else if (ownS.freeShipPct < compS.freeShipPct) score--;
+      if (ownS.count >= compS.count) score++;
+    } else if (ownS) { score = 8; } else { score = 2; }
+    score = Math.max(1, Math.min(10, score));
+
+    const scoreCol = score>=7 ? '#16a34a' : score>=5 ? '#d97706' : '#dc2626';
+    const scoreLbl = score>=7 ? 'Highly competitive' : score>=5 ? 'Moderately competitive' : 'Needs improvement';
+
+    const ownKwSet  = new Set(ownS?.topKws||[]);
+    const kwGaps    = (compS?.topKws||[]).filter(k => !ownKwSet.has(k));
+    const ownStore  = myStores.find(s => s.username===ownU);
+
+    const colHtml = (stats, lbl, cls) => {
+      if (!stats) return `<div class="h2h-col ${cls}">
+        <div class="h2h-col-hdr">${lbl}</div>
+        <p style="font-size:13px;color:var(--text-muted)">No listings found for "${query}"</p>
+      </div>`;
+      return `<div class="h2h-col ${cls}">
+        <div class="h2h-col-hdr"><i class="ti ti-${cls==='h2h-own'?'star':'store'}"></i> ${lbl}</div>
+        <div class="h2h-metric"><span>Listings found</span><span>${stats.count}</span></div>
+        <div class="h2h-metric"><span>Average price</span><span>£${stats.avg.toFixed(2)}</span></div>
+        <div class="h2h-metric"><span>Price range</span><span>£${stats.min.toFixed(2)} – £${stats.max.toFixed(2)}</span></div>
+        <div class="h2h-metric"><span>Free shipping</span><span>${stats.freeShipPct}%</span></div>
+        <div class="h2h-metric"><span>New condition</span><span>${stats.newPct}%</span></div>
+        <div style="margin-top:10px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;color:var(--text-muted)">Top keywords</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${stats.topKws.map(k=>`<span style="font-size:11px;padding:2px 7px;background:var(--bg);border-radius:99px;border:0.5px solid var(--border)">${k}</span>`).join('')}</div>
+      </div>`;
+    };
+
+    const priceDiffHtml = ownS && compS
+      ? ownS.avg < compS.avg
+        ? `Your average is <strong style="color:#16a34a">£${(compS.avg-ownS.avg).toFixed(2)} cheaper</strong> than ${compU}.`
+        : `Your average is <strong style="color:#dc2626">£${(ownS.avg-compS.avg).toFixed(2)} more expensive</strong> than ${compU}.`
+      : '';
+
+    out.innerHTML = `
+      <div class="h2h-score-wrap">
+        <div class="h2h-score-num" style="color:${scoreCol}">${score}<span style="font-size:22px">/10</span></div>
+        <div class="h2h-score-detail">
+          <h4>${scoreLbl}</h4>
+          <p>${ownStore?.label||ownU} vs ${compU} — searching "${query}"</p>
+          ${priceDiffHtml ? `<p>${priceDiffHtml}</p>` : ''}
+        </div>
+      </div>
+      <div class="h2h-grid">
+        ${colHtml(ownS, ownStore?.label||ownU, 'h2h-own')}
+        ${colHtml(compS, compU, 'h2h-comp')}
+      </div>
+      ${kwGaps.length ? `<div class="h2h-kw-gap">
+        <h4><i class="ti ti-alert-triangle" style="color:#d97706"></i> Keyword Gaps — used by ${compU} but not you</h4>
+        <p>Adding these terms to your listing titles could improve discoverability:</p>
+        <div class="h2h-gap-tags">${kwGaps.map(k=>`<span class="h2h-gap-tag">${k}</span>`).join('')}</div>
+      </div>` : ownS ? `<div style="font-size:13px;color:#3B6D11;padding:4px 0"><i class="ti ti-check"></i> No keyword gaps — your listings use the same key terms as the competitor.</div>` : ''}`;
+
+  } catch (err) {
+    out.innerHTML = `<div class="error-bar"><i class="ti ti-alert-circle"></i> ${err.message||'Could not compare sellers.'}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-arrows-left-right"></i> Compare';
+  }
 }
 
 // ── Render tracker tab ─────────────────────────────────────
