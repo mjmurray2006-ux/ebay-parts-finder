@@ -505,61 +505,12 @@
   .pp-table tbody tr.pp-row-own { background: rgba(254,243,199,0.7); }
   .pp-table tbody tr.pp-row-own:hover { background: rgba(254,243,199,0.95); }
 
-  /* ── Competitor Dashboard ───────────────────────────────── */
-  .cd-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-  .cd-header h2 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-  .cd-header p { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
-  .cd-add-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .cd-add-row input { flex: 1; min-width: 180px; height: 38px; padding: 0 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--bg); color: var(--text); }
-  .cd-add-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .cd-add-btn { height: 38px; padding: 0 16px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-  .cd-add-btn:hover { opacity: 0.9; }
-  .cd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin-bottom: 20px; }
-  .cd-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 0; }
-  .cd-card-hdr { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
-  .cd-card-seller { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
-  .cd-threat { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; white-space: nowrap; flex-shrink: 0; }
-  .cd-threat-high { background: #FCEBEB; color: #A32D2D; border: 0.5px solid #F09595; }
-  .cd-threat-mid  { background: #FEF3C7; color: #92400E; border: 0.5px solid #F59E0B; }
-  .cd-threat-low  { background: #EAF3DE; color: #3B6D11; border: 0.5px solid #9FE1CB; }
-  .cd-stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-  .cd-stat { text-align: center; background: var(--bg); border-radius: var(--radius-sm); padding: 8px 4px; }
-  .cd-stat-val { font-size: 16px; font-weight: 700; }
-  .cd-stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; margin-top: 2px; }
-  .cd-cond-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
-  .cd-kw-cloud { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
-  .cd-kw-chip { font-size: 11px; padding: 2px 8px; background: var(--accent-bg); color: var(--accent); border-radius: 99px; font-weight: 500; }
-  .cd-analyse-btn { width: 100%; height: 34px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
-  .cd-analyse-btn:hover { opacity: 0.9; }
-  .cd-analyse-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .cd-analyse-btn.done { background: var(--surface); color: var(--accent); border: 0.5px solid var(--accent); }
-  .cd-analyse-btn.done:hover { background: var(--accent-bg); }
-  .cd-del-btn { height: 34px; padding: 0 10px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text-muted); flex-shrink: 0; }
-  .cd-del-btn:hover { color: #A32D2D; border-color: #F09595; }
-  .cd-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
-  .cd-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 7px; }
-  .cd-section > p { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
-  .cd-comparison-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 0.5px solid var(--border); }
-  .cd-cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 500px; }
-  .cd-cmp-table thead th { background: var(--bg); padding: 9px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; border-bottom: 0.5px solid var(--border); }
-  .cd-cmp-table thead th.cd-metric-hdr { width: 150px; }
-  .cd-cmp-table tbody td { padding: 8px 14px; border-bottom: 0.5px solid var(--border); white-space: nowrap; }
-  .cd-cmp-table tbody tr:last-child td { border-bottom: none; }
-  .cd-cmp-table .cd-metric-lbl { font-weight: 500; color: var(--text-muted); font-size: 12px; }
-  .cd-cmp-best  { color: #3B6D11; font-weight: 700; }
-  .cd-cmp-worst { color: #A32D2D; }
-  .cd-overlap-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-  .cd-overlap-row input { flex: 1; min-width: 200px; height: 38px; padding: 0 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--bg); color: var(--text); }
-  .cd-overlap-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .cd-overlap-btn { height: 38px; padding: 0 18px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-  .cd-overlap-btn:hover { opacity: 0.9; }
-  .cd-overlap-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .cd-overlap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
-  .cd-overlap-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
-  .cd-overlap-rank { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
-  .cd-overlap-title { font-size: 11px; color: var(--text-muted); margin: 4px 0 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
-  .cd-overlap-price { font-size: 18px; font-weight: 700; }
-  .cd-timeline-canvas-wrap { position: relative; height: 260px; }
+  /* Competitor highlight in search results */
+  .card.competitor-match { border-color: #ef4444; background: #fef2f2; }
+  @media (prefers-color-scheme: dark) { .card.competitor-match { background: #1a0000; } }
+  .badge-competitor { background: #FCEBEB; color: #A32D2D; border: 0.5px solid #F09595; }
+  .compare-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--text-muted); }
+  .compare-bar select { height: 30px; padding: 0 8px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; background: var(--surface); color: var(--text); cursor: pointer; }
 </style>
 </head>
 <body>
@@ -613,7 +564,6 @@
     <div class="tab" onclick="switchTab('pricing')"><i class="ti ti-tag"></i> Price Positioning</div>
     <div class="tab" onclick="switchTab('stores')"><i class="ti ti-star" style="color:#d97706"></i> My Stores</div>
     <div class="tab" onclick="switchTab('keywords')"><i class="ti ti-typography"></i> Keyword Analyser</div>
-    <div class="tab" onclick="switchTab('competitors')"><i class="ti ti-spy"></i> Competitor Dashboard</div>
   </div>
 
   <!-- Search Tab -->
@@ -878,45 +828,6 @@
     </div>
   </div>
 
-  <!-- Competitor Dashboard Tab -->
-  <div id="tab-competitors" class="tab-content">
-    <div class="container">
-
-      <div class="cd-header">
-        <div>
-          <h2><i class="ti ti-spy" style="color:var(--accent)"></i> Competitor Dashboard</h2>
-          <p>Analyse saved competitor sellers — or add new ones below. Competitors are shared with the Trusted Sellers list in the Search tab.</p>
-        </div>
-        <button class="export-btn" onclick="exportCompetitorCSV()"><i class="ti ti-download"></i> Export CSV</button>
-      </div>
-
-      <div class="cd-add-row">
-        <input type="text" id="cd-add-input" placeholder="Add competitor eBay username e.g. gsfcarparts" onkeydown="if(event.key==='Enter')addCDCompetitor()" />
-        <button class="cd-add-btn" onclick="addCDCompetitor()"><i class="ti ti-plus"></i> Add Competitor</button>
-      </div>
-
-      <div class="cd-grid" id="cd-grid"></div>
-
-      <div id="cd-comparison-section"></div>
-
-      <div class="cd-section">
-        <h3><i class="ti ti-git-merge" style="color:var(--accent)"></i> Parts Overlap</h3>
-        <p>Search a part to see which competitors (and your own stores) are listing it, their price, and their rank in search results.</p>
-        <div class="cd-overlap-row">
-          <input type="text" id="cd-overlap-query" placeholder="Part name or number e.g. BMW E46 front brake pads" onkeydown="if(event.key==='Enter')runPartsOverlap()" />
-          <button class="cd-overlap-btn" id="cd-overlap-btn" onclick="runPartsOverlap()"><i class="ti ti-search"></i> Find Overlap</button>
-        </div>
-        <div id="cd-overlap-results"></div>
-      </div>
-
-      <div class="cd-section">
-        <h3><i class="ti ti-timeline" style="color:var(--accent)"></i> Competitor Activity Timeline</h3>
-        <p>Price history of parts you're tracking where a competitor is the cheapest seller — shows how their pricing shifts over time.</p>
-        <div id="cd-timeline-area"></div>
-      </div>
-
-    </div>
-  </div>
 </div>
 
 <script>
@@ -966,7 +877,6 @@ function switchTab(name) {
   }
   if (name === 'stores') renderStoresDash();
   if (name === 'keywords') { /* nothing to pre-render */ }
-  if (name === 'competitors') renderCompetitorDash();
 }
 
 // ── State ──────────────────────────────────────────────────
@@ -986,6 +896,7 @@ let bulkSortDir   = 'asc';
 let myStores      = JSON.parse(localStorage.getItem('my_stores') || '[]');
 let storeCache    = JSON.parse(localStorage.getItem('store_cache') || '{}');
 let activeStore   = null;
+let cdHighlight   = null; // competitor username highlighted in search results
 
 function isOwnStore(username) {
   return myStores.some(s => s.username.toLowerCase() === (username || '').toLowerCase());
@@ -1222,13 +1133,15 @@ function renderResults(items) {
     const ship     = item.shippingOptions?.[0]?.shippingCost;
     const shipHtml = ship?.value === '0.00' ? `<div class="meta-row"><i class="ti ti-truck"></i><span>Free shipping</span></div>`
       : ship?.value ? `<div class="meta-row"><i class="ti ti-truck"></i><span>+${S}${parseFloat(ship.value).toFixed(2)} shipping</span></div>` : '';
-    const isSavedSeller = savedSellers.includes(seller.toLowerCase());
-    const isOwn        = isOwnStore(seller);
+    const isSavedSeller  = savedSellers.includes(seller.toLowerCase());
+    const isOwn          = isOwnStore(seller);
+    const isCompetitor   = !isOwn && cdHighlight && seller.toLowerCase() === cdHighlight.toLowerCase();
     const tracked  = isTracked(item.itemId || url);
     const trackLabel = tracked ? '<i class="ti ti-chart-line"></i> Tracking' : '<i class="ti ti-chart-line"></i> Track price';
+    const cardClass = isOwn ? ' own-store' : isCompetitor ? ' competitor-match' : isSavedSeller ? ' seller-match' : '';
 
     return `
-    <div class="card${isOwn ? ' own-store' : isSavedSeller ? ' seller-match' : ''}">
+    <div class="card${cardClass}">
       <div class="card-img-wrap">
         ${imgUrl ? `<img src="${imgUrl}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\'ti ti-photo-off no-img\'></i>'" />` : `<i class="ti ti-photo-off no-img"></i>`}
       </div>
@@ -1237,7 +1150,7 @@ function renderResults(items) {
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         ${condBadge(item.condition)}
         ${lastExact ? '<span class="badge badge-exact"><i class="ti ti-hash"></i> Exact</span>' : ''}
-        ${isOwn ? `<span class="badge badge-own-store"><i class="ti ti-star" style="font-size:10px"></i> My Listing — ${ownStoreLabel(seller)}</span>` : isSavedSeller ? '<span class="badge" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-store"></i> Saved seller</span>' : ''}
+        ${isOwn ? `<span class="badge badge-own-store"><i class="ti ti-star" style="font-size:10px"></i> My Listing — ${ownStoreLabel(seller)}</span>` : isCompetitor ? `<span class="badge badge-competitor"><i class="ti ti-eye" style="font-size:10px"></i> Competitor</span>` : isSavedSeller ? '<span class="badge" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-store"></i> Saved seller</span>' : ''}
       </div>
       <div class="meta">
         <div class="meta-row"><i class="ti ti-store"></i><span>${seller}${feedback}</span></div>
@@ -1254,47 +1167,90 @@ function renderResults(items) {
     </div>`;
   }).join('');
 
+  const compareOpts = savedSellers.length
+    ? `<option value="">— None —</option>` + savedSellers.map(s =>
+        `<option value="${s}"${cdHighlight===s?' selected':''}>${s}</option>`).join('')
+    : `<option value="">No competitors saved</option>`;
+
   area.innerHTML = `
     ${exactBanner}
     <div class="results-bar">
       <div><strong>${filtered.length}</strong> listings found ${lastExact ? '(exact match)' : ''}</div>
-      <button class="export-btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="compare-bar">
+          <i class="ti ti-eye" style="font-size:14px"></i>
+          Compare competitor:
+          <select onchange="setCompareHighlight(this.value)">${compareOpts}</select>
+        </div>
+        <button class="export-btn" onclick="exportSearchExcel()"><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
+      </div>
     </div>
     <div class="grid">${cards}</div>`;
 }
 
-// ── Export search results CSV ──────────────────────────────
-function exportCSV() {
-  if (!allResults.length) return;
-  const rows = [['Title','Price','Currency','Condition','Seller','Feedback','Location','Keywords','URL']];
-  allResults.forEach(item => {
-    const kw = extractKeywords(item.title || '').join('; ');
-    rows.push([`"${(item.title||'').replace(/"/g,'""')}"`,item.price?.value||'',item.price?.currency||'',item.condition||'',item.seller?.username||'',item.seller?.feedbackScore||'',[item.itemLocation?.city,item.itemLocation?.country].filter(Boolean).join(', '),`"${kw}"`,item.itemWebUrl||'']);
-  });
-  const blob = new Blob([rows.map(r=>r.join(',')).join('\n')], {type:'text/csv'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ebay-parts-${Date.now()}.csv`; a.click();
+// ── Excel helpers ──────────────────────────────────────────
+function xlsxDateStr() {
+  return new Date().toLocaleDateString('en-GB').split('/').reverse().join('-');
+}
+function xlsxApplyHdr(ws, colLetters) {
+  const s = { font: { bold: true }, fill: { patternType: 'solid', fgColor: { rgb: 'E8E8E8' } } };
+  colLetters.forEach(c => { if (ws[`${c}1`]) ws[`${c}1`].s = s; });
+}
+function xlsxPriceFmt(ws, col, rowCount) {
+  for (let r = 2; r <= rowCount + 1; r++) {
+    const cell = ws[`${col}${r}`];
+    if (cell) { cell.t = 'n'; cell.z = '"£"#,##0.00'; }
+  }
+}
+function xlsxAutoWidth(ws, aoa) {
+  const n = (aoa[0] || []).length;
+  ws['!cols'] = Array.from({ length: n }, (_, c) => ({
+    wch: Math.min(Math.max(...aoa.map(r => String(r[c] ?? '').length), 10) + 2, 60)
+  }));
 }
 
-// ── Export single part price history to CSV ────────────────
+// ── Export search results Excel ────────────────────────────
+function exportSearchExcel() {
+  if (!allResults.length || typeof XLSX === 'undefined') return;
+  const aoa = [['Title','Price (£)','Currency','Condition','Seller','Feedback Score','Location','Keywords','URL']];
+  allResults.forEach(item => {
+    aoa.push([
+      item.title||'', parseFloat(item.price?.value||0), item.price?.currency||'GBP',
+      item.condition||'', item.seller?.username||'', item.seller?.feedbackScore||'',
+      [item.itemLocation?.city, item.itemLocation?.country].filter(Boolean).join(', '),
+      extractKeywords(item.title||'').join('; '), item.itemWebUrl||''
+    ]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  xlsxApplyHdr(ws, ['A','B','C','D','E','F','G','H','I']);
+  xlsxPriceFmt(ws, 'B', allResults.length);
+  xlsxAutoWidth(ws, aoa);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Search Results');
+  XLSX.writeFile(wb, `search-results-${xlsxDateStr()}.xlsx`);
+}
+
+// ── Export price history Excel ─────────────────────────────
 function exportPartHistory(id) {
+  if (typeof XLSX === 'undefined') return;
   const part = trackedParts.find(p => p.id === id);
   if (!part) return;
   const currency = part.currency || 'GBP';
-  const rows = [['Date', `Price (${currency})`, `Change (${currency})`]];
+  const aoa = [['Date', `Price (${currency})`, `Change (${currency})`]];
   part.history.forEach((h, i) => {
-    const prev = i > 0 ? part.history[i - 1].price : null;
-    const change = prev !== null
-      ? (h.price - prev >= 0 ? '+' : '') + (h.price - prev).toFixed(2)
-      : '';
-    rows.push([h.date, h.price.toFixed(2), change]);
+    const prev   = i > 0 ? part.history[i-1].price : null;
+    const change = prev !== null ? parseFloat((h.price - prev).toFixed(2)) : '';
+    aoa.push([h.date, h.price, change]);
   });
-  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  const safeName = (part.searchQuery || part.title).slice(0, 40).replace(/[^a-z0-9]/gi, '-').toLowerCase();
-  a.download = `price-history-${safeName}.csv`;
-  a.click();
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  xlsxApplyHdr(ws, ['A','B','C']);
+  xlsxPriceFmt(ws, 'B', part.history.length);
+  if (aoa.length > 1 && ws['C2']) { ws['C2'].z = '"£"+#,##0.00;-"£"#,##0.00'; }
+  xlsxAutoWidth(ws, aoa);
+  const wb = XLSX.utils.book_new();
+  const safe = (part.searchQuery||part.title).slice(0,25).replace(/[^a-z0-9]/gi,'-').toLowerCase();
+  XLSX.utils.book_append_sheet(wb, ws, 'Price History');
+  XLSX.writeFile(wb, `price-history-${safe}-${xlsxDateStr()}.xlsx`);
 }
 
 // ── Search ─────────────────────────────────────────────────
@@ -1659,7 +1615,7 @@ function renderBulkResults() {
         <h3><i class="ti ti-table" style="color:var(--accent)"></i> Results</h3>
         <p>${bulkResults.length} parts searched &middot; ${totalFound} with results &middot; <span style="color:#A32D2D">${totalMissed} not found</span></p>
       </div>
-      <button class="bulk-export-btn" onclick="exportBulkExcel()"><i class="ti ti-file-spreadsheet"></i> Export to Excel</button>
+      <button class="bulk-export-btn" onclick="exportBulkExcel()"><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
     </div>
     <div class="bulk-table-wrap">
       <table class="bulk-table">
@@ -1679,72 +1635,54 @@ function renderBulkResults() {
 }
 
 function exportBulkExcel() {
-  if (!bulkResults.length) return;
-  if (typeof XLSX === 'undefined') { alert('Excel library not loaded — please refresh the page.'); return; }
-
+  if (!bulkResults.length || typeof XLSX === 'undefined') return;
   const wb  = XLSX.utils.book_new();
-  const aoa = [['Part Searched','Title','Price','Condition','Seller','Feedback Score','Shipping','Location','eBay URL','Keywords']];
+  const cols = ['A','B','C','D','E','F','G','H','I','J'];
 
+  // One sheet per part searched, plus a summary sheet
+  const summaryAoa = [['Part Searched','Results Found','Cheapest Price (£)','Avg Price (£)']];
+
+  bulkResults.forEach(group => {
+    const cheapest = group.items.length ? Math.min(...group.items.map(i=>i.price)) : null;
+    const avg      = group.items.length ? group.items.reduce((s,i)=>s+i.price,0)/group.items.length : null;
+    summaryAoa.push([group.query, group.items.length, cheapest ?? 'N/A', avg != null ? parseFloat(avg.toFixed(2)) : 'N/A']);
+  });
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryAoa);
+  xlsxApplyHdr(wsSummary, ['A','B','C','D']);
+  xlsxPriceFmt(wsSummary, 'C', bulkResults.length);
+  xlsxPriceFmt(wsSummary, 'D', bulkResults.length);
+  xlsxAutoWidth(wsSummary, summaryAoa);
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+  // Full detail sheet
+  const aoa = [['Part Searched','Title','Price (£)','Condition','Seller','Feedback Score','Shipping','Location','eBay URL','Keywords']];
   bulkResults.forEach(group => {
     if (!group.items.length) {
       aoa.push([group.query, 'Not found', '', '', '', '', '', '', '', '']);
     } else {
       group.items.forEach((item, idx) => {
         aoa.push([
-          idx === 0 ? group.query : '',
-          item.title,
-          item.price,
-          item.condition,
-          item.seller,
-          item.feedback !== '' ? Number(item.feedback) : '',
-          item.shipping,
-          item.location,
-          item.url,
-          item.keywords
+          idx === 0 ? group.query : '', item.title, item.price, item.condition,
+          item.seller, item.feedback !== '' ? Number(item.feedback) : '',
+          item.shipping, item.location, item.url, item.keywords
         ]);
       });
     }
   });
-
   const ws = XLSX.utils.aoa_to_sheet(aoa);
-
-  // Bold + shaded header row
-  const hdrStyle = {
-    font:  { bold: true },
-    fill:  { patternType: 'solid', fgColor: { rgb: 'DCE6FF' } },
-    border: { bottom: { style: 'thin', color: { rgb: '1A56DB' } } }
-  };
-  ['A','B','C','D','E','F','G','H','I','J'].forEach(col => {
-    if (ws[`${col}1`]) ws[`${col}1`].s = hdrStyle;
-  });
-
-  // Price format + row styles
-  let rowIdx = 2;
+  xlsxApplyHdr(ws, cols);
+  let r = 2;
   bulkResults.forEach(group => {
-    const count = group.items.length || 1;
-    for (let i = 0; i < count; i++) {
-      if (i === 0) {
-        const aCell = ws[`A${rowIdx}`];
-        if (aCell) aCell.s = { font: { bold: true } };
-      }
-      const pCell = ws[`C${rowIdx}`];
-      if (pCell && group.items[i]) { pCell.t = 'n'; pCell.z = '"£"#,##0.00'; }
-      if (!group.items.length) {
-        const bCell = ws[`B${rowIdx}`];
-        if (bCell) bCell.s = { font: { color: { rgb: 'A32D2D' }, italic: true } };
-      }
-      rowIdx++;
-    }
+    (group.items.length ? group.items : [null]).forEach((item, i) => {
+      if (i === 0 && ws[`A${r}`]) ws[`A${r}`].s = { font: { bold: true } };
+      if (item && ws[`C${r}`]) { ws[`C${r}`].t = 'n'; ws[`C${r}`].z = '"£"#,##0.00'; }
+      if (!item && ws[`B${r}`]) ws[`B${r}`].s = { font: { color: { rgb: 'A32D2D' }, italic: true } };
+      r++;
+    });
   });
-
-  ws['!cols'] = [
-    { wch: 30 }, { wch: 50 }, { wch: 10 }, { wch: 16 },
-    { wch: 22 }, { wch: 14 }, { wch: 12 }, { wch: 20 },
-    { wch: 55 }, { wch: 35 }
-  ];
-
+  ws['!cols'] = [{wch:30},{wch:50},{wch:10},{wch:16},{wch:22},{wch:14},{wch:12},{wch:20},{wch:55},{wch:35}];
   XLSX.utils.book_append_sheet(wb, ws, 'Bulk Search Results');
-  XLSX.writeFile(wb, `ebay-bulk-search-${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.writeFile(wb, `bulk-search-${xlsxDateStr()}.xlsx`);
 }
 
 // ── Price Positioning ──────────────────────────────────────
@@ -2024,7 +1962,7 @@ function renderPricingResults() {
     <div class="pp-table-section">
       <div class="pp-table-header">
         <h3><i class="ti ti-list" style="color:var(--accent)"></i> All Listings <span style="font-weight:400;color:var(--text-muted)">(${ownListings.length ? `★ ${ownListings.length} own + ` : ''}${compListings.length} competitor, sorted cheapest first)</span></h3>
-        <button class="export-btn" onclick="exportPricingCSV()"><i class="ti ti-download"></i> Export CSV</button>
+        <button class="export-btn" onclick="exportPricingExcel()"><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
       </div>
       <div class="pp-table-wrap">
         <table class="pp-table">
@@ -2045,29 +1983,37 @@ function renderPricingResults() {
     </div>`;
 }
 
-function exportPricingCSV() {
-  if (!ppCompetitors.length) return;
-  const sorted = [...ppCompetitors].sort((a, b) => a.price - b.price);
-  const rows = [['Rank', 'Title', 'Price (£)', 'vs Your Price (£' + ppUserPrice.toFixed(2) + ')', 'Condition', 'Seller', 'Shipping', 'URL']];
-  sorted.forEach((c, idx) => {
+function exportPricingCSV() { exportPricingExcel(); } // legacy alias
+function exportPricingExcel() {
+  if (!ppCompetitors.length || typeof XLSX === 'undefined') return;
+  const wb       = XLSX.utils.book_new();
+  const ownItems = [...ppCompetitors].filter(c => c.isOwn).sort((a,b)=>a.price-b.price);
+  const compItems= [...ppCompetitors].filter(c=>!c.isOwn).sort((a,b)=>a.price-b.price);
+
+  // Sheet 1: Competitor listings
+  const aoa1 = [['Rank','Title','Price (£)','vs Your Price','Condition','Seller','Shipping','URL']];
+  compItems.forEach((c,i) => {
     const vs = c.price < ppUserPrice ? 'Cheaper' : c.price > ppUserPrice ? 'More expensive' : 'Same price';
-    rows.push([
-      idx + 1,
-      `"${(c.title || '').replace(/"/g, '""')}"`,
-      c.price.toFixed(2),
-      vs,
-      c.condition || '',
-      c.seller || '',
-      c.shipping || '',
-      c.url || ''
-    ]);
+    aoa1.push([i+1, c.title, c.price, vs, c.condition||'', c.seller||'', c.shipping||'', c.url||'']);
   });
-  const csv = rows.map(r => r.join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `price-positioning-${Date.now()}.csv`;
-  a.click();
+  const ws1 = XLSX.utils.aoa_to_sheet(aoa1);
+  xlsxApplyHdr(ws1, ['A','B','C','D','E','F','G','H']);
+  xlsxPriceFmt(ws1, 'C', compItems.length);
+  xlsxAutoWidth(ws1, aoa1);
+  XLSX.utils.book_append_sheet(wb, ws1, 'Competitor Listings');
+
+  // Sheet 2: Your own listings (if any)
+  if (ownItems.length) {
+    const aoa2 = [['Title','Price (£)','Condition','Seller','Shipping','URL']];
+    ownItems.forEach(c => aoa2.push([c.title, c.price, c.condition||'', c.seller||'', c.shipping||'', c.url||'']));
+    const ws2 = XLSX.utils.aoa_to_sheet(aoa2);
+    xlsxApplyHdr(ws2, ['A','B','C','D','E','F']);
+    xlsxPriceFmt(ws2, 'B', ownItems.length);
+    xlsxAutoWidth(ws2, aoa2);
+    XLSX.utils.book_append_sheet(wb, ws2, 'Your Listings');
+  }
+
+  XLSX.writeFile(wb, `price-positioning-${xlsxDateStr()}.xlsx`);
 }
 
 // ── My Stores — settings panel ────────────────────────────
@@ -2280,7 +2226,10 @@ function buildStoreContent(items) {
   ${topKws.length ? `<div class="store-kw-section"><h4>Top Keywords Across Your Listings</h4>
     <div class="store-kw-cloud">${topKws.map(k=>`<span class="store-kw-chip">${k}</span>`).join('')}</div></div>` : ''}
   <div class="store-listings-wrap">
-    <div class="store-listings-hdr"><h3><i class="ti ti-list"></i> My Listings (${n})</h3></div>
+    <div class="store-listings-hdr">
+      <h3><i class="ti ti-list"></i> My Listings (${n})</h3>
+      <button class="export-btn" onclick="exportStoreExcel('${items[0]?.seller||activeStore||''}')"><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
+    </div>
     <div style="overflow-x:auto">
       <table class="store-tbl">
         <thead><tr>
@@ -2446,7 +2395,7 @@ function renderTracker() {
       </div>
       <div class="tracker-card-footer">
         <a href="${part.url}" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> View listing</a>
-        <button class="export-btn" onclick='exportPartHistory(${JSON.stringify(part.id)})'><i class="ti ti-download"></i> Export CSV</button>
+        <button class="export-btn" onclick='exportPartHistory(${JSON.stringify(part.id)})'><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
         <button class="export-btn" onclick='refreshPart(${JSON.stringify(part.id)})' ${expired ? 'disabled title="Tracking period ended"' : ''}><i class="ti ti-refresh"></i></button>
         <button class="untrack-btn" onclick='untrackPart(${JSON.stringify(part.id)})'><i class="ti ti-trash"></i></button>
       </div>
@@ -2510,364 +2459,10 @@ function renderTracker() {
   });
 }
 
-// ── Competitor Dashboard ───────────────────────────────────
-let cdData = JSON.parse(localStorage.getItem('cd_data') || '{}');
-
-function renderCompetitorDash() {
-  const grid = document.getElementById('cd-grid');
-  if (!grid) return;
-
-  if (!savedSellers.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--text-muted)">
-      <i class="ti ti-users-off" style="font-size:40px;display:block;margin-bottom:12px;opacity:0.3"></i>
-      <p>No competitors added yet. Add a seller username above, or save sellers in the Search tab.</p>
-    </div>`;
-    document.getElementById('cd-comparison-section').innerHTML = '';
-    renderActivityTimeline();
-    return;
-  }
-
-  grid.innerHTML = savedSellers.map(s => buildCDCard(s)).join('');
-  renderComparisonTable();
-  renderActivityTimeline();
-}
-
-function buildCDCard(seller) {
-  const data     = cdData[seller.toLowerCase()] || cdData[seller];
-  const analysed = !!data;
-  const source   = data?.source || '';
-
-  const btnRow = `<div style="display:flex;gap:6px;margin-top:auto;padding-top:10px">
-    <button class="cd-analyse-btn${analysed?' done':''}" style="flex:1"
-      onclick="analyseCompetitor('${seller}',this)">
-      <i class="ti ti-${analysed?'refresh':'search'}"></i> ${analysed?'Refresh':'Analyse Seller'}
-    </button>
-    <button class="cd-del-btn" onclick="removeCD('${seller}')" title="Remove competitor"><i class="ti ti-trash"></i></button>
-  </div>`;
-
-  if (!analysed) {
-    return `<div class="cd-card">
-      <div class="cd-card-hdr">
-        <div class="cd-card-seller"><i class="ti ti-store"></i> ${seller}</div>
-        <span style="font-size:11px;color:var(--text-muted)">Not yet analysed</span>
-      </div>
-      <p style="font-size:12px;color:var(--text-muted);padding:8px 0;flex:1">Click Analyse Seller to fetch this competitor's listings from eBay.</p>
-      ${btnRow}
-    </div>`;
-  }
-
-  const s = data.stats;
-  const threatClass = s.threatScore >= 7 ? 'cd-threat-high' : s.threatScore >= 5 ? 'cd-threat-mid' : 'cd-threat-low';
-  const other = Math.max(0, 100 - s.condNewPct - s.condUsedPct - s.condRefurbPct);
-
-  return `<div class="cd-card">
-    <div class="cd-card-hdr">
-      <div class="cd-card-seller"><i class="ti ti-store"></i> ${seller}</div>
-      <span class="cd-threat ${threatClass}">Threat: ${s.threatScore}/10</span>
-    </div>
-    <div class="cd-stats-row">
-      <div class="cd-stat"><div class="cd-stat-val">${s.total}</div><div class="cd-stat-lbl">Listings</div></div>
-      <div class="cd-stat"><div class="cd-stat-val">£${s.avgPrice.toFixed(0)}</div><div class="cd-stat-lbl">Avg Price</div></div>
-      <div class="cd-stat"><div class="cd-stat-val">${s.freeShipPct}%</div><div class="cd-stat-lbl">Free Ship</div></div>
-    </div>
-    <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">
-      <span style="color:#22c55e">■ ${s.condNewPct}% New</span> &nbsp;
-      <span style="color:#f59e0b">■ ${s.condUsedPct}% Used</span> &nbsp;
-      <span style="color:#3b82f6">■ ${s.condRefurbPct}% Refurb</span>
-    </div>
-    <div class="cd-cond-bar" style="margin-bottom:8px">
-      <div style="width:${s.condNewPct}%;background:#22c55e"></div>
-      <div style="width:${s.condUsedPct}%;background:#f59e0b"></div>
-      <div style="width:${s.condRefurbPct}%;background:#3b82f6"></div>
-      <div style="width:${other}%;background:#94a3b8"></div>
-    </div>
-    <div class="cd-kw-cloud">
-      ${s.topKeywords.slice(0,8).map(k=>`<span class="cd-kw-chip">${k}</span>`).join('')}
-    </div>
-    <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">
-      Range: £${s.minPrice.toFixed(2)} – £${s.maxPrice.toFixed(2)} &nbsp;·&nbsp;
-      Feedback: ${s.feedbackScore.toLocaleString()}
-    </div>
-    ${source === 'keyword_fallback' ? `<div style="font-size:11px;background:#FEF3C7;color:#92400E;border:0.5px solid #F59E0B;border-radius:4px;padding:4px 8px;margin-bottom:4px"><i class="ti ti-alert-triangle" style="font-size:10px"></i> Showing keyword-based results — seller filter not supported for this account level</div>` : ''}
-    <div style="font-size:10px;color:var(--text-muted)">${source === 'finding_api' ? '✓ Finding API · ' : source === 'browse_filter' ? '✓ Browse filter · ' : ''}Fetched ${new Date(data.fetchedAt).toLocaleDateString('en-GB')}</div>
-    ${btnRow}
-  </div>`;
-}
-
-async function analyseCompetitor(seller, btn) {
-  if (!backendUrl) { alert('Configure your backend URL in the Search tab first.'); return; }
-  const orig = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Fetching…';
-
-  try {
-    const params = new URLSearchParams({ username: seller, limit: 200, market: 'EBAY_GB' });
-    const res  = await fetch(`${backendUrl}/seller?${params}`, { signal: AbortSignal.timeout(30000) });
-    if (!res.ok) throw new Error(`Server error ${res.status}`);
-    const data   = await res.json();
-    const source = data.source || 'unknown';
-    const items  = (data.itemSummaries || []).filter(i => i.price?.value);
-
-    const stats = buildCDStats(items);
-    cdData[seller.toLowerCase()] = {
-      stats,
-      source,
-      fetchedAt: new Date().toISOString()
-    };
-    localStorage.setItem('cd_data', JSON.stringify(cdData));
-    renderCompetitorDash();
-  } catch (err) {
-    alert(`Error analysing ${seller}: ${err.message}`);
-    btn.disabled = false;
-    btn.innerHTML = orig;
-  }
-}
-
-function buildCDStats(items) {
-  if (!items.length) {
-    return { total:0, avgPrice:0, minPrice:0, maxPrice:0, freeShipPct:0,
-             condNewPct:0, condUsedPct:0, condRefurbPct:0,
-             topKeywords:[], feedbackScore:0, threatScore:1 };
-  }
-  const prices  = items.map(i => parseFloat(i.price.value));
-  const avgPrice = prices.reduce((a,b)=>a+b,0) / prices.length;
-  const freeN   = items.filter(i => (i.shippingOptions?.[0]?.shippingCost?.value||'') === '0.00').length;
-  let newN=0, usedN=0, refurbN=0;
-  items.forEach(i => {
-    const c = (i.condition||'').toUpperCase();
-    if (c.includes('NEW'))                         newN++;
-    else if (c.includes('REFURB')||c.includes('CERTIF')) refurbN++;
-    else if (c.includes('USED'))                   usedN++;
-  });
-  const kwFreq = {};
-  items.forEach(i => extractKeywords(i.title||'').forEach(k=>{ kwFreq[k]=(kwFreq[k]||0)+1; }));
-  const topKeywords = Object.entries(kwFreq).sort((a,b)=>b[1]-a[1]).slice(0,15).map(([k])=>k);
-  const feedbackScore = items[0]?.seller?.feedbackScore || 0;
-  const n = items.length;
-  const stats = {
-    total: n, avgPrice, minPrice: Math.min(...prices), maxPrice: Math.max(...prices),
-    freeShipPct:   Math.round(freeN/n*100),
-    condNewPct:    Math.round(newN/n*100),
-    condUsedPct:   Math.round(usedN/n*100),
-    condRefurbPct: Math.round(refurbN/n*100),
-    topKeywords, feedbackScore
-  };
-  stats.threatScore = calcThreatScore(stats);
-  return stats;
-}
-
-function calcThreatScore({ total, freeShipPct, condNewPct, feedbackScore }) {
-  let s = 0;
-  // Volume (0–3)
-  s += total >= 100 ? 3 : total >= 50 ? 2 : total >= 20 ? 1.5 : total >= 5 ? 1 : 0.5;
-  // Free shipping (0–2.5)
-  s += freeShipPct >= 70 ? 2.5 : freeShipPct >= 50 ? 1.5 : freeShipPct >= 30 ? 1 : 0.5;
-  // New-condition stock (0–2)
-  s += condNewPct >= 60 ? 2 : condNewPct >= 30 ? 1 : 0.5;
-  // Feedback (0–2.5)
-  s += feedbackScore >= 50000 ? 2.5 : feedbackScore >= 10000 ? 2 : feedbackScore >= 5000 ? 1.5 : feedbackScore >= 1000 ? 1 : 0.5;
-  return Math.max(1, Math.min(10, Math.round(s)));
-}
-
-function renderComparisonTable() {
-  const area = document.getElementById('cd-comparison-section');
-  if (!area) return;
-  const analysed = savedSellers.filter(s => cdData[s.toLowerCase()] || cdData[s]);
-  if (analysed.length < 2) { area.innerHTML = ''; return; }
-
-  const metrics = [
-    { label:'Total Listings',   key:'total',        fmt:v=>v,              dir:1  },
-    { label:'Avg Price (£)',    key:'avgPrice',      fmt:v=>`£${v.toFixed(2)}`, dir:-1 },
-    { label:'Lowest Price',     key:'minPrice',      fmt:v=>`£${v.toFixed(2)}`, dir:-1 },
-    { label:'Highest Price',    key:'maxPrice',      fmt:v=>`£${v.toFixed(2)}`, dir:0  },
-    { label:'Free Shipping %',  key:'freeShipPct',   fmt:v=>`${v}%`,        dir:1  },
-    { label:'New Condition %',  key:'condNewPct',    fmt:v=>`${v}%`,        dir:1  },
-    { label:'Used Condition %', key:'condUsedPct',   fmt:v=>`${v}%`,        dir:0  },
-    { label:'Feedback Score',   key:'feedbackScore', fmt:v=>v.toLocaleString(), dir:1 },
-    { label:'Threat Score',     key:'threatScore',   fmt:v=>`${v}/10`,      dir:1  },
-  ];
-
-  const getData = s => cdData[s.toLowerCase()] || cdData[s];
-  const hdrCells = analysed.map(s => `<th>${s}</th>`).join('');
-  const rows = metrics.map(m => {
-    const vals = analysed.map(s => getData(s).stats[m.key]);
-    const max  = Math.max(...vals);
-    const min  = Math.min(...vals);
-    const cells = vals.map(v => {
-      let cls = '';
-      if (max !== min) {
-        if (m.dir === 1  && v === max) cls = 'cd-cmp-best';
-        if (m.dir === 1  && v === min) cls = 'cd-cmp-worst';
-        if (m.dir === -1 && v === min) cls = 'cd-cmp-best';
-        if (m.dir === -1 && v === max) cls = 'cd-cmp-worst';
-      }
-      return `<td class="${cls}">${m.fmt(v)}</td>`;
-    }).join('');
-    return `<tr><td class="cd-metric-lbl">${m.label}</td>${cells}</tr>`;
-  }).join('');
-
-  area.innerHTML = `
-    <div class="cd-section">
-      <h3><i class="ti ti-columns" style="color:var(--accent)"></i> Side-by-Side Comparison
-        <span style="font-size:12px;font-weight:400;color:var(--text-muted)">&nbsp;(${analysed.length} sellers — <span style="color:#3B6D11">green</span> = most competitive threat, <span style="color:#A32D2D">red</span> = least)</span>
-      </h3>
-      <div class="cd-comparison-wrap">
-        <table class="cd-cmp-table">
-          <thead><tr><th class="cd-metric-hdr">Metric</th>${hdrCells}</tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-    </div>`;
-}
-
-async function runPartsOverlap() {
-  const query = document.getElementById('cd-overlap-query').value.trim();
-  if (!query) return;
-  if (!backendUrl) { alert('Configure backend URL first.'); return; }
-  const btn = document.getElementById('cd-overlap-btn');
-  const out = document.getElementById('cd-overlap-results');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Searching…';
-  out.innerHTML = '';
-
-  try {
-    const params = new URLSearchParams({ q: query, limit: 50, sort: 'price', market: 'EBAY_GB' });
-    const res  = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(20000) });
-    const data = await res.json();
-    const all  = (data.itemSummaries || []).filter(i => i.price?.value);
-
-    const hits = all.map((item, idx) => {
-      const uname = (item.seller?.username || '').toLowerCase();
-      const isSaved = savedSellers.includes(uname);
-      const isOwn   = isOwnStore(uname);
-      if (!isSaved && !isOwn) return null;
-      return { rank: idx+1, seller: item.seller?.username||'—', price: parseFloat(item.price.value),
-               title: item.title||'', condition: item.condition||'', url: item.itemWebUrl||'#', isOwn };
-    }).filter(Boolean);
-
-    if (!hits.length) {
-      out.innerHTML = `<p style="font-size:13px;color:var(--text-muted);padding:8px 0">No saved competitors or own stores appear in the top ${all.length} results for "${query}".</p>`;
-    } else {
-      out.innerHTML = `<p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">
-        ${hits.length} match${hits.length!==1?'es':''} in top ${all.length} results</p>
-        <div class="cd-overlap-grid">${hits.map(h => {
-          const col = h.isOwn ? '#d97706' : 'var(--accent)';
-          const bg  = h.isOwn ? '#FEF3C7' : 'var(--accent-bg)';
-          const lbl = h.isOwn ? `⭐ ${ownStoreLabel(h.seller)}` : h.seller;
-          return `<div class="cd-overlap-card" style="border-color:${col}">
-            <div class="cd-overlap-rank">Rank #${h.rank} of ${all.length}</div>
-            <div style="display:inline-block;background:${bg};color:${col};border-radius:99px;padding:1px 8px;font-size:12px;font-weight:600;margin-bottom:4px">${lbl}</div>
-            <div class="cd-overlap-title">${h.title}</div>
-            <div class="cd-overlap-price" style="color:${col}">£${h.price.toFixed(2)}</div>
-            <div style="margin-top:3px">${condBadge(h.condition)}</div>
-            <a href="${h.url}" target="_blank" rel="noopener" style="font-size:11px;color:${col};display:inline-flex;align-items:center;gap:3px;margin-top:7px;text-decoration:none">
-              <i class="ti ti-external-link" style="font-size:12px"></i> View listing
-            </a>
-          </div>`;
-        }).join('')}</div>`;
-    }
-  } catch (err) {
-    out.innerHTML = `<div class="error-bar"><i class="ti ti-alert-circle"></i> ${err.message}</div>`;
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-search"></i> Find Overlap';
-  }
-}
-
-function renderActivityTimeline() {
-  const area = document.getElementById('cd-timeline-area');
-  if (!area) return;
-
-  const compParts = trackedParts.filter(p => savedSellers.includes((p.seller||'').toLowerCase()));
-  if (!compParts.length) {
-    area.innerHTML = `<div style="text-align:center;padding:2rem 1rem;color:var(--text-muted);font-size:13px">
-      No tracked parts have a saved competitor as the cheapest seller yet.<br>
-      Add parts in the <strong>Price Tracker</strong> tab — competitor-sold ones will appear here.
-    </div>`;
-    return;
-  }
-
-  area.innerHTML = '<div class="cd-timeline-canvas-wrap"><canvas id="cd-timeline-chart"></canvas></div>';
-  const canvas = document.getElementById('cd-timeline-chart');
-
-  const allDates = [...new Set(compParts.flatMap(p => p.history.map(h => h.date)))].sort();
-  const palette  = ['#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316'];
-
-  const datasets = compParts.map((part, i) => {
-    const dateMap = Object.fromEntries(part.history.map(h => [h.date, h.price]));
-    const shortTitle = part.title.length > 28 ? part.title.slice(0,28)+'…' : part.title;
-    return {
-      label:           `${part.seller}: ${shortTitle}`,
-      data:            allDates.map(d => dateMap[d] ?? null),
-      borderColor:     palette[i % palette.length],
-      backgroundColor: palette[i % palette.length] + '18',
-      tension: 0.3, fill: false, pointRadius: 4, spanGaps: true
-    };
-  });
-
-  if (charts['cd-timeline']) charts['cd-timeline'].destroy();
-  charts['cd-timeline'] = new Chart(canvas, {
-    type: 'line',
-    data: { labels: allDates, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom', labels: { font:{ size:11 }, boxWidth:14, padding:10 } },
-        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: £${ctx.parsed.y?.toFixed(2)}` } }
-      },
-      scales: {
-        x: { ticks: { font:{size:10}, maxTicksLimit:8 }, grid: { display:false } },
-        y: { ticks: { font:{size:10}, callback: v => `£${v.toFixed(0)}` }, grid: { color:'rgba(0,0,0,0.05)' } }
-      }
-    }
-  });
-}
-
-function addCDCompetitor() {
-  const input = document.getElementById('cd-add-input');
-  const val   = input.value.trim().toLowerCase();
-  if (!val) return;
-  if (savedSellers.includes(val)) { input.value=''; return; }
-  savedSellers.push(val);
-  localStorage.setItem('saved_sellers', JSON.stringify(savedSellers));
-  input.value = '';
-  renderSellerTags();
-  renderCompetitorDash();
-}
-
-function removeCD(seller) {
-  if (!confirm(`Remove ${seller} from competitors and trusted sellers?`)) return;
-  savedSellers = savedSellers.filter(s => s.toLowerCase() !== seller.toLowerCase());
-  localStorage.setItem('saved_sellers', JSON.stringify(savedSellers));
-  delete cdData[seller.toLowerCase()];
-  delete cdData[seller];
-  localStorage.setItem('cd_data', JSON.stringify(cdData));
-  renderSellerTags();
-  renderCompetitorDash();
+// ── Compare competitor highlight ───────────────────────────
+function setCompareHighlight(val) {
+  cdHighlight = val || null;
   if (allResults.length) renderResults(allResults);
-}
-
-function exportCompetitorCSV() {
-  const analysed = savedSellers.filter(s => cdData[s.toLowerCase()]||cdData[s]);
-  if (!analysed.length) { alert('No competitor data to export — analyse some competitors first.'); return; }
-  const rows = [['Seller','Total Listings','Avg Price (£)','Min Price (£)','Max Price (£)',
-                 'Free Shipping %','New %','Used %','Refurb %','Feedback Score','Threat Score',
-                 'Top Keywords','Fetched At']];
-  analysed.forEach(seller => {
-    const d = cdData[seller.toLowerCase()]||cdData[seller];
-    const s = d.stats;
-    rows.push([seller, s.total, s.avgPrice.toFixed(2), s.minPrice.toFixed(2), s.maxPrice.toFixed(2),
-               s.freeShipPct+'%', s.condNewPct+'%', s.condUsedPct+'%', s.condRefurbPct+'%',
-               s.feedbackScore, s.threatScore+'/10',
-               `"${s.topKeywords.slice(0,8).join(', ')}"`,
-               new Date(d.fetchedAt).toLocaleString('en-GB')]);
-  });
-  const csv  = rows.map(r=>r.join(',')).join('\n');
-  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const a    = document.createElement('a');
-  a.href     = URL.createObjectURL(blob);
-  a.download = `competitor-analysis-${Date.now()}.csv`;
-  a.click();
 }
 
 // ── Keyword Analyser ───────────────────────────────────────
@@ -3023,7 +2618,7 @@ function renderKA(query, total) {
     <div class="ka-section">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
         <h3 style="margin:0"><i class="ti ti-cloud" style="color:var(--accent)"></i> Keyword Cloud <span style="font-size:12px;font-weight:400;color:var(--text-muted)">(top 50 by listing count)</span></h3>
-        <button class="export-btn" onclick="exportKACSV()"><i class="ti ti-download"></i> Export CSV</button>
+        <button class="export-btn" onclick="exportKAExcel()"><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
       </div>
       <div class="ka-cloud">${cloudWords}</div>
     </div>
@@ -3149,21 +2744,53 @@ function copyKATitle() {
   });
 }
 
-function exportKACSV() {
-  if (!kaData) return;
-  const rows = [['Rank', 'Keyword', 'Listings containing word', '% of listings', 'Total occurrences']];
-  kaData.ranked.forEach(({ word, docCount, pct, totalCount }, i) => {
-    rows.push([i + 1, word, docCount, pct + '%', totalCount]);
+// ── My Stores Excel export ─────────────────────────────────
+function exportStoreExcel(username) {
+  if (typeof XLSX === 'undefined') return;
+  const key  = username ? username.toLowerCase() : activeStore;
+  const data = storeCache[key] || storeCache[username] || storeCache[activeStore];
+  if (!data || !data.items.length) { alert('No store data loaded — click Load Listings first.'); return; }
+  const store  = myStores.find(s => s.username.toLowerCase() === (key||'')) || { label: username||key };
+  const aoa    = [['Title','Price (£)','Condition','Stock Qty','Shipping','Keywords','URL']];
+  [...data.items].sort((a,b)=>a.price-b.price).forEach(item => {
+    aoa.push([item.title, item.price, item.condition||'', item.qty!=null?item.qty:'',
+              item.shipping||'', (item.keywords||[]).join(', '), item.url||'']);
   });
-  rows.push([]);
-  rows.push(['Top Phrases', 'Appearances', '% of listings']);
-  kaData.topPhrases.forEach(({ phrase, cnt, pct }) => rows.push([`"${phrase}"`, cnt, pct + '%']));
-  const csv = rows.map(r => r.join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `keyword-analysis-${Date.now()}.csv`;
-  a.click();
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  xlsxApplyHdr(ws, ['A','B','C','D','E','F','G']);
+  xlsxPriceFmt(ws, 'B', data.items.length);
+  xlsxAutoWidth(ws, aoa);
+  const wb = XLSX.utils.book_new();
+  const sheetName = (store.label||username||'Store').slice(0,31);
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, `my-store-${(key||'store').replace(/[^a-z0-9]/gi,'-')}-${xlsxDateStr()}.xlsx`);
+}
+
+function exportKAExcel() {
+  if (!kaData || typeof XLSX === 'undefined') return;
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: All keywords ranked
+  const aoa1 = [['Rank','Keyword','Listings Containing Word','% of Listings','Total Occurrences']];
+  kaData.ranked.forEach(({ word, docCount, pct, totalCount }, i) => {
+    aoa1.push([i+1, word, docCount, pct, totalCount]);
+  });
+  const ws1 = XLSX.utils.aoa_to_sheet(aoa1);
+  xlsxApplyHdr(ws1, ['A','B','C','D','E']);
+  xlsxAutoWidth(ws1, aoa1);
+  XLSX.utils.book_append_sheet(wb, ws1, 'Keywords');
+
+  // Sheet 2: Top keyword combinations
+  const aoa2 = [['Rank','Phrase','Appearances','% of Listings']];
+  kaData.topPhrases.forEach(({ phrase, cnt, pct }, i) => {
+    aoa2.push([i+1, phrase, cnt, pct]);
+  });
+  const ws2 = XLSX.utils.aoa_to_sheet(aoa2);
+  xlsxApplyHdr(ws2, ['A','B','C','D']);
+  xlsxAutoWidth(ws2, aoa2);
+  XLSX.utils.book_append_sheet(wb, ws2, 'Keyword Combinations');
+
+  XLSX.writeFile(wb, `keyword-analysis-${xlsxDateStr()}.xlsx`);
 }
 </script>
 </body>
