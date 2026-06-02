@@ -2535,6 +2535,7 @@ function renderCompetitorDash() {
 function buildCDCard(seller) {
   const data     = cdData[seller.toLowerCase()] || cdData[seller];
   const analysed = !!data;
+  const source   = data?.source || '';
 
   const btnRow = `<div style="display:flex;gap:6px;margin-top:auto;padding-top:10px">
     <button class="cd-analyse-btn${analysed?' done':''}" style="flex:1"
@@ -2587,7 +2588,8 @@ function buildCDCard(seller) {
       Range: £${s.minPrice.toFixed(2)} – £${s.maxPrice.toFixed(2)} &nbsp;·&nbsp;
       Feedback: ${s.feedbackScore.toLocaleString()}
     </div>
-    <div style="font-size:10px;color:var(--text-muted)">Fetched ${new Date(data.fetchedAt).toLocaleDateString('en-GB')}</div>
+    ${source === 'keyword_fallback' ? `<div style="font-size:11px;background:#FEF3C7;color:#92400E;border:0.5px solid #F59E0B;border-radius:4px;padding:4px 8px;margin-bottom:4px"><i class="ti ti-alert-triangle" style="font-size:10px"></i> Showing keyword-based results — seller filter not supported for this account level</div>` : ''}
+    <div style="font-size:10px;color:var(--text-muted)">${source === 'finding_api' ? '✓ Finding API · ' : source === 'browse_filter' ? '✓ Browse filter · ' : ''}Fetched ${new Date(data.fetchedAt).toLocaleDateString('en-GB')}</div>
     ${btnRow}
   </div>`;
 }
@@ -2599,17 +2601,17 @@ async function analyseCompetitor(seller, btn) {
   btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Fetching…';
 
   try {
-    const params = new URLSearchParams({ q: seller, limit: 200, sort: 'relevance', market: 'EBAY_GB' });
-    const res  = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(25000) });
+    const params = new URLSearchParams({ username: seller, limit: 200, market: 'EBAY_GB' });
+    const res  = await fetch(`${backendUrl}/seller?${params}`, { signal: AbortSignal.timeout(30000) });
     if (!res.ok) throw new Error(`Server error ${res.status}`);
-    const data = await res.json();
-    const items = (data.itemSummaries || []).filter(i =>
-      (i.seller?.username || '').toLowerCase() === seller.toLowerCase() && i.price?.value
-    );
+    const data   = await res.json();
+    const source = data.source || 'unknown';
+    const items  = (data.itemSummaries || []).filter(i => i.price?.value);
 
     const stats = buildCDStats(items);
     cdData[seller.toLowerCase()] = {
       stats,
+      source,
       fetchedAt: new Date().toISOString()
     };
     localStorage.setItem('cd_data', JSON.stringify(cdData));
