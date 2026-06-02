@@ -258,6 +258,68 @@
   .bulk-table .col-seller { white-space: nowrap; }
   .bulk-table .col-loc { white-space: nowrap; color: var(--text-muted); }
   .bulk-table .col-ship { white-space: nowrap; }
+
+  /* ── Price Positioning ─────────────────────────────────────── */
+  .pp-form { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
+  .pp-form h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 7px; }
+  .pp-form > p { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+  .pp-form-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .pp-form-row input[type=text] { flex: 1; min-width: 200px; height: 40px; padding: 0 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 14px; background: var(--bg); color: var(--text); }
+  .pp-form-row input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .pp-price-wrap { display: flex; align-items: center; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--bg); overflow: hidden; height: 40px; }
+  .pp-currency { padding: 0 6px 0 12px; font-size: 14px; color: var(--text-muted); font-weight: 600; }
+  .pp-price-wrap input[type=number] { width: 100px; height: 100%; padding: 0 10px 0 2px; border: none; font-size: 14px; background: var(--bg); color: var(--text); outline: none; }
+  .pp-form-row select { height: 40px; padding: 0 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--bg); color: var(--text); }
+  .pp-analyse-btn { height: 40px; padding: 0 22px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .pp-analyse-btn:hover { opacity: 0.9; }
+  .pp-analyse-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .pp-options { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .pp-status { font-size: 12px; color: var(--text-muted); margin-top: 8px; min-height: 18px; }
+  .pp-status.err { color: #A32D2D; }
+
+  .pp-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  .pp-section-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+  .pp-section-title h3 { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 7px; margin: 0; }
+  .pp-position-badge { font-size: 13px; font-weight: 600; padding: 5px 14px; border-radius: 99px; }
+  .pp-position-badge.green { background: #EAF3DE; color: #3B6D11; }
+  .pp-position-badge.amber { background: #FEF3C7; color: #92400E; }
+  .pp-position-badge.red   { background: #FCEBEB; color: #A32D2D; }
+
+  .pp-stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .pp-stat-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .pp-stat-value { font-size: 22px; font-weight: 700; line-height: 1.1; margin-bottom: 4px; }
+  .pp-stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em; }
+  .pp-stat-card.hl-green .pp-stat-value { color: #3B6D11; }
+  .pp-stat-card.hl-red   .pp-stat-value { color: #A32D2D; }
+  .pp-stat-card.hl-amber .pp-stat-value { color: #92400E; }
+
+  .pp-reprice { background: #FEF3C7; border: 0.5px solid #F59E0B; border-radius: var(--radius); padding: 16px 18px; margin-bottom: 16px; display: flex; gap: 14px; align-items: flex-start; }
+  .pp-reprice i { font-size: 22px; color: #92400E; flex-shrink: 0; margin-top: 2px; }
+  .pp-reprice-content h4 { font-size: 14px; font-weight: 600; color: #92400E; margin-bottom: 4px; }
+  .pp-reprice-content p { font-size: 13px; color: #92400E; line-height: 1.5; }
+  .pp-reprice-price { font-size: 20px; font-weight: 700; color: #3B6D11; background: #EAF3DE; border: 0.5px solid #9FE1CB; border-radius: var(--radius-sm); padding: 4px 14px; display: inline-block; margin-top: 8px; }
+
+  .pp-table-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; }
+  .pp-table-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 0.5px solid var(--border); flex-wrap: wrap; gap: 8px; }
+  .pp-table-header h3 { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 7px; margin: 0; }
+  .pp-table-wrap { overflow-x: auto; }
+  .pp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .pp-table thead th { background: var(--bg); padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; border-bottom: 0.5px solid var(--border); }
+  .pp-table tbody td { padding: 8px 12px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+  .pp-table tbody tr:last-child td { border-bottom: none; }
+  .pp-table tbody tr.pp-row-cheaper { background: rgba(252,235,235,0.6); }
+  .pp-table tbody tr.pp-row-cheaper:hover { background: rgba(252,235,235,0.9); }
+  .pp-table tbody tr.pp-row-costlier { background: rgba(234,243,222,0.5); }
+  .pp-table tbody tr.pp-row-costlier:hover { background: rgba(234,243,222,0.8); }
+  .pp-table .col-num { color: var(--text-muted); font-size: 11px; text-align: right; width: 28px; padding-right: 6px; }
+  .pp-table .col-price-v { font-weight: 600; white-space: nowrap; }
+  .pp-table .col-title-v { max-width: 260px; min-width: 150px; }
+  .pp-table .col-title-v a { color: var(--accent); text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+  .pp-table .col-title-v a:hover { text-decoration: underline; }
+  .pp-price-tag { font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 600; white-space: nowrap; margin-left: 4px; vertical-align: middle; }
+  .pp-price-tag.cheaper  { background: #FCEBEB; color: #A32D2D; }
+  .pp-price-tag.costlier { background: #EAF3DE; color: #3B6D11; }
+  .pp-price-tag.equal    { background: var(--bg); color: var(--text-muted); border: 0.5px solid var(--border); }
 </style>
 </head>
 <body>
@@ -286,6 +348,7 @@
     <div class="tab active" onclick="switchTab('search')"><i class="ti ti-search"></i> Search</div>
     <div class="tab" onclick="switchTab('tracker')"><i class="ti ti-chart-line"></i> Price Tracker <span id="tracker-count" style="background:var(--accent);color:#fff;border-radius:99px;padding:1px 7px;font-size:11px;display:none">0</span></div>
     <div class="tab" onclick="switchTab('bulk')"><i class="ti ti-list-search"></i> Bulk Search</div>
+    <div class="tab" onclick="switchTab('pricing')"><i class="ti ti-tag"></i> Price Positioning</div>
   </div>
 
   <!-- Search Tab -->
@@ -468,6 +531,45 @@
 
     </div>
   </div>
+
+  <!-- Price Positioning Tab -->
+  <div id="tab-pricing" class="tab-content">
+    <div class="container">
+
+      <div class="pp-form">
+        <h3><i class="ti ti-tag" style="color:var(--accent)"></i> Price Positioning Analysis</h3>
+        <p>Enter your part details to see exactly where your price sits in the current eBay market.</p>
+        <div class="pp-form-row">
+          <input type="text" id="pp-query" placeholder="Part name or number e.g. BMW E46 front brake pads" onkeydown="if(event.key==='Enter')runPricingAnalysis()" />
+          <div class="pp-price-wrap">
+            <span class="pp-currency">£</span>
+            <input type="number" id="pp-price" placeholder="0.00" min="0" step="0.01" />
+          </div>
+          <select id="pp-condition">
+            <option value="">Any condition</option>
+            <option value="NEW">New</option>
+            <option value="USED">Used</option>
+            <option value="REFURBISHED">Refurbished</option>
+          </select>
+          <button class="pp-analyse-btn" id="pp-analyse-btn" onclick="runPricingAnalysis()">
+            <i class="ti ti-chart-bar"></i> Analyse
+          </button>
+        </div>
+        <div class="pp-options">
+          <label class="seller-toggle">
+            <input type="checkbox" id="pp-seller-filter" />
+            <i class="ti ti-store" style="font-size:14px"></i>
+            Trusted Sellers only
+          </label>
+          <span id="pp-seller-hint" style="font-size:11px;color:var(--text-muted)"></span>
+        </div>
+        <div class="pp-status" id="pp-status"></div>
+      </div>
+
+      <div id="pp-results"></div>
+
+    </div>
+  </div>
 </div>
 
 <script>
@@ -508,6 +610,12 @@ function switchTab(name) {
     if (hint) hint.textContent = savedSellers.length
       ? `(${savedSellers.length} seller${savedSellers.length > 1 ? 's' : ''} saved: ${savedSellers.slice(0, 3).join(', ')}${savedSellers.length > 3 ? '…' : ''})`
       : '(no sellers saved yet — add them in the Search tab)';
+  }
+  if (name === 'pricing') {
+    const hint = document.getElementById('pp-seller-hint');
+    if (hint) hint.textContent = savedSellers.length
+      ? `(${savedSellers.length} seller${savedSellers.length > 1 ? 's' : ''} saved)`
+      : '(no sellers saved — add them in the Search tab)';
   }
 }
 
@@ -1275,6 +1383,295 @@ function exportBulkExcel() {
 
   XLSX.utils.book_append_sheet(wb, ws, 'Bulk Search Results');
   XLSX.writeFile(wb, `ebay-bulk-search-${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+// ── Price Positioning ──────────────────────────────────────
+let ppCompetitors = [];
+let ppUserPrice   = 0;
+
+function runPricingAnalysis() {
+  const query    = document.getElementById('pp-query').value.trim();
+  const priceRaw = document.getElementById('pp-price').value.trim();
+  const status   = document.getElementById('pp-status');
+
+  if (!query) {
+    status.className = 'pp-status err';
+    status.textContent = 'Please enter a part name or number.';
+    return;
+  }
+  if (!priceRaw || isNaN(parseFloat(priceRaw)) || parseFloat(priceRaw) <= 0) {
+    status.className = 'pp-status err';
+    status.textContent = 'Please enter a valid selling price.';
+    return;
+  }
+  if (!backendUrl) {
+    status.className = 'pp-status err';
+    status.textContent = 'Please configure your backend URL in the Search tab first.';
+    return;
+  }
+
+  ppUserPrice = parseFloat(priceRaw);
+  const condition = document.getElementById('pp-condition').value;
+  const sellerOn  = document.getElementById('pp-seller-filter').checked;
+
+  const btn = document.getElementById('pp-analyse-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px"></div> Analysing…';
+  status.className = 'pp-status';
+  status.textContent = 'Fetching top 50 listings from eBay…';
+  document.getElementById('pp-results').innerHTML = '';
+
+  const params = new URLSearchParams({ q: query, limit: 50, sort: 'price', market: 'EBAY_GB' });
+
+  fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(20000) })
+    .then(res => {
+      if (!res.ok) return res.json().catch(() => ({})).then(err => { throw new Error(err.error || `Server error ${res.status}`); });
+      return res.json();
+    })
+    .then(data => {
+      let items = data.itemSummaries || [];
+
+      if (sellerOn && savedSellers.length) {
+        items = items.filter(i => savedSellers.includes((i.seller?.username || '').toLowerCase()));
+      }
+
+      if (condition) {
+        items = items.filter(i => {
+          const c = (i.condition || '').toUpperCase();
+          if (condition === 'NEW')         return c.includes('NEW');
+          if (condition === 'USED')        return c.includes('USED');
+          if (condition === 'REFURBISHED') return c.includes('REFURB') || c.includes('CERTIF');
+          return true;
+        });
+      }
+
+      ppCompetitors = items
+        .filter(i => i.price?.value)
+        .map(item => {
+          const shipVal = item.shippingOptions?.[0]?.shippingCost?.value;
+          return {
+            title:     item.title || '',
+            price:     parseFloat(item.price.value),
+            currency:  item.price?.currency || 'GBP',
+            condition: item.condition || '',
+            seller:    item.seller?.username || '',
+            shipping:  shipVal === '0.00' ? 'Free' : (shipVal ? `£${parseFloat(shipVal).toFixed(2)}` : '—'),
+            url:       item.itemWebUrl || '#'
+          };
+        });
+
+      if (!ppCompetitors.length) {
+        status.className = 'pp-status err';
+        status.textContent = 'No competitor listings found — try a broader search term or turn off the filters.';
+        return;
+      }
+
+      status.className = 'pp-status';
+      status.textContent = '';
+      renderPricingResults();
+    })
+    .catch(err => {
+      status.className = 'pp-status err';
+      status.textContent = `Error: ${err.message || 'Could not reach eBay.'}`;
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-chart-bar"></i> Analyse';
+    });
+}
+
+function renderPricingResults() {
+  const prices = ppCompetitors.map(c => c.price).sort((a, b) => a - b);
+  const n = prices.length;
+  if (!n) return;
+
+  const minP = prices[0];
+  const maxP = prices[n - 1];
+  const avgP = prices.reduce((a, b) => a + b, 0) / n;
+  const medP = n % 2 === 0
+    ? (prices[n / 2 - 1] + prices[n / 2]) / 2
+    : prices[Math.floor(n / 2)];
+
+  const cheaperCount  = prices.filter(p => p < ppUserPrice).length;
+  const costlierCount = prices.filter(p => p > ppUserPrice).length;
+  const beatingPct    = Math.round(costlierCount / n * 100);
+  const beatenByPct   = Math.round(cheaperCount  / n * 100);
+
+  // Bar position: where the user's price sits between min and max (0–100%)
+  const range  = maxP - minP;
+  const barPos = range === 0 ? 50 : Math.max(0, Math.min(100, (ppUserPrice - minP) / range * 100));
+
+  // Zone classification
+  let zoneClass, zoneLabelText;
+  if (barPos <= 25) {
+    zoneClass = 'green'; zoneLabelText = 'Top 25% cheapest ✓';
+  } else if (barPos <= 75) {
+    zoneClass = 'amber'; zoneLabelText = 'Mid-range (25th–75th percentile)';
+  } else {
+    zoneClass = 'red';   zoneLabelText = 'Most expensive 25%';
+  }
+
+  // Needle / marker colour matches the zone
+  const markerBg = barPos <= 25 ? '#16a34a' : barPos <= 75 ? '#d97706' : '#dc2626';
+
+  // Reprice suggestion — only if beaten by more than 30%
+  let repriceHtml = '';
+  if (beatenByPct > 30) {
+    const top25Idx       = Math.max(0, Math.floor(0.25 * n) - 1);
+    const suggestedRaw   = Math.max(0.01, prices[top25Idx] - 0.01);
+    const suggestedPrice = suggestedRaw.toFixed(2);
+    repriceHtml = `
+    <div class="pp-reprice">
+      <i class="ti ti-alert-triangle"></i>
+      <div class="pp-reprice-content">
+        <h4>Reprice Suggestion</h4>
+        <p><strong>${beatenByPct}%</strong> of competitors are cheaper than your price of <strong>£${ppUserPrice.toFixed(2)}</strong>.
+        To enter the top 25% cheapest listings and stay highly competitive, consider pricing at:</p>
+        <div class="pp-reprice-price">£${suggestedPrice}</div>
+      </div>
+    </div>`;
+  }
+
+  // Competitor table rows (sorted cheapest first)
+  const sorted = [...ppCompetitors].sort((a, b) => a.price - b.price);
+  const tableRows = sorted.map((c, idx) => {
+    const isCheaper  = c.price < ppUserPrice;
+    const isCostlier = c.price > ppUserPrice;
+    const rowClass   = isCheaper ? 'pp-row-cheaper' : isCostlier ? 'pp-row-costlier' : '';
+    const S          = sym(c.currency || 'GBP');
+    const tagClass   = isCheaper ? 'cheaper' : isCostlier ? 'costlier' : 'equal';
+    const tagLabel   = isCheaper ? 'Cheaper' : isCostlier ? 'Costlier' : 'Same';
+    return `<tr class="${rowClass}">
+      <td class="col-num">${idx + 1}</td>
+      <td class="col-title-v"><a href="${c.url}" target="_blank" rel="noopener">${c.title}</a></td>
+      <td class="col-price-v">${S}${c.price.toFixed(2)}<span class="pp-price-tag ${tagClass}">${tagLabel}</span></td>
+      <td>${condBadge(c.condition)}</td>
+      <td>${c.seller || '—'}</td>
+      <td>${c.shipping}</td>
+      <td><a href="${c.url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:12px;display:flex;align-items:center;gap:4px;"><i class="ti ti-external-link" style="font-size:13px"></i></a></td>
+    </tr>`;
+  }).join('');
+
+  // Stats card colour class
+  const beatClass = beatingPct >= 75 ? 'hl-green' : beatingPct >= 50 ? 'hl-amber' : 'hl-red';
+
+  document.getElementById('pp-results').innerHTML = `
+    <div class="pp-section">
+      <div class="pp-section-title">
+        <h3><i class="ti ti-chart-bar" style="color:var(--accent)"></i> Market Position</h3>
+        <span class="pp-position-badge ${zoneClass}">${zoneLabelText}</span>
+      </div>
+
+      <div style="position:relative;padding-top:46px;margin-bottom:4px;">
+        <div style="position:absolute;top:0;left:${barPos}%;transform:translateX(-50%);z-index:4;pointer-events:none;">
+          <div style="background:${markerBg};color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:5px;white-space:nowrap;text-align:center;position:relative;">
+            Your price: £${ppUserPrice.toFixed(2)}
+            <span style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);display:block;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:8px solid ${markerBg};"></span>
+          </div>
+        </div>
+        <div style="position:absolute;top:34px;left:${barPos}%;transform:translateX(-50%);width:3px;height:12px;background:${markerBg};border-radius:2px;z-index:4;"></div>
+        <div style="height:28px;border-radius:14px;overflow:hidden;display:flex;">
+          <div style="background:#22c55e;width:25%;"></div>
+          <div style="background:#f59e0b;width:50%;"></div>
+          <div style="background:#ef4444;width:25%;"></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:var(--text-muted);">
+        <span><strong>£${minP.toFixed(2)}</strong> cheapest</span>
+        <span style="text-align:center"><strong>£${avgP.toFixed(2)}</strong> avg</span>
+        <span><strong>£${maxP.toFixed(2)}</strong> most exp.</span>
+      </div>
+      <div style="display:flex;margin-top:4px;font-size:10px;font-weight:600;">
+        <span style="width:25%;color:#16a34a;">Cheapest 25%</span>
+        <span style="width:50%;text-align:center;color:#d97706;">Middle 50%</span>
+        <span style="width:25%;text-align:right;color:#dc2626;">Costliest 25%</span>
+      </div>
+    </div>
+
+    <div class="pp-stats-grid">
+      <div class="pp-stat-card">
+        <div class="pp-stat-value">£${ppUserPrice.toFixed(2)}</div>
+        <div class="pp-stat-label">Your Price</div>
+      </div>
+      <div class="pp-stat-card hl-green">
+        <div class="pp-stat-value">£${minP.toFixed(2)}</div>
+        <div class="pp-stat-label">Lowest Competitor</div>
+      </div>
+      <div class="pp-stat-card hl-red">
+        <div class="pp-stat-value">£${maxP.toFixed(2)}</div>
+        <div class="pp-stat-label">Highest Competitor</div>
+      </div>
+      <div class="pp-stat-card">
+        <div class="pp-stat-value">£${avgP.toFixed(2)}</div>
+        <div class="pp-stat-label">Average Market Price</div>
+      </div>
+      <div class="pp-stat-card">
+        <div class="pp-stat-value">£${medP.toFixed(2)}</div>
+        <div class="pp-stat-label">Median Price</div>
+      </div>
+      <div class="pp-stat-card hl-red">
+        <div class="pp-stat-value">${cheaperCount}</div>
+        <div class="pp-stat-label">Cheaper Than You</div>
+      </div>
+      <div class="pp-stat-card hl-green">
+        <div class="pp-stat-value">${costlierCount}</div>
+        <div class="pp-stat-label">More Expensive</div>
+      </div>
+      <div class="pp-stat-card ${beatClass}">
+        <div class="pp-stat-value">${beatingPct}%</div>
+        <div class="pp-stat-label">Competitors Beaten</div>
+      </div>
+    </div>
+
+    ${repriceHtml}
+
+    <div class="pp-table-section">
+      <div class="pp-table-header">
+        <h3><i class="ti ti-list" style="color:var(--accent)"></i> Competitor Listings <span style="font-weight:400;color:var(--text-muted)">(${n} listings, sorted cheapest first)</span></h3>
+        <button class="export-btn" onclick="exportPricingCSV()"><i class="ti ti-download"></i> Export CSV</button>
+      </div>
+      <div class="pp-table-wrap">
+        <table class="pp-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Title</th>
+              <th>Price</th>
+              <th>Condition</th>
+              <th>Seller</th>
+              <th>Shipping</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function exportPricingCSV() {
+  if (!ppCompetitors.length) return;
+  const sorted = [...ppCompetitors].sort((a, b) => a.price - b.price);
+  const rows = [['Rank', 'Title', 'Price (£)', 'vs Your Price (£' + ppUserPrice.toFixed(2) + ')', 'Condition', 'Seller', 'Shipping', 'URL']];
+  sorted.forEach((c, idx) => {
+    const vs = c.price < ppUserPrice ? 'Cheaper' : c.price > ppUserPrice ? 'More expensive' : 'Same price';
+    rows.push([
+      idx + 1,
+      `"${(c.title || '').replace(/"/g, '""')}"`,
+      c.price.toFixed(2),
+      vs,
+      c.condition || '',
+      c.seller || '',
+      c.shipping || '',
+      c.url || ''
+    ]);
+  });
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `price-positioning-${Date.now()}.csv`;
+  a.click();
 }
 
 // ── Render tracker tab ─────────────────────────────────────
