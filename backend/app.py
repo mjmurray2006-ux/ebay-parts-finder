@@ -807,6 +807,136 @@ def delete_watchlist_item(item_id):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Routes — Taxonomy API (category search + item specifics)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_category_tree_cache = {}
+
+REQUIREMENT_ORDER = {"REQUIRED": 0, "RECOMMENDED": 1, "OPTIONAL": 2}
+
+
+def get_category_tree_id(marketplace):
+    if marketplace in _category_tree_cache:
+        return _category_tree_cache[marketplace]
+
+    token = get_token()
+    resp  = requests.get(
+        f"{_ebay_base_url()}/commerce/taxonomy/v1/get_default_category_tree_id",
+        headers={"Authorization": f"Bearer {token}"},
+        params={"marketplace_id": marketplace},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    tree_id = resp.json()["categoryTreeId"]
+    _category_tree_cache[marketplace] = tree_id
+    return tree_id
+
+
+def _build_breadcrumb(category_name, ancestors):
+    ordered = sorted(ancestors, key=lambda a: a.get("categoryTreeNodeLevel", 0))
+    return " > ".join([a["categoryName"] for a in ordered] + [category_name])
+
+
+@app.route("/api/taxonomy/search-categories", methods=["GET"])
+def search_categories():
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify({"error": "Missing search query"}), 400
+
+    marketplace = request.args.get("marketplace", "EBAY_GB")
+
+    try:
+        tree_id = get_category_tree_id(marketplace)
+        token   = get_token()
+        resp    = requests.get(
+            f"{_ebay_base_url()}/commerce/taxonomy/v1/category_tree/{tree_id}/get_category_suggestions",
+            headers={"Authorization": f"Bearer {token}"},
+            params={"q": q},
+            timeout=15,
+        )
+        resp.raise_for_status()
+
+        suggestions = []
+        for s in resp.json().get("categorySuggestions", []):
+            category = s.get("category", {})
+            suggestions.append({
+                "categoryId":   category.get("categoryId"),
+                "categoryName": category.get("categoryName"),
+                "breadcrumb":   _build_breadcrumb(
+                    category.get("categoryName", ""),
+                    s.get("categoryTreeNodeAncestors", []),
+                ),
+            })
+
+        return jsonify(suggestions)
+    except requests.HTTPError as e:
+        try:
+            detail = e.response.json()
+        except Exception:
+            detail = {"raw": e.response.text}
+        return jsonify({"error": str(e), "detail": detail}), e.response.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/taxonomy/item-specifics", methods=["GET"])
+def item_specifics():
+    category_id = request.args.get("category_id", "").strip()
+    if not category_id:
+        return jsonify({"error": "Missing category_id parameter"}), 400
+
+    marketplace = request.args.get("marketplace", "EBAY_GB")
+
+    try:
+        tree_id = get_category_tree_id(marketplace)
+        token   = get_token()
+        resp    = requests.get(
+            f"{_ebay_base_url()}/commerce/taxonomy/v1/category_tree/{tree_id}/get_item_aspects_for_category",
+            headers={"Authorization": f"Bearer {token}"},
+            params={"category_id": category_id},
+            timeout=15,
+        )
+        resp.raise_for_status()
+
+        aspects = []
+        for a in resp.json().get("aspects", []):
+            constraint = a.get("aspectConstraint", {})
+            required   = bool(constraint.get("aspectRequired"))
+            usage      = constraint.get("aspectUsage", "OPTIONAL")
+            level      = "REQUIRED" if required else ("RECOMMENDED" if usage == "RECOMMENDED" else "OPTIONAL")
+
+            aspects.append({
+                "name":                   a.get("localizedAspectName", ""),
+                "requirementLevel":       level,
+                "dataType":               constraint.get("aspectDataType", ""),
+                "mode":                   constraint.get("aspectMode", ""),
+                "supportsMultipleValues": constraint.get("itemToAspectCardinality") == "MULTI",
+                "enabledForVariations":   bool(constraint.get("aspectEnabledForVariations")),
+                "allowedValues":          [v.get("localizedValue", "") for v in a.get("aspectValues", [])],
+                "searchCount":            a.get("relevanceIndicator", {}).get("searchCount", 0),
+            })
+
+        aspects.sort(key=lambda a: REQUIREMENT_ORDER.get(a["requirementLevel"], 3))
+
+        summary = {
+            "total":       len(aspects),
+            "required":    sum(1 for a in aspects if a["requirementLevel"] == "REQUIRED"),
+            "recommended": sum(1 for a in aspects if a["requirementLevel"] == "RECOMMENDED"),
+            "optional":    sum(1 for a in aspects if a["requirementLevel"] == "OPTIONAL"),
+        }
+
+        return jsonify({"aspects": aspects, "summary": summary})
+    except requests.HTTPError as e:
+        try:
+            detail = e.response.json()
+        except Exception:
+            detail = {"raw": e.response.text}
+        return jsonify({"error": str(e), "detail": detail}), e.response.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

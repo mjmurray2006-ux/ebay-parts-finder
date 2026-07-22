@@ -511,6 +511,61 @@
   .badge-competitor { background: #FCEBEB; color: #A32D2D; border: 0.5px solid #F09595; }
   .compare-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--text-muted); }
   .compare-bar select { height: 30px; padding: 0 8px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; background: var(--surface); color: var(--text); cursor: pointer; }
+
+  /* ── Item Specifics ────────────────────────────────────── */
+  .isp-form { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
+  .isp-form h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 7px; }
+  .isp-form > p { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+  .isp-search-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .isp-search-row input[type=text] { flex: 1; min-width: 200px; height: 42px; padding: 0 14px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); font-size: 15px; background: var(--bg); color: var(--text); }
+  .isp-search-row input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .isp-search-row select { height: 42px; padding: 0 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); font-size: 13px; background: var(--bg); color: var(--text); }
+  .isp-btn { height: 42px; padding: 0 22px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .isp-btn:hover { opacity: 0.9; }
+  .isp-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .isp-status { font-size: 12px; color: var(--text-muted); margin-top: 8px; min-height: 18px; }
+  .isp-status.err { color: #A32D2D; }
+
+  .isp-cat-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 16px; }
+  .isp-cat-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 7px; }
+  .isp-cat-list { display: flex; flex-direction: column; gap: 6px; max-height: 340px; overflow-y: auto; }
+  .isp-cat-item { text-align: left; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
+  .isp-cat-item:hover { border-color: var(--accent); background: var(--accent-bg); }
+  .isp-cat-item.active { border-color: var(--accent); background: var(--accent-bg); }
+  .isp-cat-name { font-size: 13px; font-weight: 600; }
+  .isp-cat-breadcrumb { font-size: 11px; color: var(--text-muted); }
+
+  .isp-stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .isp-stat-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .isp-stat-value { font-size: 22px; font-weight: 700; line-height: 1.1; margin-bottom: 4px; }
+  .isp-stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em; }
+  .isp-stat-card.hl-red   .isp-stat-value { color: #A32D2D; }
+  .isp-stat-card.hl-green .isp-stat-value { color: #3B6D11; }
+  .isp-stat-card.hl-grey  .isp-stat-value { color: var(--text-muted); }
+
+  .isp-table-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; }
+  .isp-table-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 0.5px solid var(--border); flex-wrap: wrap; gap: 8px; }
+  .isp-table-header h3 { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 7px; margin: 0; }
+  .isp-table-wrap { overflow-x: auto; }
+  .isp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .isp-table thead th { background: var(--bg); padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; border-bottom: 0.5px solid var(--border); }
+  .isp-table tbody td { padding: 8px 12px; border-bottom: 0.5px solid var(--border); vertical-align: top; }
+  .isp-table tbody tr:last-child td { border-bottom: none; }
+  .isp-table tbody tr.isp-row-required    { background: rgba(252,235,235,0.6); }
+  .isp-table tbody tr.isp-row-required:hover    { background: rgba(252,235,235,0.9); }
+  .isp-table tbody tr.isp-row-recommended { background: rgba(234,243,222,0.5); }
+  .isp-table tbody tr.isp-row-recommended:hover { background: rgba(234,243,222,0.8); }
+  .isp-table tbody tr.isp-row-optional    { background: rgba(128,128,128,0.08); }
+  .isp-table tbody tr.isp-row-optional:hover    { background: rgba(128,128,128,0.16); }
+  .isp-table .col-name { font-weight: 600; white-space: nowrap; }
+  .isp-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; white-space: nowrap; }
+  .isp-badge-required    { background: #FCEBEB; color: #A32D2D; border: 0.5px solid #F09595; }
+  .isp-badge-recommended { background: #EAF3DE; color: #3B6D11; border: 0.5px solid #9FE1CB; }
+  .isp-badge-optional    { background: var(--bg); color: var(--text-muted); border: 0.5px solid var(--border); }
+  .isp-values-cell { max-width: 320px; min-width: 180px; }
+  .isp-val-chip { display: inline-block; font-size: 11px; padding: 2px 7px; background: var(--bg); border-radius: 99px; color: var(--text-muted); border: 0.5px solid var(--border); margin: 0 3px 3px 0; }
+  .isp-val-more { font-size: 11px; color: var(--accent); cursor: pointer; background: none; border: none; padding: 2px 4px; font-weight: 600; }
+  .isp-val-more:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -564,6 +619,7 @@
     <div class="tab" onclick="switchTab('pricing')"><i class="ti ti-tag"></i> Price Positioning</div>
     <div class="tab" onclick="switchTab('stores')"><i class="ti ti-star" style="color:#d97706"></i> My Stores</div>
     <div class="tab" onclick="switchTab('keywords')"><i class="ti ti-typography"></i> Keyword Analyser</div>
+    <div class="tab" onclick="switchTab('specifics')"><i class="ti ti-list-details"></i> Item Specifics</div>
   </div>
 
   <!-- Search Tab -->
@@ -828,6 +884,33 @@
     </div>
   </div>
 
+  <!-- Item Specifics Tab -->
+  <div id="tab-specifics" class="tab-content">
+    <div class="container">
+
+      <div class="isp-form">
+        <h3><i class="ti ti-list-details" style="color:var(--accent)"></i> Item Specifics Lookup</h3>
+        <p>Search for any eBay category to see every item specific eBay expects — required, recommended and optional — including allowed values and search relevance.</p>
+        <div class="isp-search-row">
+          <input type="text" id="isp-query" placeholder="Category keyword e.g. brake discs, oil filters, clutch kit" onkeydown="if(event.key==='Enter')ispSearchCategories()" />
+          <select id="isp-market">
+            <option value="EBAY_GB">🇬🇧 eBay UK</option>
+            <option value="EBAY_US">🇺🇸 eBay US</option>
+            <option value="EBAY_DE">🇩🇪 eBay DE</option>
+            <option value="EBAY_FR">🇫🇷 eBay FR</option>
+            <option value="EBAY_AU">🇦🇺 eBay AU</option>
+          </select>
+          <button class="isp-btn" id="isp-search-btn" onclick="ispSearchCategories()"><i class="ti ti-search"></i> Find Categories</button>
+        </div>
+        <div class="isp-status" id="isp-status"></div>
+      </div>
+
+      <div id="isp-categories"></div>
+      <div id="isp-results"></div>
+
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -877,6 +960,7 @@ function switchTab(name) {
   }
   if (name === 'stores') renderStoresDash();
   if (name === 'keywords') { /* nothing to pre-render */ }
+  if (name === 'specifics') { /* nothing to pre-render */ }
 }
 
 // ── State ──────────────────────────────────────────────────
@@ -897,6 +981,10 @@ let myStores      = JSON.parse(localStorage.getItem('my_stores') || '[]');
 let storeCache    = JSON.parse(localStorage.getItem('store_cache') || '{}');
 let activeStore   = null;
 let cdHighlight   = null; // competitor username highlighted in search results
+let ispCategories = [];
+let ispSelectedCategory = null;
+let ispData       = null;
+let ispExpanded   = {};
 
 function isOwnStore(username) {
   return myStores.some(s => s.username.toLowerCase() === (username || '').toLowerCase());
@@ -2791,6 +2879,230 @@ function exportKAExcel() {
   XLSX.utils.book_append_sheet(wb, ws2, 'Keyword Combinations');
 
   XLSX.writeFile(wb, `keyword-analysis-${xlsxDateStr()}.xlsx`);
+}
+
+// ── Item Specifics ─────────────────────────────────────────
+async function ispSearchCategories() {
+  const query = document.getElementById('isp-query').value.trim();
+  if (!query) return;
+  if (!backendUrl) {
+    document.getElementById('isp-status').textContent = 'Please set your backend URL in the Search tab first.';
+    return;
+  }
+  const btn    = document.getElementById('isp-search-btn');
+  const status = document.getElementById('isp-status');
+  const market = document.getElementById('isp-market').value;
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Searching…';
+  status.className = 'isp-status';
+  status.textContent = 'Looking up matching categories…';
+  document.getElementById('isp-categories').innerHTML = '';
+  document.getElementById('isp-results').innerHTML = '';
+  ispSelectedCategory = null;
+  ispData = null;
+
+  try {
+    const params = new URLSearchParams({ q: query, marketplace: market });
+    const res = await fetch(`${backendUrl}/api/taxonomy/search-categories?${params}`, { signal: AbortSignal.timeout(15000) });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `Server error ${res.status}`);
+    }
+    ispCategories = await res.json();
+
+    if (!ispCategories.length) {
+      status.textContent = 'No matching categories found — try a different keyword.';
+      return;
+    }
+
+    status.textContent = `${ispCategories.length} matching categor${ispCategories.length === 1 ? 'y' : 'ies'} found — click one to load its item specifics.`;
+    renderIspCategories();
+  } catch (err) {
+    status.className = 'isp-status err';
+    status.textContent = `Error: ${err.message || 'Could not reach eBay.'}`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-search"></i> Find Categories';
+  }
+}
+
+function renderIspCategories() {
+  const rows = ispCategories.map((c, i) => `
+    <button class="isp-cat-item${ispSelectedCategory && ispSelectedCategory.categoryId === c.categoryId ? ' active' : ''}" onclick="ispSelectCategory(${i})">
+      <span class="isp-cat-name">${c.categoryName}</span>
+      <span class="isp-cat-breadcrumb">${c.breadcrumb}</span>
+    </button>`).join('');
+
+  document.getElementById('isp-categories').innerHTML = `
+    <div class="isp-cat-section">
+      <h3><i class="ti ti-category" style="color:var(--accent)"></i> Matching Categories</h3>
+      <div class="isp-cat-list">${rows}</div>
+    </div>`;
+}
+
+async function ispSelectCategory(index) {
+  const category = ispCategories[index];
+  if (!category) return;
+  ispSelectedCategory = category;
+  renderIspCategories();
+
+  const status = document.getElementById('isp-status');
+  const market = document.getElementById('isp-market').value;
+  document.getElementById('isp-results').innerHTML = '<div class="isp-status">Loading item specifics…</div>';
+  status.className = 'isp-status';
+  status.textContent = `Loading item specifics for "${category.categoryName}"…`;
+
+  try {
+    const params = new URLSearchParams({ category_id: category.categoryId, marketplace: market });
+    const res = await fetch(`${backendUrl}/api/taxonomy/item-specifics?${params}`, { signal: AbortSignal.timeout(15000) });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `Server error ${res.status}`);
+    }
+    const data = await res.json();
+    ispData = { ...data, category, market };
+    ispExpanded = {};
+    status.textContent = '';
+    renderIspResults();
+  } catch (err) {
+    status.className = 'isp-status err';
+    status.textContent = `Error: ${err.message || 'Could not reach eBay.'}`;
+    document.getElementById('isp-results').innerHTML = '';
+  }
+}
+
+function ispToggleValues(idx) {
+  ispExpanded[idx] = !ispExpanded[idx];
+  renderIspResults();
+}
+
+function renderIspResults() {
+  if (!ispData) return;
+  const { aspects, summary, category, market } = ispData;
+
+  const rowClass   = { REQUIRED: 'isp-row-required', RECOMMENDED: 'isp-row-recommended', OPTIONAL: 'isp-row-optional' };
+  const badgeClass = { REQUIRED: 'isp-badge-required', RECOMMENDED: 'isp-badge-recommended', OPTIONAL: 'isp-badge-optional' };
+
+  const rows = aspects.map((a, i) => {
+    const values   = a.allowedValues || [];
+    const expanded = !!ispExpanded[i];
+    const shown    = expanded ? values : values.slice(0, 10);
+    const chips    = shown.map(v => `<span class="isp-val-chip">${v}</span>`).join('');
+    const more     = values.length > 10
+      ? `<button class="isp-val-more" onclick="ispToggleValues(${i})">${expanded ? 'Show less' : `+${values.length - 10} more`}</button>`
+      : '';
+    const valuesCell = values.length
+      ? `${chips}${more}`
+      : `<span style="color:var(--text-muted);font-style:italic">—</span>`;
+
+    return `<tr class="${rowClass[a.requirementLevel] || ''}">
+      <td class="col-name">${a.name}</td>
+      <td><span class="isp-badge ${badgeClass[a.requirementLevel] || ''}">${a.requirementLevel}</span></td>
+      <td>${a.mode === 'FREE_TEXT' ? 'Free text' : 'Dropdown / selection'}</td>
+      <td>${a.supportsMultipleValues ? 'Yes' : 'No'}</td>
+      <td>${a.enabledForVariations ? 'Yes' : 'No'}</td>
+      <td class="isp-values-cell">${valuesCell}</td>
+      <td>${(a.searchCount || 0).toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('isp-results').innerHTML = `
+    <div class="isp-stats-grid">
+      <div class="isp-stat-card">
+        <div class="isp-stat-value">${summary.total}</div>
+        <div class="isp-stat-label">Total specifics</div>
+      </div>
+      <div class="isp-stat-card hl-red">
+        <div class="isp-stat-value">${summary.required}</div>
+        <div class="isp-stat-label">Required</div>
+      </div>
+      <div class="isp-stat-card hl-green">
+        <div class="isp-stat-value">${summary.recommended}</div>
+        <div class="isp-stat-label">Recommended</div>
+      </div>
+      <div class="isp-stat-card hl-grey">
+        <div class="isp-stat-value">${summary.optional}</div>
+        <div class="isp-stat-label">Optional</div>
+      </div>
+    </div>
+
+    <div class="isp-table-section">
+      <div class="isp-table-header">
+        <h3><i class="ti ti-list-details" style="color:var(--accent)"></i> ${category.categoryName} <span style="font-size:12px;font-weight:400;color:var(--text-muted)">(${category.breadcrumb})</span></h3>
+        <button class="export-btn" onclick="exportSpecificsExcel()"><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
+      </div>
+      <div class="isp-table-wrap">
+        <table class="isp-table">
+          <thead><tr>
+            <th>Name</th>
+            <th>Requirement</th>
+            <th>Entry Mode</th>
+            <th>Multiple Values</th>
+            <th>Variations</th>
+            <th>Allowed Values</th>
+            <th>Search Relevance</th>
+          </tr></thead>
+          <tbody>${rows || `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">No item specifics found for this category.</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function exportSpecificsExcel() {
+  if (!ispData || typeof XLSX === 'undefined') return;
+  const { aspects, summary, category, market } = ispData;
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Summary
+  const aoaSummary = [
+    ['Item Specifics Report'],
+    [],
+    ['Category', category.categoryName],
+    ['Category Path', category.breadcrumb],
+    ['Marketplace', market],
+    ['Date', xlsxDateStr()],
+    [],
+    ['Total Specifics', summary.total],
+    ['Required', summary.required],
+    ['Recommended', summary.recommended],
+    ['Optional', summary.optional],
+  ];
+  const wsSummary = XLSX.utils.aoa_to_sheet(aoaSummary);
+  wsSummary['!cols'] = [{ wch: 18 }, { wch: 50 }];
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+  // Sheet 2: All Item Specifics
+  const aoaAll = [['Name','Requirement Level','Data Type','Entry Mode','Supports Multiple Values','Enabled For Variations','Allowed Values Count','Allowed Values','Search Relevance Count']];
+  aspects.forEach(a => {
+    aoaAll.push([
+      a.name, a.requirementLevel, a.dataType || '',
+      a.mode === 'FREE_TEXT' ? 'Free text' : 'Dropdown / selection',
+      a.supportsMultipleValues ? 'Yes' : 'No',
+      a.enabledForVariations ? 'Yes' : 'No',
+      (a.allowedValues || []).length,
+      (a.allowedValues || []).join('; '),
+      a.searchCount || 0,
+    ]);
+  });
+  const wsAll = XLSX.utils.aoa_to_sheet(aoaAll);
+  xlsxApplyHdr(wsAll, ['A','B','C','D','E','F','G','H','I']);
+  xlsxAutoWidth(wsAll, aoaAll);
+  XLSX.utils.book_append_sheet(wb, wsAll, 'All Item Specifics');
+
+  // Sheet 3: Allowed Values Detail — one row per allowed value per aspect
+  const aoaVals = [['Aspect Name','Requirement Level','Allowed Value']];
+  aspects.forEach(a => {
+    (a.allowedValues || []).forEach(v => {
+      aoaVals.push([a.name, a.requirementLevel, v]);
+    });
+  });
+  const wsVals = XLSX.utils.aoa_to_sheet(aoaVals);
+  xlsxApplyHdr(wsVals, ['A','B','C']);
+  xlsxAutoWidth(wsVals, aoaVals);
+  XLSX.utils.book_append_sheet(wb, wsVals, 'Allowed Values Detail');
+
+  const safe = category.categoryName.slice(0, 25).replace(/[^a-z0-9]/gi, '-').toLowerCase();
+  XLSX.writeFile(wb, `item-specifics-${safe}-${xlsxDateStr()}.xlsx`);
 }
 </script>
 </body>
