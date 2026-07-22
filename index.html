@@ -566,6 +566,29 @@
   .isp-val-chip { display: inline-block; font-size: 11px; padding: 2px 7px; background: var(--bg); border-radius: 99px; color: var(--text-muted); border: 0.5px solid var(--border); margin: 0 3px 3px 0; }
   .isp-val-more { font-size: 11px; color: var(--accent); cursor: pointer; background: none; border: none; padding: 2px 4px; font-weight: 600; }
   .isp-val-more:hover { text-decoration: underline; }
+
+  /* Item Specifics Library */
+  .lib-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .lib-header h2 { font-size: 19px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .lib-header-actions { display: flex; gap: 8px; }
+  .lib-status { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; min-height: 16px; }
+  .lib-status.err { color: #A32D2D; }
+  .lib-layout { display: flex; gap: 16px; align-items: flex-start; }
+  .lib-tree { width: 280px; flex-shrink: 0; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px; max-height: 760px; overflow-y: auto; }
+  .lib-tree-empty { font-size: 12px; color: var(--text-muted); padding: 14px 10px; text-align: center; line-height: 1.5; }
+  .lib-group { margin-bottom: 2px; }
+  .lib-group-header { width: 100%; display: flex; align-items: center; gap: 6px; background: none; border: none; padding: 8px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); text-align: left; }
+  .lib-group-header:hover { background: var(--bg); }
+  .lib-group-count { margin-left: auto; font-size: 11px; color: var(--text-muted); background: var(--bg); border: 0.5px solid var(--border); border-radius: 99px; padding: 1px 7px; }
+  .lib-group-body { display: flex; flex-direction: column; gap: 4px; padding: 2px 4px 8px 22px; }
+  .lib-cat-item { text-align: left; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 7px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 1px; }
+  .lib-cat-item:hover { border-color: var(--accent); background: var(--accent-bg); }
+  .lib-cat-item.active { border-color: var(--accent); background: var(--accent-bg); }
+  .lib-cat-name { font-size: 12.5px; font-weight: 600; }
+  .lib-cat-date { font-size: 10.5px; color: var(--text-muted); }
+  .lib-main { flex: 1; min-width: 0; }
+  .lib-empty { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 60px 20px; text-align: center; color: var(--text-muted); }
+  .lib-empty i { font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.5; }
 </style>
 </head>
 <body>
@@ -620,6 +643,7 @@
     <div class="tab" onclick="switchTab('stores')"><i class="ti ti-star" style="color:#d97706"></i> My Stores</div>
     <div class="tab" onclick="switchTab('keywords')"><i class="ti ti-typography"></i> Keyword Analyser</div>
     <div class="tab" onclick="switchTab('specifics')"><i class="ti ti-list-details"></i> Item Specifics</div>
+    <div class="tab" onclick="switchTab('library')"><i class="ti ti-folders"></i> Item Specifics Library</div>
   </div>
 
   <!-- Search Tab -->
@@ -911,6 +935,45 @@
     </div>
   </div>
 
+  <!-- Item Specifics Library Tab -->
+  <div id="tab-library" class="tab-content">
+    <div class="container">
+
+      <div class="lib-header">
+        <div>
+          <h2><i class="ti ti-folders" style="color:var(--accent)"></i> Item Specifics Library</h2>
+          <p style="font-size:13px;color:var(--text-muted);margin-top:4px">Pre-fetched item specifics for all your product categories, organised by group.</p>
+        </div>
+        <div class="lib-header-actions">
+          <button class="isp-btn" id="lib-refresh-btn" onclick="libRefreshAll()"><i class="ti ti-refresh"></i> Refresh All</button>
+          <button class="export-btn" id="lib-export-btn" onclick="libExportAllExcel()"><i class="ti ti-file-spreadsheet"></i> Export All to Excel</button>
+        </div>
+      </div>
+
+      <div class="bulk-progress" id="lib-progress">
+        <div class="progress-label">
+          <span>Fetching <strong><span id="lib-done">0</span> of <span id="lib-total">0</span></strong> categories</span>
+          <span id="lib-pct" style="color:var(--accent);font-weight:500">0%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="lib-fill"></div></div>
+        <div class="progress-current" id="lib-current"></div>
+      </div>
+
+      <div class="lib-status" id="lib-status"></div>
+
+      <div class="lib-layout">
+        <div class="lib-tree" id="lib-tree"></div>
+        <div class="lib-main" id="lib-main">
+          <div class="lib-empty">
+            <i class="ti ti-folder-open"></i>
+            <p>Select a category from the left to view its item specifics</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -961,6 +1024,7 @@ function switchTab(name) {
   if (name === 'stores') renderStoresDash();
   if (name === 'keywords') { /* nothing to pre-render */ }
   if (name === 'specifics') { /* nothing to pre-render */ }
+  if (name === 'library' && !libData) libLoadSaved();
 }
 
 // ── State ──────────────────────────────────────────────────
@@ -985,6 +1049,11 @@ let ispCategories = [];
 let ispSelectedCategory = null;
 let ispData       = null;
 let ispExpanded   = {};
+let libData       = null;
+let libSelectedKey = null;
+let libSelectedCat = null;
+let libExpandedGroups = {};
+let libExpanded   = {};
 
 function isOwnStore(username) {
   return myStores.some(s => s.username.toLowerCase() === (username || '').toLowerCase());
@@ -3117,6 +3186,344 @@ function exportSpecificsExcel() {
     XLSX.writeFile(wb, `item-specifics-${safe}-${xlsxDateStr()}.xlsx`);
   } catch (err) {
     console.error('Item Specifics export failed:', err);
+    alert(`Excel export failed: ${err.message || err}`);
+  }
+}
+
+// ── Item Specifics Library ──────────────────────────────────
+async function libLoadSaved() {
+  if (!backendUrl) return;
+  const status = document.getElementById('lib-status');
+  try {
+    const res = await fetch(`${backendUrl}/api/taxonomy/saved-categories`, { signal: AbortSignal.timeout(20000) });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    libData = await res.json();
+    status.className = 'lib-status';
+    status.textContent = '';
+
+    if (libSelectedKey) {
+      const [gk, fn] = libSelectedKey.split('/');
+      const group = libData.groups.find(g => g.key === gk);
+      libSelectedCat = group && group.categories.find(c => c.filename === fn);
+      if (!libSelectedCat) libSelectedKey = null;
+    }
+
+    renderLibTree();
+    if (libSelectedCat) renderLibMain(libSelectedCat);
+  } catch (err) {
+    status.className = 'lib-status err';
+    status.textContent = `Error loading saved categories: ${err.message || err}`;
+  }
+}
+
+function libToggleGroup(key) {
+  libExpandedGroups[key] = libExpandedGroups[key] === false ? true : false;
+  renderLibTree();
+}
+
+function renderLibTree() {
+  const container = document.getElementById('lib-tree');
+  if (!libData || !libData.groups.length) {
+    container.innerHTML = `<div class="lib-tree-empty">No categories fetched yet.<br>Click "Refresh All" above to fetch item specifics for all your product categories.</div>`;
+    return;
+  }
+
+  container.innerHTML = libData.groups.map(g => {
+    const expanded = libExpandedGroups[g.key] !== false;
+    const items = g.categories.map(c => {
+      const key = `${g.key}/${c.filename}`;
+      const active = libSelectedKey === key ? ' active' : '';
+      const fetchedDate = c.fetchedAt ? new Date(c.fetchedAt).toLocaleDateString('en-GB') : 'never';
+      return `
+        <button class="lib-cat-item${active}" onclick="libSelectCategory('${g.key}','${c.filename}')">
+          <span class="lib-cat-name">${c.ebayCategory?.categoryName || c.searchTerm}</span>
+          <span class="lib-cat-date">Fetched ${fetchedDate}</span>
+        </button>`;
+    }).join('');
+
+    return `
+      <div class="lib-group">
+        <button class="lib-group-header" onclick="libToggleGroup('${g.key}')">
+          <i class="ti ti-chevron-${expanded ? 'down' : 'right'}"></i>
+          <i class="ti ti-folder${expanded ? '-open' : ''}"></i>
+          <span>${g.label}</span>
+          <span class="lib-group-count">${g.categories.length}</span>
+        </button>
+        <div class="lib-group-body" style="display:${expanded ? 'flex' : 'none'}">${items}</div>
+      </div>`;
+  }).join('');
+}
+
+function libSelectCategory(groupKey, filename) {
+  const group = libData && libData.groups.find(g => g.key === groupKey);
+  const cat   = group && group.categories.find(c => c.filename === filename);
+  if (!cat) return;
+  libSelectedKey = `${groupKey}/${filename}`;
+  libSelectedCat = cat;
+  renderLibTree();
+  renderLibMain(cat);
+}
+
+function libToggleValues(idx) {
+  libExpanded[idx] = !libExpanded[idx];
+  if (libSelectedCat) renderLibMain(libSelectedCat);
+}
+
+function libMapToIspData(cat) {
+  return {
+    aspects: (cat.aspects || []).map(a => ({
+      name: a.name,
+      requirementLevel: a.level,
+      dataType: a.dataType,
+      mode: a.mode,
+      supportsMultipleValues: a.multiValue,
+      enabledForVariations: a.enabledForVariations,
+      allowedValues: a.values || [],
+      searchCount: a.searchCount || 0,
+    })),
+    summary: cat.counts || { total: 0, required: 0, recommended: 0, optional: 0 },
+    category: { categoryName: cat.ebayCategory?.categoryName || cat.searchTerm, breadcrumb: cat.ebayCategory?.path || '' },
+    market: cat.marketplace,
+  };
+}
+
+function libExportSingleExcel(groupKey, filename) {
+  const group = libData && libData.groups.find(g => g.key === groupKey);
+  const cat   = group && group.categories.find(c => c.filename === filename);
+  if (!cat) return;
+  ispData = libMapToIspData(cat);
+  exportSpecificsExcel();
+}
+
+function renderLibMain(cat) {
+  const aspects    = cat.aspects || [];
+  const counts     = cat.counts  || { total: 0, required: 0, recommended: 0, optional: 0 };
+  const rowClass   = { REQUIRED: 'isp-row-required', RECOMMENDED: 'isp-row-recommended', OPTIONAL: 'isp-row-optional' };
+  const badgeClass = { REQUIRED: 'isp-badge-required', RECOMMENDED: 'isp-badge-recommended', OPTIONAL: 'isp-badge-optional' };
+  const catKey     = `${cat.group}/${cat.filename}`;
+
+  const rows = aspects.map((a, i) => {
+    const values   = a.values || [];
+    const idx      = `${catKey}:${i}`;
+    const expanded = !!libExpanded[idx];
+    const shown    = expanded ? values : values.slice(0, 10);
+    const chips    = shown.map(v => `<span class="isp-val-chip">${v}</span>`).join('');
+    const more     = values.length > 10
+      ? `<button class="isp-val-more" onclick="libToggleValues('${idx}')">${expanded ? 'Show less' : `+${values.length - 10} more`}</button>`
+      : '';
+    const valuesCell = values.length
+      ? `${chips}${more}`
+      : `<span style="color:var(--text-muted);font-style:italic">—</span>`;
+
+    return `<tr class="${rowClass[a.level] || ''}">
+      <td class="col-name">${a.name}</td>
+      <td><span class="isp-badge ${badgeClass[a.level] || ''}">${a.level}</span></td>
+      <td>${a.mode === 'FREE_TEXT' ? 'Free text' : 'Dropdown / selection'}</td>
+      <td>${a.multiValue ? 'Yes' : 'No'}</td>
+      <td>${a.enabledForVariations ? 'Yes' : 'No'}</td>
+      <td class="isp-values-cell">${valuesCell}</td>
+      <td>${(a.searchCount || 0).toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+
+  const fetchedStr = cat.fetchedAt ? new Date(cat.fetchedAt).toLocaleString('en-GB') : 'Never';
+
+  document.getElementById('lib-main').innerHTML = `
+    <div class="isp-stats-grid">
+      <div class="isp-stat-card">
+        <div class="isp-stat-value">${counts.total}</div>
+        <div class="isp-stat-label">Total specifics</div>
+      </div>
+      <div class="isp-stat-card hl-red">
+        <div class="isp-stat-value">${counts.required}</div>
+        <div class="isp-stat-label">Required</div>
+      </div>
+      <div class="isp-stat-card hl-green">
+        <div class="isp-stat-value">${counts.recommended}</div>
+        <div class="isp-stat-label">Recommended</div>
+      </div>
+      <div class="isp-stat-card hl-grey">
+        <div class="isp-stat-value">${counts.optional}</div>
+        <div class="isp-stat-label">Optional</div>
+      </div>
+    </div>
+
+    <div class="isp-table-section">
+      <div class="isp-table-header">
+        <h3><i class="ti ti-list-details" style="color:var(--accent)"></i> ${cat.ebayCategory?.categoryName || cat.searchTerm} <span style="font-size:12px;font-weight:400;color:var(--text-muted)">(${cat.ebayCategory?.path || ''})</span></h3>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:11px;color:var(--text-muted)">Last fetched: ${fetchedStr}</span>
+          <button class="export-btn" onclick="libExportSingleExcel('${cat.group}','${cat.filename}')"><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
+        </div>
+      </div>
+      <div class="isp-table-wrap">
+        <table class="isp-table">
+          <thead><tr>
+            <th>Name</th>
+            <th>Requirement</th>
+            <th>Entry Mode</th>
+            <th>Multiple Values</th>
+            <th>Variations</th>
+            <th>Allowed Values</th>
+            <th>Search Relevance</th>
+          </tr></thead>
+          <tbody>${rows || `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">No item specifics found for this category.</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function libSleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function libPollStatus() {
+  const status = document.getElementById('lib-status');
+  while (true) {
+    await libSleep(1500);
+    let data;
+    try {
+      const res = await fetch(`${backendUrl}/api/taxonomy/bulk-fetch/status`, { signal: AbortSignal.timeout(10000) });
+      data = await res.json();
+    } catch {
+      continue;
+    }
+
+    const total     = data.total || 0;
+    const completed = data.completed || 0;
+    const pct       = total ? Math.round((completed / total) * 100) : 0;
+    document.getElementById('lib-total').textContent   = total;
+    document.getElementById('lib-done').textContent    = completed;
+    document.getElementById('lib-fill').style.width    = `${pct}%`;
+    document.getElementById('lib-pct').textContent     = `${pct}%`;
+    document.getElementById('lib-current').textContent = data.current ? `Fetching "${data.current}"…` : '';
+
+    if (!data.running) {
+      const failed = (data.results || []).filter(r => r.status === 'error');
+      status.className = failed.length ? 'lib-status err' : 'lib-status';
+      status.textContent = failed.length
+        ? `Done — ${data.results.length - failed.length} succeeded, ${failed.length} failed. See console for details.`
+        : `Done — all ${data.results.length} categories refreshed.`;
+      if (failed.length) console.warn('Bulk fetch errors:', failed);
+      await libLoadSaved();
+      return;
+    }
+  }
+}
+
+async function libRefreshAll() {
+  if (!backendUrl) {
+    document.getElementById('lib-status').textContent = 'Please set your backend URL in the Search tab first.';
+    return;
+  }
+  const btn      = document.getElementById('lib-refresh-btn');
+  const status   = document.getElementById('lib-status');
+  const progress = document.getElementById('lib-progress');
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Refreshing…';
+  status.className = 'lib-status';
+  status.textContent = '';
+  progress.classList.add('show');
+  document.getElementById('lib-fill').style.width = '0%';
+  document.getElementById('lib-pct').textContent = '0%';
+  document.getElementById('lib-done').textContent = '0';
+  document.getElementById('lib-total').textContent = '0';
+  document.getElementById('lib-current').textContent = 'Starting…';
+
+  try {
+    const res = await fetch(`${backendUrl}/api/taxonomy/bulk-fetch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (res.status === 409) {
+      status.className = 'lib-status err';
+      status.textContent = 'A refresh is already in progress — watching its progress…';
+      await libPollStatus();
+      return;
+    }
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `Server error ${res.status}`);
+    }
+    await libPollStatus();
+  } catch (err) {
+    status.className = 'lib-status err';
+    status.textContent = `Error: ${err.message || 'Could not reach the backend.'}`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-refresh"></i> Refresh All';
+    progress.classList.remove('show');
+  }
+}
+
+function libSanitizeSheetName(name, used) {
+  const base = (name || 'Sheet').replace(/[\\/?*[\]:]/g, ' ').trim().slice(0, 28) || 'Sheet';
+  let candidate = base;
+  let n = 2;
+  while (used.has(candidate.toLowerCase())) {
+    candidate = `${base} ${n}`.slice(0, 31);
+    n++;
+  }
+  used.add(candidate.toLowerCase());
+  return candidate;
+}
+
+function libExportAllExcel() {
+  if (!libData || !libData.groups.length) { alert('No saved categories yet — click "Refresh All" first.'); return; }
+  if (typeof XLSX === 'undefined') { alert('The Excel export library failed to load. Check your internet connection or ad-blocker, then refresh the page and try again.'); return; }
+
+  try {
+    const wb   = XLSX.utils.book_new();
+    const used = new Set();
+
+    const aoaSummary = [['Item Specifics Library — Summary'], [], ['Group', 'Category', 'eBay Category', 'Total', 'Required', 'Recommended', 'Optional', 'Last Fetched']];
+    libData.groups.forEach(g => {
+      g.categories.forEach(c => {
+        aoaSummary.push([
+          g.label, c.searchTerm, c.ebayCategory?.categoryName || '',
+          c.counts?.total || 0, c.counts?.required || 0, c.counts?.recommended || 0, c.counts?.optional || 0,
+          c.fetchedAt ? new Date(c.fetchedAt).toLocaleString('en-GB') : '',
+        ]);
+      });
+    });
+    const wsSummary = XLSX.utils.aoa_to_sheet(aoaSummary);
+    xlsxApplyHdr(wsSummary, ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']);
+    xlsxAutoWidth(wsSummary, aoaSummary.slice(2));
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+    used.add('summary');
+
+    const XLSX_CELL_LIMIT = 32000;
+    const joinValues = (values) => {
+      const joined = (values || []).join('; ');
+      return joined.length <= XLSX_CELL_LIMIT ? joined : joined.slice(0, XLSX_CELL_LIMIT) + '… (truncated)';
+    };
+
+    libData.groups.forEach(g => {
+      g.categories.forEach(c => {
+        const sheetName = libSanitizeSheetName(c.ebayCategory?.categoryName || c.searchTerm, used);
+        const aoa = [['Name', 'Requirement Level', 'Data Type', 'Entry Mode', 'Multiple Values', 'Variations', 'Allowed Values Count', 'Allowed Values', 'Search Relevance']];
+        (c.aspects || []).forEach(a => {
+          aoa.push([
+            a.name, a.level, a.dataType || '',
+            a.mode === 'FREE_TEXT' ? 'Free text' : 'Dropdown / selection',
+            a.multiValue ? 'Yes' : 'No',
+            a.enabledForVariations ? 'Yes' : 'No',
+            (a.values || []).length,
+            joinValues(a.values),
+            a.searchCount || 0,
+          ]);
+        });
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        xlsxApplyHdr(ws, ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']);
+        xlsxAutoWidth(ws, aoa);
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      });
+    });
+
+    XLSX.writeFile(wb, `item-specifics-library-${xlsxDateStr()}.xlsx`);
+  } catch (err) {
+    console.error('Library export failed:', err);
     alert(`Excel export failed: ${err.message || err}`);
   }
 }

@@ -937,6 +937,340 @@ def item_specifics():
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Item Specifics Library — bulk taxonomy fetch + persistence
+#
+# Category data is written both as individual JSON files under
+# data/item-specifics/<group>/<file>.json (for organised browsing on disk) and
+# as one consolidated data/item_specifics_data.json. The in-memory cache is
+# always the source of truth for the API — if the host's filesystem is
+# ephemeral (e.g. wiped on redeploy) or read-only, disk writes fail silently
+# and the feature keeps working from memory until the next restart, at which
+# point load_item_specifics_cache() reloads whatever did make it to disk.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+DATA_DIR                     = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+ITEM_SPECIFICS_DIR           = os.path.join(DATA_DIR, "item-specifics")
+ITEM_SPECIFICS_FALLBACK_FILE = os.path.join(DATA_DIR, "item_specifics_data.json")
+
+_item_specifics_cache = {}   # "group/filename" -> record dict
+_item_specifics_lock  = threading.Lock()
+
+CATEGORY_MAP = [
+    {"searchTerm": "Brake disc rotors",      "group": "brakes",              "groupLabel": "Brakes",               "filename": "brake-disc-rotors"},
+    {"searchTerm": "Brake pads",             "group": "brakes",              "groupLabel": "Brakes",               "filename": "brake-pads"},
+    {"searchTerm": "Brake shoes",            "group": "brakes",              "groupLabel": "Brakes",               "filename": "brake-shoes"},
+    {"searchTerm": "Brake hoses",            "group": "brakes",              "groupLabel": "Brakes",               "filename": "brake-hoses"},
+    {"searchTerm": "Brake cables",           "group": "brakes",              "groupLabel": "Brakes",               "filename": "brake-cables"},
+    {"searchTerm": "Brake component kits",   "group": "brakes",              "groupLabel": "Brakes",               "filename": "brake-component-kits"},
+    {"searchTerm": "Brake drums",            "group": "brakes",              "groupLabel": "Brakes",               "filename": "brake-drums"},
+
+    {"searchTerm": "Control arms wishbones", "group": "steering-suspension", "groupLabel": "Steering & Suspension", "filename": "control-arms-wishbones"},
+    {"searchTerm": "Ball joints",            "group": "steering-suspension", "groupLabel": "Steering & Suspension", "filename": "ball-joints"},
+    {"searchTerm": "Tie rod ends",           "group": "steering-suspension", "groupLabel": "Steering & Suspension", "filename": "tie-rods"},
+    {"searchTerm": "Stabiliser links",       "group": "steering-suspension", "groupLabel": "Steering & Suspension", "filename": "stabiliser-links"},
+    {"searchTerm": "Bushes mountings",       "group": "steering-suspension", "groupLabel": "Steering & Suspension", "filename": "bushes-mountings"},
+    {"searchTerm": "Shock absorbers",        "group": "steering-suspension", "groupLabel": "Steering & Suspension", "filename": "shocks-struts"},
+    {"searchTerm": "Coil springs",           "group": "steering-suspension", "groupLabel": "Steering & Suspension", "filename": "springs"},
+    {"searchTerm": "Wheel bearing kits",     "group": "steering-suspension", "groupLabel": "Steering & Suspension", "filename": "wheel-bearings"},
+
+    {"searchTerm": "Engine gaskets seals",   "group": "engine",              "groupLabel": "Engine",               "filename": "engine-gaskets-seals"},
+    {"searchTerm": "Camshaft parts",         "group": "engine",              "groupLabel": "Engine",               "filename": "camshaft-valve-parts"},
+    {"searchTerm": "Timing belt kits",       "group": "engine",              "groupLabel": "Engine",               "filename": "timing-components"},
+    {"searchTerm": "Accessory belts",        "group": "engine",              "groupLabel": "Engine",               "filename": "accessory-belts"},
+    {"searchTerm": "Pulleys tensioners",     "group": "engine",              "groupLabel": "Engine",               "filename": "pulleys-tensioners"},
+    {"searchTerm": "Thermostats",            "group": "engine",              "groupLabel": "Engine",               "filename": "thermostats"},
+    {"searchTerm": "Water pumps",            "group": "engine",              "groupLabel": "Engine",               "filename": "water-pumps"},
+    {"searchTerm": "Sensors",                "group": "engine",              "groupLabel": "Engine",               "filename": "sensors"},
+
+    {"searchTerm": "Fuel injectors",         "group": "fuel-ignition",       "groupLabel": "Fuel & Ignition",      "filename": "fuel-injectors"},
+    {"searchTerm": "Fuel pumps",             "group": "fuel-ignition",       "groupLabel": "Fuel & Ignition",      "filename": "fuel-pumps"},
+    {"searchTerm": "Fuel filters",           "group": "fuel-ignition",       "groupLabel": "Fuel & Ignition",      "filename": "fuel-filters"},
+    {"searchTerm": "Spark plugs",            "group": "fuel-ignition",       "groupLabel": "Fuel & Ignition",      "filename": "spark-plugs"},
+    {"searchTerm": "Glow plugs",             "group": "fuel-ignition",       "groupLabel": "Fuel & Ignition",      "filename": "glow-plugs"},
+    {"searchTerm": "Ignition coils leads",   "group": "fuel-ignition",       "groupLabel": "Fuel & Ignition",      "filename": "ignition-coils-leads"},
+
+    {"searchTerm": "Air filters",            "group": "filters",             "groupLabel": "Filters",              "filename": "air-filters"},
+    {"searchTerm": "Oil filters",            "group": "filters",             "groupLabel": "Filters",              "filename": "oil-filters"},
+    {"searchTerm": "Cabin filters",          "group": "filters",             "groupLabel": "Filters",              "filename": "cabin-filters"},
+
+    {"searchTerm": "Clutch kits",            "group": "transmission",        "groupLabel": "Transmission",         "filename": "clutch-parts"},
+    {"searchTerm": "CV joints",              "group": "transmission",        "groupLabel": "Transmission",         "filename": "cv-joints"},
+    {"searchTerm": "Propshafts",             "group": "transmission",        "groupLabel": "Transmission",         "filename": "propshafts"},
+
+    {"searchTerm": "Alternators",            "group": "electrical",          "groupLabel": "Electrical",           "filename": "alternators"},
+    {"searchTerm": "Starter motors",         "group": "electrical",          "groupLabel": "Electrical",           "filename": "starter-motors"},
+
+    {"searchTerm": "Radiators",              "group": "cooling",             "groupLabel": "Cooling",              "filename": "radiators-cooling"},
+
+    {"searchTerm": "EGR valves",             "group": "exhaust",             "groupLabel": "Exhaust",              "filename": "egr-emissions"},
+
+    {"searchTerm": "Wiper blades",           "group": "exterior",            "groupLabel": "Exterior",             "filename": "wiper-blades"},
+    {"searchTerm": "Headlights bulbs",       "group": "exterior",            "groupLabel": "Exterior",             "filename": "headlights-bulbs"},
+
+    {"searchTerm": "Engine oil",             "group": "oils-fluids",         "groupLabel": "Oils & Fluids",        "filename": "engine-oil"},
+
+    {"searchTerm": "Car care cleaning",      "group": "car-care",            "groupLabel": "Car Care",             "filename": "car-care-cleaning"},
+
+    {"searchTerm": "AC compressors",         "group": "ac",                  "groupLabel": "Air Conditioning",     "filename": "ac-compressors"},
+]
+
+CATEGORY_MAP_BY_TERM = {c["searchTerm"].lower(): c for c in CATEGORY_MAP}
+
+GROUP_ORDER = []
+for _c in CATEGORY_MAP:
+    if _c["group"] not in GROUP_ORDER:
+        GROUP_ORDER.append(_c["group"])
+
+
+def _slugify(text):
+    s = re.sub(r"[^a-z0-9]+", "-", text.strip().lower()).strip("-")
+    return s or "category"
+
+
+def _cache_key(group, filename):
+    return f"{group}/{filename}"
+
+
+def load_item_specifics_cache():
+    loaded = 0
+    if os.path.isdir(ITEM_SPECIFICS_DIR):
+        for group in os.listdir(ITEM_SPECIFICS_DIR):
+            group_dir = os.path.join(ITEM_SPECIFICS_DIR, group)
+            if not os.path.isdir(group_dir):
+                continue
+            for fname in os.listdir(group_dir):
+                if not fname.endswith(".json"):
+                    continue
+                try:
+                    with open(os.path.join(group_dir, fname), "r", encoding="utf-8") as f:
+                        record = json.load(f)
+                    _item_specifics_cache[_cache_key(group, fname[:-5])] = record
+                    loaded += 1
+                except (OSError, ValueError):
+                    continue
+
+    if loaded == 0 and os.path.exists(ITEM_SPECIFICS_FALLBACK_FILE):
+        try:
+            with open(ITEM_SPECIFICS_FALLBACK_FILE, "r", encoding="utf-8") as f:
+                _item_specifics_cache.update(json.load(f))
+        except (OSError, ValueError):
+            pass
+
+
+def persist_item_specifics_record(group, filename, record):
+    _item_specifics_cache[_cache_key(group, filename)] = record
+    try:
+        group_dir = os.path.join(ITEM_SPECIFICS_DIR, group)
+        os.makedirs(group_dir, exist_ok=True)
+        with open(os.path.join(group_dir, f"{filename}.json"), "w", encoding="utf-8") as f:
+            json.dump(record, f, indent=2)
+    except OSError:
+        pass  # ephemeral/read-only filesystem — in-memory cache still serves the API
+
+
+def persist_item_specifics_fallback_file():
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(ITEM_SPECIFICS_FALLBACK_FILE, "w", encoding="utf-8") as f:
+            json.dump(_item_specifics_cache, f, indent=2)
+    except OSError:
+        pass
+
+
+load_item_specifics_cache()
+
+_bulk_fetch_status = {
+    "running":     False,
+    "total":       0,
+    "completed":   0,
+    "current":     None,
+    "results":     [],
+    "started_at":  None,
+    "finished_at": None,
+}
+
+
+def _fetch_one_category(term, marketplace):
+    mapping = CATEGORY_MAP_BY_TERM.get(term.lower())
+    if mapping:
+        group, group_label, filename = mapping["group"], mapping["groupLabel"], mapping["filename"]
+    else:
+        group, group_label, filename = "custom", "Custom", _slugify(term)
+
+    tree_id = get_category_tree_id(marketplace)
+    token   = get_token()
+
+    cat_resp = requests.get(
+        f"{_ebay_base_url()}/commerce/taxonomy/v1/category_tree/{tree_id}/get_category_suggestions",
+        headers={"Authorization": f"Bearer {token}"},
+        params={"q": term},
+        timeout=15,
+    )
+    cat_resp.raise_for_status()
+    suggestions = cat_resp.json().get("categorySuggestions", [])
+    if not suggestions:
+        raise ValueError(f"No matching eBay category found for '{term}'")
+
+    best          = suggestions[0]
+    category      = best.get("category", {})
+    category_id   = category.get("categoryId")
+    category_name = category.get("categoryName", "")
+    path          = _build_breadcrumb(category_name, best.get("categoryTreeNodeAncestors", []))
+
+    aspects_resp = requests.get(
+        f"{_ebay_base_url()}/commerce/taxonomy/v1/category_tree/{tree_id}/get_item_aspects_for_category",
+        headers={"Authorization": f"Bearer {token}"},
+        params={"category_id": category_id},
+        timeout=15,
+    )
+    aspects_resp.raise_for_status()
+
+    aspects = []
+    for a in aspects_resp.json().get("aspects", []):
+        constraint = a.get("aspectConstraint", {})
+        required   = bool(constraint.get("aspectRequired"))
+        usage      = constraint.get("aspectUsage", "OPTIONAL")
+        level      = "REQUIRED" if required else ("RECOMMENDED" if usage == "RECOMMENDED" else "OPTIONAL")
+
+        aspects.append({
+            "name":                 a.get("localizedAspectName", ""),
+            "level":                level,
+            "dataType":             constraint.get("aspectDataType", ""),
+            "mode":                 constraint.get("aspectMode", ""),
+            "multiValue":           constraint.get("itemToAspectCardinality") == "MULTI",
+            "enabledForVariations": bool(constraint.get("aspectEnabledForVariations")),
+            "values":               [v.get("localizedValue", "") for v in a.get("aspectValues", [])],
+            "searchCount":          a.get("relevanceIndicator", {}).get("searchCount", 0),
+        })
+    aspects.sort(key=lambda a: REQUIREMENT_ORDER.get(a["level"], 3))
+
+    counts = {
+        "total":       len(aspects),
+        "required":    sum(1 for a in aspects if a["level"] == "REQUIRED"),
+        "recommended": sum(1 for a in aspects if a["level"] == "RECOMMENDED"),
+        "optional":    sum(1 for a in aspects if a["level"] == "OPTIONAL"),
+    }
+
+    record = {
+        "searchTerm":  term,
+        "group":       group,
+        "groupLabel":  group_label,
+        "filename":    filename,
+        "ebayCategory": {
+            "categoryId":   category_id,
+            "categoryName": category_name,
+            "path":         path,
+        },
+        "marketplace": marketplace,
+        "fetchedAt":   datetime.now(timezone.utc).isoformat(),
+        "counts":      counts,
+        "aspects":     aspects,
+    }
+    return group, filename, record
+
+
+def _run_bulk_fetch(terms, marketplace):
+    results = []
+    for i, term in enumerate(terms):
+        _bulk_fetch_status["current"] = term
+        try:
+            group, filename, record = _fetch_one_category(term, marketplace)
+            with _item_specifics_lock:
+                persist_item_specifics_record(group, filename, record)
+            results.append({
+                "searchTerm":   term,
+                "status":       "ok",
+                "group":        group,
+                "filename":     filename,
+                "categoryName": record["ebayCategory"]["categoryName"],
+                "counts":       record["counts"],
+            })
+        except requests.HTTPError as e:
+            try:
+                detail = e.response.json()
+            except Exception:
+                detail = {"raw": e.response.text}
+            results.append({"searchTerm": term, "status": "error", "error": str(e), "detail": detail})
+        except Exception as e:
+            results.append({"searchTerm": term, "status": "error", "error": str(e)})
+
+        _bulk_fetch_status["completed"] = i + 1
+        _bulk_fetch_status["results"]   = list(results)
+
+        if i < len(terms) - 1:
+            time.sleep(1)
+
+    with _item_specifics_lock:
+        persist_item_specifics_fallback_file()
+
+    _bulk_fetch_status.update({
+        "running":     False,
+        "current":     None,
+        "finished_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+
+@app.route("/api/taxonomy/bulk-fetch", methods=["POST"])
+def bulk_fetch_categories():
+    if _bulk_fetch_status["running"]:
+        return jsonify({"error": "A bulk fetch is already in progress"}), 409
+
+    data      = request.get_json(silent=True) or {}
+    raw_terms = data.get("searchTerms")
+    if raw_terms:
+        if not isinstance(raw_terms, list):
+            return jsonify({"error": "searchTerms must be a list"}), 400
+        terms = [str(t).strip() for t in raw_terms if str(t).strip()]
+    else:
+        terms = [c["searchTerm"] for c in CATEGORY_MAP]
+
+    if not terms:
+        return jsonify({"error": "searchTerms must be a non-empty list"}), 400
+
+    marketplace = data.get("marketplace", "EBAY_GB")
+
+    _bulk_fetch_status.update({
+        "running":     True,
+        "total":       len(terms),
+        "completed":   0,
+        "current":     None,
+        "results":     [],
+        "started_at":  datetime.now(timezone.utc).isoformat(),
+        "finished_at": None,
+    })
+
+    threading.Thread(target=_run_bulk_fetch, args=(terms, marketplace), daemon=True).start()
+
+    return jsonify({"started": True, "total": len(terms)}), 202
+
+
+@app.route("/api/taxonomy/bulk-fetch/status", methods=["GET"])
+def bulk_fetch_status():
+    return jsonify(_bulk_fetch_status)
+
+
+@app.route("/api/taxonomy/saved-categories", methods=["GET"])
+def saved_categories():
+    groups = {}
+    for record in _item_specifics_cache.values():
+        group       = record.get("group", "custom")
+        group_label = record.get("groupLabel") or group.replace("-", " ").title()
+        groups.setdefault(group, {"key": group, "label": group_label, "categories": []})
+        groups[group]["categories"].append(record)
+
+    ordered_keys  = [g for g in GROUP_ORDER if g in groups]
+    ordered_keys += sorted(g for g in groups if g not in GROUP_ORDER)
+
+    result = []
+    for g in ordered_keys:
+        entry = groups[g]
+        entry["categories"].sort(key=lambda c: c.get("searchTerm", ""))
+        result.append(entry)
+
+    return jsonify({"groups": result})
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
