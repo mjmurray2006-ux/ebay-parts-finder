@@ -3074,6 +3074,16 @@ function exportSpecificsExcel() {
     XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
 
     // Sheet 2: All Item Specifics
+    // Excel cells cap out at 32,767 characters — some aspects (e.g. compatible
+    // vehicle make/model) list thousands of allowed values, so the joined
+    // string is truncated here; the full list is always in the Detail sheet.
+    const XLSX_CELL_LIMIT = 32000;
+    const joinAllowedValues = (values) => {
+      const joined = values.join('; ');
+      if (joined.length <= XLSX_CELL_LIMIT) return joined;
+      return joined.slice(0, XLSX_CELL_LIMIT) + `… (truncated — see 'Allowed Values Detail' sheet for the full list)`;
+    };
+
     const aoaAll = [['Name','Requirement Level','Data Type','Entry Mode','Supports Multiple Values','Enabled For Variations','Allowed Values Count','Allowed Values','Search Relevance Count']];
     aspects.forEach(a => {
       aoaAll.push([
@@ -3082,7 +3092,7 @@ function exportSpecificsExcel() {
         a.supportsMultipleValues ? 'Yes' : 'No',
         a.enabledForVariations ? 'Yes' : 'No',
         (a.allowedValues || []).length,
-        (a.allowedValues || []).join('; '),
+        joinAllowedValues(a.allowedValues || []),
         a.searchCount || 0,
       ]);
     });
