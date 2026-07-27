@@ -630,8 +630,30 @@
   .bpc-table tr.bpc-row-action td { background: #FCEBEB; }
   .bpc-table tr.bpc-row-opportunity td { background: #FEF3C7; }
   .bpc-table tr.bpc-row-notfound td { color: #d97706; font-style: italic; }
+  .bpc-table tr.bpc-row-unverified td { background: #FEF3E0; color: #92400E; }
   .bpc-table .col-desc { max-width: 240px; white-space: normal; }
   .bpc-fallback-note { font-size: 10px; color: var(--text-muted); font-style: italic; display: block; white-space: normal; }
+  .bpc-mode-note { font-size: 12px; color: var(--text-muted); background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; display: flex; align-items: center; gap: 7px; margin-bottom: 14px; }
+  .bpc-view-btn { height: 28px; padding: 0 10px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 11.5px; cursor: pointer; background: var(--surface); color: var(--text-muted); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .bpc-view-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .bpc-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  .bpc-modal-overlay.show { display: flex; }
+  .bpc-modal { background: var(--surface); border-radius: var(--radius); max-width: 720px; width: 100%; max-height: 80vh; overflow-y: auto; }
+  .bpc-modal-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; background: var(--surface); }
+  .bpc-modal-header h4 { font-size: 15px; font-weight: 600; }
+  .bpc-modal-close { background: none; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--text-muted); padding: 0; }
+  .bpc-modal-close:hover { color: var(--text); }
+  .bpc-modal-body { padding: 8px 20px 16px; }
+  .bpc-match-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+  .bpc-match-item:last-child { border-bottom: none; }
+  .bpc-match-title { font-size: 13px; flex: 1; line-height: 1.4; }
+  .bpc-match-title a { color: var(--accent); text-decoration: none; }
+  .bpc-match-title a:hover { text-decoration: underline; }
+  .bpc-match-price { font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .bpc-match-verified { font-size: 10px; padding: 2px 7px; border-radius: 99px; margin-left: 8px; white-space: nowrap; }
+  .bpc-match-verified.yes { background: #EAF3DE; color: #3B6D11; }
+  .bpc-match-verified.no  { background: #FCEBEB; color: #A32D2D; }
 </style>
 </head>
 <body>
@@ -1041,14 +1063,9 @@
           <span class="bpc-upload-status" id="bpc-upload-status"></span>
         </div>
 
+        <p class="bpc-mode-note"><i class="ti ti-info-circle"></i> Every part is searched as an exact match and every returned listing is verified against the part number before its price is used.</p>
+
         <div class="bpc-options">
-          <div class="bpc-opt-group">
-            <span class="bpc-opt-label">Search Mode</span>
-            <div class="bpc-radio-row">
-              <label><input type="radio" name="bpc-mode" value="exact" checked> Exact part number match</label>
-              <label><input type="radio" name="bpc-mode" value="broad"> Broad match</label>
-            </div>
-          </div>
           <div class="bpc-opt-group">
             <span class="bpc-opt-label">Compare Against</span>
             <div class="bpc-radio-row">
@@ -1104,10 +1121,21 @@
           <span class="bpc-live-pill">🔴 Action needed <strong id="bpc-live-action">0</strong></span>
           <span class="bpc-live-pill">🟡 Opportunities <strong id="bpc-live-opportunity">0</strong></span>
           <span class="bpc-live-pill">🟢 OK <strong id="bpc-live-ok">0</strong></span>
+          <span class="bpc-live-pill">🟠 Unverified <strong id="bpc-live-unverified">0</strong></span>
         </div>
       </div>
 
       <div id="bpc-results-area"></div>
+
+      <div class="bpc-modal-overlay" id="bpc-modal-overlay" onclick="if(event.target===this) bpcCloseModal()">
+        <div class="bpc-modal">
+          <div class="bpc-modal-header">
+            <h4 id="bpc-modal-title">Matches</h4>
+            <button class="bpc-modal-close" onclick="bpcCloseModal()">&times;</button>
+          </div>
+          <div class="bpc-modal-body" id="bpc-modal-body"></div>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -3766,23 +3794,38 @@ function bpcClassify(yourPrice, competitorLowest, thresholdPct) {
   return { status: 'ok', action: 'Hold', suggestedPrice: yourPrice, reason: `Price within ${thresholdPct}% of the nearest competitor` };
 }
 
+// Strips punctuation so "08.9371.10" matches titles that render the same
+// number as "08-9371-10", "089371 10", etc.
+function bpcNormalizeForMatch(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
+function bpcTitleMatchesTerm(title, term) {
+  const normTerm = bpcNormalizeForMatch(term);
+  if (!normTerm) return false;
+  return bpcNormalizeForMatch(title).includes(normTerm);
+}
+
 async function bpcSearchPart(part, opts) {
-  const q = opts.mode === 'exact'
-    ? `"${part.partNumber || part.description}"`
-    : [part.partNumber, part.description].filter(Boolean).join(' ');
+  const term = (part.partNumber || part.description || '').trim();
+  if (!term) return { found: false, verified: false, trustedFallback: false, listings: [] };
 
-  if (!q.trim()) return { found: false, trustedFallback: false };
+  const q = `"${term}"`;
 
-  let items = [];
+  let raw = [];
   try {
     const params = new URLSearchParams({ q, limit: 50, sort: 'price', market: opts.market });
     const res  = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(15000) });
     const data = await res.json();
-    items = data.itemSummaries || [];
-  } catch { items = []; }
+    raw = data.itemSummaries || [];
+  } catch { raw = []; }
 
-  items = items
-    .map(i => ({ price: parseFloat(i.price?.value || 0), seller: (i.seller?.username || '').toLowerCase() }))
+  const items = raw
+    .map(i => ({
+      title:     i.title || '',
+      price:     parseFloat(i.price?.value || 0),
+      seller:    (i.seller?.username || '').toLowerCase(),
+      url:       i.itemWebUrl || '#',
+      condition: i.condition || ''
+    }))
     .filter(i => i.price > 0)
     .sort((a, b) => a.price - b.price);
 
@@ -3798,29 +3841,41 @@ async function bpcSearchPart(part, opts) {
     }
   }
 
-  if (!pool.length) return { found: false, trustedFallback: false };
+  if (!pool.length) return { found: false, verified: false, trustedFallback: false, listings: [] };
 
-  const used = pool.slice(0, opts.resultsPerPart);
+  const withVerified = pool.map(i => ({ ...i, verified: bpcTitleMatchesTerm(i.title, term) }));
+  const listings      = withVerified.slice(0, 5);
+  const verifiedItems = withVerified.filter(i => i.verified);
+
+  if (!verifiedItems.length) {
+    return { found: true, verified: false, trustedFallback, matchedTitle: pool[0].title, listings };
+  }
+
+  const used = verifiedItems.slice(0, opts.resultsPerPart);
   const marketAverage = used.reduce((s, i) => s + i.price, 0) / used.length;
 
   return {
     found: true,
+    verified: true,
     trustedFallback,
-    competitorLowest: used[0].price,
-    marketAverage: parseFloat(marketAverage.toFixed(2)),
-    competitorCount: used.length
+    matchedTitle:      used[0].title,
+    competitorLowest:  used[0].price,
+    marketAverage:     parseFloat(marketAverage.toFixed(2)),
+    competitorCount:   used.length,
+    listings
   };
 }
 
 function bpcCounts(results) {
   return results.reduce((acc, r) => { acc[r.status] = (acc[r.status] || 0) + 1; return acc; },
-    { action: 0, opportunity: 0, ok: 0, notfound: 0 });
+    { action: 0, opportunity: 0, ok: 0, notfound: 0, unverified: 0 });
 }
 
 function bpcUpdateLiveCounts() {
   const counts = bpcCounts(monitorResults);
   document.getElementById('bpc-live-action').textContent      = counts.action;
   document.getElementById('bpc-live-opportunity').textContent = counts.opportunity;
+  document.getElementById('bpc-live-unverified').textContent  = counts.unverified;
   document.getElementById('bpc-live-ok').textContent           = counts.ok;
 }
 
@@ -3835,7 +3890,6 @@ async function startBulkPriceCheck() {
   document.getElementById('bpc-results-area').innerHTML = '';
 
   const opts = {
-    mode:           document.querySelector('input[name="bpc-mode"]:checked').value,
     compare:        document.querySelector('input[name="bpc-compare"]:checked').value,
     threshold:      parseFloat(document.getElementById('bpc-threshold').value) || 5,
     resultsPerPart: parseInt(document.getElementById('bpc-results-per-part').value, 10) || 5,
@@ -3869,13 +3923,24 @@ async function startBulkPriceCheck() {
     try {
       const search = await bpcSearchPart(part, opts);
       if (!search.found) {
-        result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', trustedFallback: false };
+        result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', trustedFallback: false, listings: [] };
+      } else if (!search.verified) {
+        result = {
+          partNumber:      part.partNumber,
+          description:     part.description,
+          yourPrice:       part.yourPrice,
+          status:          'unverified',
+          matchedTitle:    search.matchedTitle,
+          trustedFallback: search.trustedFallback,
+          listings:        search.listings
+        };
       } else {
         const cls = bpcClassify(part.yourPrice, search.competitorLowest, opts.threshold);
         result = {
           partNumber:       part.partNumber,
           description:      part.description,
           yourPrice:        part.yourPrice,
+          matchedTitle:     search.matchedTitle,
           competitorLowest: search.competitorLowest,
           marketAverage:    search.marketAverage,
           priceDiff:        parseFloat((part.yourPrice - search.competitorLowest).toFixed(2)),
@@ -3883,13 +3948,15 @@ async function startBulkPriceCheck() {
           competitorCount:  search.competitorCount,
           confidence:       bpcConfidence(search.competitorCount),
           trustedFallback:  search.trustedFallback,
+          listings:         search.listings,
           ...cls
         };
       }
     } catch {
-      result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', trustedFallback: false };
+      result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', trustedFallback: false, listings: [] };
     }
 
+    result.idx = monitorResults.length;
     monitorResults.push(result);
     localStorage.setItem('bulk_price_check_results', JSON.stringify(monitorResults));
     bpcUpdateLiveCounts();
@@ -3914,16 +3981,39 @@ function bpcSetFilter(f) { monitorFilter = f; bpcRenderResults(); }
 
 function bpcToggleIncludeNotFound(checked) { monitorIncludeNotFound = checked; }
 
+function bpcViewBtnHtml(r) {
+  return (r.listings && r.listings.length)
+    ? `<button class="bpc-view-btn" onclick="bpcShowMatches(${r.idx})"><i class="ti ti-list-search"></i> View matches</button>`
+    : '—';
+}
+
 function bpcRowHtml(r) {
   const S = '£';
+  const viewBtn = bpcViewBtnHtml(r);
+
   if (r.status === 'notfound') {
     return `<tr class="bpc-row-notfound">
       <td>${r.partNumber || '—'}</td><td class="col-desc">${r.description || '—'}</td>
       <td>${S}${(r.yourPrice || 0).toFixed(2)}</td>
       <td>—</td><td>—</td><td>—</td><td>—</td><td>0</td>
+      <td class="col-desc">—</td>
       <td>🟠 Not Found</td><td>—</td><td>—</td>
+      <td>${viewBtn}</td>
     </tr>`;
   }
+
+  if (r.status === 'unverified') {
+    const fallbackNote = r.trustedFallback ? '<span class="bpc-fallback-note">Trusted seller fallback</span>' : '';
+    return `<tr class="bpc-row-unverified">
+      <td>${r.partNumber || '—'}</td><td class="col-desc">${r.description || '—'}${fallbackNote}</td>
+      <td>${S}${r.yourPrice.toFixed(2)}</td>
+      <td>—</td><td>—</td><td>—</td><td>—</td><td>0</td>
+      <td class="col-desc">${r.matchedTitle || '—'}</td>
+      <td>🟠 Unverified Match</td><td>—</td><td>—</td>
+      <td>${viewBtn}</td>
+    </tr>`;
+  }
+
   const rowClass = r.status === 'action' ? 'bpc-row-action' : r.status === 'opportunity' ? 'bpc-row-opportunity' : '';
   const emoji    = r.status === 'action' ? '🔴' : r.status === 'opportunity' ? '🟡' : '🟢';
   const label    = r.status === 'action' ? 'Action Needed' : r.status === 'opportunity' ? 'Opportunity' : 'OK';
@@ -3938,11 +4028,29 @@ function bpcRowHtml(r) {
     <td>${diffSign}${S}${Math.abs(r.priceDiff).toFixed(2)}</td>
     <td>${r.priceDiffPct.toFixed(1)}%</td>
     <td>${r.competitorCount}</td>
+    <td class="col-desc">${r.matchedTitle || '—'}</td>
     <td>${emoji} ${label}</td>
     <td>${r.action}</td>
     <td>${S}${r.suggestedPrice.toFixed(2)}</td>
+    <td>${viewBtn}</td>
   </tr>`;
 }
+
+function bpcShowMatches(idx) {
+  const r = monitorResults[idx];
+  if (!r || !r.listings || !r.listings.length) return;
+  document.getElementById('bpc-modal-title').textContent = `Top matches for ${r.partNumber || r.description}`;
+  document.getElementById('bpc-modal-body').innerHTML = r.listings.map(l => `
+    <div class="bpc-match-item">
+      <div class="bpc-match-title">
+        <a href="${l.url}" target="_blank" rel="noopener">${l.title || '(no title)'}</a>
+        <span class="bpc-match-verified ${l.verified ? 'yes' : 'no'}">${l.verified ? 'Verified' : 'Not verified'}</span>
+      </div>
+      <div class="bpc-match-price">£${l.price.toFixed(2)}</div>
+    </div>`).join('');
+  document.getElementById('bpc-modal-overlay').classList.add('show');
+}
+function bpcCloseModal() { document.getElementById('bpc-modal-overlay').classList.remove('show'); }
 
 function bpcRenderResults() {
   const area = document.getElementById('bpc-results-area');
@@ -3964,6 +4072,7 @@ function bpcRenderResults() {
       <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#A32D2D">${counts.action}</div><div class="bpc-summary-label">🔴 Action Needed</div></div>
       <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${counts.opportunity}</div><div class="bpc-summary-label">🟡 Opportunities</div></div>
       <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#3B6D11">${counts.ok}</div><div class="bpc-summary-label">🟢 Competitive</div></div>
+      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${counts.unverified}</div><div class="bpc-summary-label">🟠 Unverified</div></div>
       <div class="bpc-summary-item"><div class="bpc-summary-value">£${revenueImpact.toFixed(2)}</div><div class="bpc-summary-label">Est. Impact / Unit</div></div>
     </div>
 
@@ -3973,12 +4082,13 @@ function bpcRenderResults() {
         ${pill('action', `🔴 Action Needed (${counts.action})`)}
         ${pill('opportunity', `🟡 Opportunities (${counts.opportunity})`)}
         ${pill('ok', `🟢 OK (${counts.ok})`)}
+        ${pill('unverified', `🟠 Unverified (${counts.unverified})`)}
         ${pill('notfound', `Not Found (${counts.notfound})`)}
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)">
           <input type="checkbox" style="width:14px;height:14px;accent-color:var(--accent)" ${monitorIncludeNotFound ? 'checked' : ''} onchange="bpcToggleIncludeNotFound(this.checked)" />
-          Include not-found in export
+          Include not-found / unverified in export
         </label>
         <button class="bulk-export-btn" onclick="bpcExportExcel()"><i class="ti ti-file-spreadsheet"></i> Download Excel</button>
       </div>
@@ -3988,29 +4098,35 @@ function bpcRenderResults() {
       <table class="bpc-table">
         <thead><tr>
           <th>Part Number</th><th>Description</th><th>Your Price</th><th>Competitor Lowest</th>
-          <th>Market Avg</th><th>Diff (£)</th><th>Diff (%)</th><th>Competitors</th><th>Status</th><th>Action</th><th>Suggested Price</th>
+          <th>Market Avg</th><th>Diff (£)</th><th>Diff (%)</th><th>Competitors</th><th>Matched Listing</th>
+          <th>Status</th><th>Action</th><th>Suggested Price</th><th>Matches</th>
         </tr></thead>
-        <tbody>${rows || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:20px">No parts match this filter</td></tr>'}</tbody>
+        <tbody>${rows || '<tr><td colspan="13" style="text-align:center;color:var(--text-muted);padding:20px">No parts match this filter</td></tr>'}</tbody>
       </table>
     </div>`;
 }
 
 function bpcExportExcel() {
   if (!monitorResults.length || typeof XLSX === 'undefined') { alert('No results to export yet.'); return; }
-  const rows = monitorResults.filter(r => r.status !== 'notfound' || monitorIncludeNotFound);
-  if (!rows.length) { alert('No results to export — tick "Include not-found in export" if all parts were not found.'); return; }
+  const rows = monitorResults.filter(r => (r.status !== 'notfound' && r.status !== 'unverified') || monitorIncludeNotFound);
+  if (!rows.length) { alert('No results to export — tick "Include not-found / unverified in export" if all parts were excluded.'); return; }
 
   const aoa = [['Part Number', 'Description', 'Current Price (£)', 'Suggested Price (£)', 'Competitor Lowest (£)', 'Market Average (£)', 'Confidence', 'Action', 'Reason']];
   rows.forEach(r => {
-    const notFound = r.status === 'notfound';
+    const noPricing = r.status === 'notfound' || r.status === 'unverified';
+    let reason;
+    if (r.status === 'notfound') reason = 'No matching listings found on eBay';
+    else if (r.status === 'unverified') reason = `No listing title matched the part number — top result was "${r.matchedTitle || ''}"`;
+    else reason = r.reason + (r.trustedFallback ? ' — Trusted seller fallback' : '');
+
     aoa.push([
       r.partNumber || '', r.description || '', r.yourPrice,
-      notFound ? '' : r.suggestedPrice,
-      notFound ? '' : r.competitorLowest,
-      notFound ? '' : r.marketAverage,
-      notFound ? '' : r.confidence,
-      notFound ? 'Not Found' : r.action,
-      notFound ? 'No matching listings found on eBay' : (r.reason + (r.trustedFallback ? ' — Trusted seller fallback' : ''))
+      noPricing ? '' : r.suggestedPrice,
+      noPricing ? '' : r.competitorLowest,
+      noPricing ? '' : r.marketAverage,
+      noPricing ? '' : r.confidence,
+      r.status === 'notfound' ? 'Not Found' : r.status === 'unverified' ? 'Unverified' : r.action,
+      reason
     ]);
   });
 
@@ -4019,10 +4135,11 @@ function bpcExportExcel() {
 
   const actionFill = { patternType: 'solid', fgColor: { rgb: 'FCEBEB' } };
   const oppFill     = { patternType: 'solid', fgColor: { rgb: 'FEF3C7' } };
+  const unverifiedFill = { patternType: 'solid', fgColor: { rgb: 'FEF3E0' } };
 
   let rIdx = 2;
   rows.forEach(row => {
-    const fill = row.status === 'action' ? actionFill : row.status === 'opportunity' ? oppFill : null;
+    const fill = row.status === 'action' ? actionFill : row.status === 'opportunity' ? oppFill : row.status === 'unverified' ? unverifiedFill : null;
     ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'].forEach(col => {
       const cell = ws[`${col}${rIdx}`];
       if (cell && fill) cell.s = { ...(cell.s || {}), fill };
