@@ -589,6 +589,49 @@
   .lib-main { flex: 1; min-width: 0; }
   .lib-empty { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 60px 20px; text-align: center; color: var(--text-muted); }
   .lib-empty i { font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.5; }
+
+  /* Price Monitor — Bulk Price Check */
+  .bpc-upload-zone { border: 1.5px dashed var(--border-strong); border-radius: var(--radius); padding: 26px 20px; text-align: center; background: var(--bg); cursor: pointer; transition: all 0.15s; margin-bottom: 10px; }
+  .bpc-upload-zone:hover, .bpc-upload-zone.drag { border-color: var(--accent); background: var(--accent-bg); }
+  .bpc-upload-zone i { font-size: 26px; color: var(--text-muted); display: block; margin-bottom: 8px; }
+  .bpc-upload-zone p { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; }
+  .bpc-upload-zone strong { color: var(--accent); }
+  .bpc-upload-zone code { background: var(--surface); border: 0.5px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 11.5px; }
+  .bpc-upload-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .bpc-template-btn { height: 34px; padding: 0 14px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 12.5px; cursor: pointer; background: var(--surface); color: var(--text-muted); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .bpc-template-btn:hover { color: var(--text); border-color: var(--border-strong); }
+  .bpc-upload-status { font-size: 12px; color: var(--text-muted); }
+  .bpc-upload-status.ok { color: #3B6D11; }
+  .bpc-upload-status.err { color: #A32D2D; }
+
+  .bpc-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin: 4px 0 16px; }
+  .bpc-opt-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); display: block; margin-bottom: 7px; }
+  .bpc-opt-group select, .bpc-opt-group input[type=number] { width: 100%; height: 36px; padding: 0 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--bg); color: var(--text); }
+  .bpc-radio-row { display: flex; flex-direction: column; gap: 6px; }
+  .bpc-radio-row label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); cursor: pointer; }
+  .bpc-radio-row input[type=radio] { accent-color: var(--accent); cursor: pointer; }
+
+  .bpc-live-counts { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .bpc-live-pill { font-size: 12px; padding: 4px 10px; border-radius: 99px; border: 0.5px solid var(--border); background: var(--surface); color: var(--text-muted); }
+  .bpc-live-pill strong { color: var(--text); }
+
+  .bpc-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
+  .bpc-summary-item { text-align: center; }
+  .bpc-summary-value { font-size: 20px; font-weight: 700; }
+  .bpc-summary-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .bpc-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .bpc-table-wrap { overflow-x: auto; border-radius: var(--radius); border: 0.5px solid var(--border); margin-bottom: 24px; }
+  .bpc-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .bpc-table thead th { background: var(--bg); padding: 9px 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 1; }
+  .bpc-table tbody td { padding: 8px 10px; border-bottom: 0.5px solid var(--border); vertical-align: top; white-space: nowrap; }
+  .bpc-table tbody tr:last-child td { border-bottom: none; }
+  .bpc-table tr.bpc-row-action td { background: #FCEBEB; }
+  .bpc-table tr.bpc-row-opportunity td { background: #FEF3C7; }
+  .bpc-table tr.bpc-row-notfound td { color: #d97706; font-style: italic; }
+  .bpc-table .col-desc { max-width: 240px; white-space: normal; }
+  .bpc-fallback-note { font-size: 10px; color: var(--text-muted); font-style: italic; display: block; white-space: normal; }
 </style>
 </head>
 <body>
@@ -644,6 +687,7 @@
     <div class="tab" onclick="switchTab('keywords')"><i class="ti ti-typography"></i> Keyword Analyser</div>
     <div class="tab" onclick="switchTab('specifics')"><i class="ti ti-list-details"></i> Item Specifics</div>
     <div class="tab" onclick="switchTab('library')"><i class="ti ti-folders"></i> Item Specifics Library</div>
+    <div class="tab" onclick="switchTab('monitor')"><i class="ti ti-report-money"></i> Price Monitor</div>
   </div>
 
   <!-- Search Tab -->
@@ -974,6 +1018,100 @@
     </div>
   </div>
 
+  <!-- Price Monitor Tab -->
+  <div id="tab-monitor" class="tab-content">
+    <div class="container">
+
+      <div class="bulk-form">
+        <h3><i class="ti ti-report-money" style="color:var(--accent)"></i> Bulk Price Check</h3>
+        <p>Upload a spreadsheet of your parts to check every price against the live eBay market in one pass.</p>
+
+        <div class="bpc-upload-zone" id="bpc-drop-zone" onclick="document.getElementById('bpc-file-input').click()"
+             ondragover="event.preventDefault(); this.classList.add('drag')"
+             ondragleave="this.classList.remove('drag')"
+             ondrop="bpcHandleDrop(event)">
+          <i class="ti ti-file-upload"></i>
+          <p><strong>Click to upload</strong> or drag &amp; drop a CSV or Excel file<br>
+          Required columns: <code>part_number</code>, <code>description</code>, <code>your_price</code></p>
+        </div>
+        <input type="file" id="bpc-file-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="bpcHandleFileInput(event)" />
+
+        <div class="bpc-upload-actions">
+          <button class="bpc-template-btn" onclick="bpcDownloadTemplate()"><i class="ti ti-download"></i> Download Template</button>
+          <span class="bpc-upload-status" id="bpc-upload-status"></span>
+        </div>
+
+        <div class="bpc-options">
+          <div class="bpc-opt-group">
+            <span class="bpc-opt-label">Search Mode</span>
+            <div class="bpc-radio-row">
+              <label><input type="radio" name="bpc-mode" value="exact" checked> Exact part number match</label>
+              <label><input type="radio" name="bpc-mode" value="broad"> Broad match</label>
+            </div>
+          </div>
+          <div class="bpc-opt-group">
+            <span class="bpc-opt-label">Compare Against</span>
+            <div class="bpc-radio-row">
+              <label><input type="radio" name="bpc-compare" value="market" checked> Whole eBay market</label>
+              <label><input type="radio" name="bpc-compare" value="trusted"> Trusted sellers only</label>
+            </div>
+          </div>
+          <div class="bpc-opt-group">
+            <span class="bpc-opt-label">Alert Threshold</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="number" id="bpc-threshold" value="5" min="0" step="0.5" style="width:90px" />
+              <span style="font-size:13px;color:var(--text-muted)">% difference</span>
+            </div>
+          </div>
+          <div class="bpc-opt-group">
+            <span class="bpc-opt-label">Results per Part</span>
+            <select id="bpc-results-per-part">
+              <option value="3">Top 3</option>
+              <option value="5" selected>Top 5</option>
+              <option value="10">Top 10</option>
+            </select>
+          </div>
+          <div class="bpc-opt-group">
+            <span class="bpc-opt-label">eBay Marketplace</span>
+            <select id="bpc-market">
+              <option value="EBAY_GB">🇬🇧 eBay UK</option>
+              <option value="EBAY_US">🇺🇸 eBay US</option>
+              <option value="EBAY_DE">🇩🇪 eBay DE</option>
+              <option value="EBAY_FR">🇫🇷 eBay FR</option>
+              <option value="EBAY_AU">🇦🇺 eBay AU</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bulk-controls">
+          <button class="bulk-start-btn" id="bpc-start-btn" onclick="startBulkPriceCheck()" disabled>
+            <i class="ti ti-player-play"></i> Start Bulk Price Check
+          </button>
+          <button class="bulk-cancel-btn" id="bpc-cancel-btn" onclick="cancelBulkPriceCheck()">
+            <i class="ti ti-player-stop"></i> Cancel
+          </button>
+        </div>
+      </div>
+
+      <div class="bulk-progress" id="bpc-progress">
+        <div class="progress-label">
+          <span>Checking <strong><span id="bpc-done">0</span> of <span id="bpc-total">0</span></strong> parts</span>
+          <span id="bpc-pct" style="color:var(--accent);font-weight:500">0%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="bpc-fill"></div></div>
+        <div class="progress-current" id="bpc-current"></div>
+        <div class="bpc-live-counts">
+          <span class="bpc-live-pill">🔴 Action needed <strong id="bpc-live-action">0</strong></span>
+          <span class="bpc-live-pill">🟡 Opportunities <strong id="bpc-live-opportunity">0</strong></span>
+          <span class="bpc-live-pill">🟢 OK <strong id="bpc-live-ok">0</strong></span>
+        </div>
+      </div>
+
+      <div id="bpc-results-area"></div>
+
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1054,6 +1192,11 @@ let libSelectedKey = null;
 let libSelectedCat = null;
 let libExpandedGroups = {};
 let libExpanded   = {};
+let monitorParts     = [];
+let monitorResults    = JSON.parse(localStorage.getItem('bulk_price_check_results') || '[]');
+let monitorCancelled  = false;
+let monitorFilter     = 'all';
+let monitorIncludeNotFound = false;
 
 function isOwnStore(username) {
   return myStores.some(s => s.username.toLowerCase() === (username || '').toLowerCase());
@@ -1071,6 +1214,7 @@ function initApp() {
   renderSellerTags();
   updateTrackerCount();
   renderMyStoreList();
+  bpcRenderResults();
   setTimeout(autoRefreshStale, 1200);
 }
 if (sessionStorage.getItem('parts_auth') === '1') initApp();
@@ -3526,6 +3670,375 @@ function libExportAllExcel() {
     console.error('Library export failed:', err);
     alert(`Excel export failed: ${err.message || err}`);
   }
+}
+
+// ── Price Monitor — Bulk Price Check ───────────────────────
+function bpcSleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function bpcDownloadTemplate() {
+  if (typeof XLSX === 'undefined') { alert('The Excel library failed to load. Check your connection and try again.'); return; }
+  const ws = XLSX.utils.aoa_to_sheet([['part_number', 'description', 'your_price']]);
+  xlsxApplyHdr(ws, ['A', 'B', 'C']);
+  ws['!cols'] = [{ wch: 20 }, { wch: 40 }, { wch: 14 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+  XLSX.writeFile(wb, 'bulk-price-check-template.xlsx');
+}
+
+function bpcHandleDrop(event) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('drag');
+  const file = event.dataTransfer.files && event.dataTransfer.files[0];
+  if (file) bpcParseFile(file);
+}
+function bpcHandleFileInput(event) {
+  const file = event.target.files && event.target.files[0];
+  if (file) bpcParseFile(file);
+}
+
+async function bpcParseFile(file) {
+  const status = document.getElementById('bpc-upload-status');
+  const startBtn = document.getElementById('bpc-start-btn');
+  status.textContent = 'Reading file...';
+  status.className = 'bpc-upload-status';
+  try {
+    if (typeof XLSX === 'undefined') throw new Error('Excel library not loaded');
+    const buf = await file.arrayBuffer();
+    const wb  = XLSX.read(buf, { type: 'array' });
+    const ws  = wb.Sheets[wb.SheetNames[0]];
+    const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+    const parsed = raw.map(row => {
+      const norm = {};
+      Object.keys(row).forEach(k => { norm[String(k).trim().toLowerCase().replace(/\s+/g, '_')] = row[k]; });
+      return {
+        partNumber:  String(norm.part_number ?? norm.partnumber ?? norm.part ?? '').trim(),
+        description: String(norm.description ?? '').trim(),
+        yourPrice:   parseFloat(norm.your_price ?? norm.yourprice ?? norm.price ?? '') || 0
+      };
+    }).filter(r => r.partNumber || r.description);
+
+    if (!parsed.length) {
+      status.textContent = 'No valid rows found — make sure the file has part_number, description and your_price columns.';
+      status.className = 'bpc-upload-status err';
+      monitorParts = [];
+      startBtn.disabled = true;
+      return;
+    }
+
+    monitorParts = parsed;
+    status.textContent = `✓ Loaded ${parsed.length} part${parsed.length === 1 ? '' : 's'} from ${file.name}`;
+    status.className = 'bpc-upload-status ok';
+    startBtn.disabled = false;
+  } catch (e) {
+    status.textContent = 'Could not read that file — please upload a valid CSV or Excel file.';
+    status.className = 'bpc-upload-status err';
+    monitorParts = [];
+    startBtn.disabled = true;
+  }
+}
+
+function bpcConfidence(count) {
+  if (count >= 10) return 'High';
+  if (count >= 5)  return 'Medium';
+  return 'Low';
+}
+
+function bpcClassify(yourPrice, competitorLowest, thresholdPct) {
+  if (!yourPrice || yourPrice <= 0) {
+    return { status: 'ok', action: 'Hold', suggestedPrice: competitorLowest, reason: 'No valid price provided in upload — using competitor lowest as reference' };
+  }
+  const diffPct = ((yourPrice - competitorLowest) / yourPrice) * 100;
+  if (diffPct > thresholdPct) {
+    return {
+      status: 'action', action: 'Lower',
+      suggestedPrice: Math.round(competitorLowest * 1.02 * 100) / 100,
+      reason: `Competitor is ${diffPct.toFixed(1)}% cheaper than your price`
+    };
+  }
+  if (diffPct < -thresholdPct) {
+    return {
+      status: 'opportunity', action: 'Raise',
+      suggestedPrice: Math.round(competitorLowest * 0.95 * 100) / 100,
+      reason: `You are ${Math.abs(diffPct).toFixed(1)}% cheaper than the nearest competitor`
+    };
+  }
+  return { status: 'ok', action: 'Hold', suggestedPrice: yourPrice, reason: `Price within ${thresholdPct}% of the nearest competitor` };
+}
+
+async function bpcSearchPart(part, opts) {
+  const q = opts.mode === 'exact'
+    ? `"${part.partNumber || part.description}"`
+    : [part.partNumber, part.description].filter(Boolean).join(' ');
+
+  if (!q.trim()) return { found: false, trustedFallback: false };
+
+  let items = [];
+  try {
+    const params = new URLSearchParams({ q, limit: 50, sort: 'price', market: opts.market });
+    const res  = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(15000) });
+    const data = await res.json();
+    items = data.itemSummaries || [];
+  } catch { items = []; }
+
+  items = items
+    .map(i => ({ price: parseFloat(i.price?.value || 0), seller: (i.seller?.username || '').toLowerCase() }))
+    .filter(i => i.price > 0)
+    .sort((a, b) => a.price - b.price);
+
+  let trustedFallback = false;
+  let pool = items;
+  if (opts.compare === 'trusted') {
+    const trusted = items.filter(i => savedSellers.includes(i.seller));
+    if (trusted.length) {
+      pool = trusted;
+    } else if (items.length) {
+      trustedFallback = true;
+      pool = items;
+    }
+  }
+
+  if (!pool.length) return { found: false, trustedFallback: false };
+
+  const used = pool.slice(0, opts.resultsPerPart);
+  const marketAverage = used.reduce((s, i) => s + i.price, 0) / used.length;
+
+  return {
+    found: true,
+    trustedFallback,
+    competitorLowest: used[0].price,
+    marketAverage: parseFloat(marketAverage.toFixed(2)),
+    competitorCount: used.length
+  };
+}
+
+function bpcCounts(results) {
+  return results.reduce((acc, r) => { acc[r.status] = (acc[r.status] || 0) + 1; return acc; },
+    { action: 0, opportunity: 0, ok: 0, notfound: 0 });
+}
+
+function bpcUpdateLiveCounts() {
+  const counts = bpcCounts(monitorResults);
+  document.getElementById('bpc-live-action').textContent      = counts.action;
+  document.getElementById('bpc-live-opportunity').textContent = counts.opportunity;
+  document.getElementById('bpc-live-ok').textContent           = counts.ok;
+}
+
+async function startBulkPriceCheck() {
+  if (!monitorParts.length) { alert('Please upload a parts file first.'); return; }
+  if (!backendUrl) { alert('Please configure your backend URL in the Search tab first.'); return; }
+
+  monitorCancelled = false;
+  monitorResults   = [];
+  monitorFilter    = 'all';
+  localStorage.setItem('bulk_price_check_results', JSON.stringify(monitorResults));
+  document.getElementById('bpc-results-area').innerHTML = '';
+
+  const opts = {
+    mode:           document.querySelector('input[name="bpc-mode"]:checked').value,
+    compare:        document.querySelector('input[name="bpc-compare"]:checked').value,
+    threshold:      parseFloat(document.getElementById('bpc-threshold').value) || 5,
+    resultsPerPart: parseInt(document.getElementById('bpc-results-per-part').value, 10) || 5,
+    market:         document.getElementById('bpc-market').value
+  };
+
+  const startBtn  = document.getElementById('bpc-start-btn');
+  const cancelBtn = document.getElementById('bpc-cancel-btn');
+  const progress  = document.getElementById('bpc-progress');
+
+  startBtn.disabled = true;
+  cancelBtn.classList.add('show');
+  progress.classList.add('show');
+  document.getElementById('bpc-total').textContent = monitorParts.length;
+  document.getElementById('bpc-done').textContent  = '0';
+  document.getElementById('bpc-pct').textContent   = '0%';
+  document.getElementById('bpc-fill').style.width  = '0%';
+  bpcUpdateLiveCounts();
+
+  for (let i = 0; i < monitorParts.length; i++) {
+    if (monitorCancelled) break;
+    const part = monitorParts[i];
+
+    document.getElementById('bpc-done').textContent    = i + 1;
+    document.getElementById('bpc-current').textContent = `Checking ${i + 1} of ${monitorParts.length}: ${part.partNumber || part.description}`;
+    const pct = Math.round((i + 1) / monitorParts.length * 100);
+    document.getElementById('bpc-fill').style.width = `${pct}%`;
+    document.getElementById('bpc-pct').textContent  = `${pct}%`;
+
+    let result;
+    try {
+      const search = await bpcSearchPart(part, opts);
+      if (!search.found) {
+        result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', trustedFallback: false };
+      } else {
+        const cls = bpcClassify(part.yourPrice, search.competitorLowest, opts.threshold);
+        result = {
+          partNumber:       part.partNumber,
+          description:      part.description,
+          yourPrice:        part.yourPrice,
+          competitorLowest: search.competitorLowest,
+          marketAverage:    search.marketAverage,
+          priceDiff:        parseFloat((part.yourPrice - search.competitorLowest).toFixed(2)),
+          priceDiffPct:     parseFloat((((part.yourPrice - search.competitorLowest) / (part.yourPrice || search.competitorLowest || 1)) * 100).toFixed(1)),
+          competitorCount:  search.competitorCount,
+          confidence:       bpcConfidence(search.competitorCount),
+          trustedFallback:  search.trustedFallback,
+          ...cls
+        };
+      }
+    } catch {
+      result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', trustedFallback: false };
+    }
+
+    monitorResults.push(result);
+    localStorage.setItem('bulk_price_check_results', JSON.stringify(monitorResults));
+    bpcUpdateLiveCounts();
+    bpcRenderResults();
+
+    if (i < monitorParts.length - 1 && !monitorCancelled) await bpcSleep(200);
+  }
+
+  startBtn.disabled = false;
+  cancelBtn.classList.remove('show');
+  if (monitorCancelled) {
+    document.getElementById('bpc-current').textContent = 'Bulk price check cancelled.';
+  } else {
+    progress.classList.remove('show');
+    document.getElementById('bpc-current').textContent = '';
+  }
+}
+
+function cancelBulkPriceCheck() { monitorCancelled = true; }
+
+function bpcSetFilter(f) { monitorFilter = f; bpcRenderResults(); }
+
+function bpcToggleIncludeNotFound(checked) { monitorIncludeNotFound = checked; }
+
+function bpcRowHtml(r) {
+  const S = '£';
+  if (r.status === 'notfound') {
+    return `<tr class="bpc-row-notfound">
+      <td>${r.partNumber || '—'}</td><td class="col-desc">${r.description || '—'}</td>
+      <td>${S}${(r.yourPrice || 0).toFixed(2)}</td>
+      <td>—</td><td>—</td><td>—</td><td>—</td><td>0</td>
+      <td>🟠 Not Found</td><td>—</td><td>—</td>
+    </tr>`;
+  }
+  const rowClass = r.status === 'action' ? 'bpc-row-action' : r.status === 'opportunity' ? 'bpc-row-opportunity' : '';
+  const emoji    = r.status === 'action' ? '🔴' : r.status === 'opportunity' ? '🟡' : '🟢';
+  const label    = r.status === 'action' ? 'Action Needed' : r.status === 'opportunity' ? 'Opportunity' : 'OK';
+  const fallbackNote = r.trustedFallback ? '<span class="bpc-fallback-note">Trusted seller fallback</span>' : '';
+  const diffSign = r.priceDiff > 0 ? '+' : r.priceDiff < 0 ? '-' : '';
+  return `<tr class="${rowClass}">
+    <td>${r.partNumber || '—'}</td>
+    <td class="col-desc">${r.description || '—'}${fallbackNote}</td>
+    <td>${S}${r.yourPrice.toFixed(2)}</td>
+    <td>${S}${r.competitorLowest.toFixed(2)}</td>
+    <td>${S}${r.marketAverage.toFixed(2)}</td>
+    <td>${diffSign}${S}${Math.abs(r.priceDiff).toFixed(2)}</td>
+    <td>${r.priceDiffPct.toFixed(1)}%</td>
+    <td>${r.competitorCount}</td>
+    <td>${emoji} ${label}</td>
+    <td>${r.action}</td>
+    <td>${S}${r.suggestedPrice.toFixed(2)}</td>
+  </tr>`;
+}
+
+function bpcRenderResults() {
+  const area = document.getElementById('bpc-results-area');
+  if (!area) return;
+  if (!monitorResults.length) { area.innerHTML = ''; return; }
+
+  const counts = bpcCounts(monitorResults);
+  const revenueImpact = monitorResults
+    .filter(r => r.status === 'action' || r.status === 'opportunity')
+    .reduce((sum, r) => sum + (r.suggestedPrice - r.yourPrice), 0);
+
+  const filtered = monitorResults.filter(r => monitorFilter === 'all' || r.status === monitorFilter);
+  const rows = filtered.map(bpcRowHtml).join('');
+  const pill = (key, labelHtml) => `<button class="pill${monitorFilter === key ? ' active' : ''}" onclick="bpcSetFilter('${key}')">${labelHtml}</button>`;
+
+  area.innerHTML = `
+    <div class="bpc-summary">
+      <div class="bpc-summary-item"><div class="bpc-summary-value">${monitorResults.length}</div><div class="bpc-summary-label">Parts Checked</div></div>
+      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#A32D2D">${counts.action}</div><div class="bpc-summary-label">🔴 Action Needed</div></div>
+      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${counts.opportunity}</div><div class="bpc-summary-label">🟡 Opportunities</div></div>
+      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#3B6D11">${counts.ok}</div><div class="bpc-summary-label">🟢 Competitive</div></div>
+      <div class="bpc-summary-item"><div class="bpc-summary-value">£${revenueImpact.toFixed(2)}</div><div class="bpc-summary-label">Est. Impact / Unit</div></div>
+    </div>
+
+    <div class="bulk-results-bar">
+      <div class="bpc-filters">
+        ${pill('all', `All (${monitorResults.length})`)}
+        ${pill('action', `🔴 Action Needed (${counts.action})`)}
+        ${pill('opportunity', `🟡 Opportunities (${counts.opportunity})`)}
+        ${pill('ok', `🟢 OK (${counts.ok})`)}
+        ${pill('notfound', `Not Found (${counts.notfound})`)}
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)">
+          <input type="checkbox" style="width:14px;height:14px;accent-color:var(--accent)" ${monitorIncludeNotFound ? 'checked' : ''} onchange="bpcToggleIncludeNotFound(this.checked)" />
+          Include not-found in export
+        </label>
+        <button class="bulk-export-btn" onclick="bpcExportExcel()"><i class="ti ti-file-spreadsheet"></i> Download Excel</button>
+      </div>
+    </div>
+
+    <div class="bpc-table-wrap">
+      <table class="bpc-table">
+        <thead><tr>
+          <th>Part Number</th><th>Description</th><th>Your Price</th><th>Competitor Lowest</th>
+          <th>Market Avg</th><th>Diff (£)</th><th>Diff (%)</th><th>Competitors</th><th>Status</th><th>Action</th><th>Suggested Price</th>
+        </tr></thead>
+        <tbody>${rows || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:20px">No parts match this filter</td></tr>'}</tbody>
+      </table>
+    </div>`;
+}
+
+function bpcExportExcel() {
+  if (!monitorResults.length || typeof XLSX === 'undefined') { alert('No results to export yet.'); return; }
+  const rows = monitorResults.filter(r => r.status !== 'notfound' || monitorIncludeNotFound);
+  if (!rows.length) { alert('No results to export — tick "Include not-found in export" if all parts were not found.'); return; }
+
+  const aoa = [['Part Number', 'Description', 'Current Price (£)', 'Suggested Price (£)', 'Competitor Lowest (£)', 'Market Average (£)', 'Confidence', 'Action', 'Reason']];
+  rows.forEach(r => {
+    const notFound = r.status === 'notfound';
+    aoa.push([
+      r.partNumber || '', r.description || '', r.yourPrice,
+      notFound ? '' : r.suggestedPrice,
+      notFound ? '' : r.competitorLowest,
+      notFound ? '' : r.marketAverage,
+      notFound ? '' : r.confidence,
+      notFound ? 'Not Found' : r.action,
+      notFound ? 'No matching listings found on eBay' : (r.reason + (r.trustedFallback ? ' — Trusted seller fallback' : ''))
+    ]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  xlsxApplyHdr(ws, ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']);
+
+  const actionFill = { patternType: 'solid', fgColor: { rgb: 'FCEBEB' } };
+  const oppFill     = { patternType: 'solid', fgColor: { rgb: 'FEF3C7' } };
+
+  let rIdx = 2;
+  rows.forEach(row => {
+    const fill = row.status === 'action' ? actionFill : row.status === 'opportunity' ? oppFill : null;
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'].forEach(col => {
+      const cell = ws[`${col}${rIdx}`];
+      if (cell && fill) cell.s = { ...(cell.s || {}), fill };
+    });
+    ['C', 'D', 'E', 'F'].forEach(col => {
+      const cell = ws[`${col}${rIdx}`];
+      if (cell && typeof cell.v === 'number') { cell.t = 'n'; cell.z = '"£"#,##0.00'; }
+    });
+    rIdx++;
+  });
+
+  xlsxAutoWidth(ws, aoa);
+  ws['!cols'][1] = { wch: 40 };
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'MAM Price Update');
+  XLSX.writeFile(wb, `bulk-price-check-${xlsxDateStr()}.xlsx`);
 }
 </script>
 </body>
