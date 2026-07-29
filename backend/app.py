@@ -170,18 +170,34 @@ def scan_watchlist_item(item):
     )
     resp.raise_for_status()
 
-    prices = []
+    listings = []
     for s in resp.json().get("itemSummaries", []):
         try:
             p = float(s.get("price", {}).get("value", 0))
-            if p > 0:
-                prices.append(p)
         except (ValueError, TypeError):
-            pass
+            continue
+        if p <= 0:
+            continue
+        seller = (s.get("seller", {}) or {}).get("username", "") or ""
+        listings.append({"price": p, "seller": seller.lower()})
 
-    if not prices:
+    # Trusted-sellers-only mode: strict exact-username match, applied before
+    # any price calculation. Never widens back out to the whole market — an
+    # item with zero trusted-seller listings raises rather than silently
+    # falling back to unfiltered market prices.
+    trusted_sellers = [s.lower() for s in item.get("trusted_sellers", []) if s]
+    limited_results = False
+    if trusted_sellers:
+        listings = [l for l in listings if l["seller"] in trusted_sellers]
+        if not listings:
+            raise ValueError("Not found in trusted sellers")
+        if len(listings) < 3:
+            limited_results = True
+
+    if not listings:
         raise ValueError("No valid prices in eBay results")
 
+    prices            = [l["price"] for l in listings]
     competitor_lowest = round(min(prices), 2)
     market_average    = round(sum(prices) / len(prices), 2)
     listing_count     = len(prices)
@@ -194,6 +210,9 @@ def scan_watchlist_item(item):
         listing_count,
     )
 
+    if limited_results:
+        reason = f"Limited results — {listing_count} trusted seller listing(s) found. " + reason
+
     return {
         "item":              item,
         "competitor_lowest": competitor_lowest,
@@ -204,6 +223,8 @@ def scan_watchlist_item(item):
         "reason":            reason,
         "confidence":        confidence,
         "part_number":       extract_part_number(item["search_term"]),
+        "trusted_only":      bool(trusted_sellers),
+        "limited_results":   limited_results,
     }
 
 
@@ -754,6 +775,7 @@ def add_watchlist_item():
         "min_margin_percent":      float(data.get("min_margin_percent", 20)),
         "alert_threshold_percent": float(data.get("alert_threshold_percent", 2)),
         "market":                  str(data.get("market", "EBAY_GB")),
+        "trusted_sellers":         [str(s).strip().lower() for s in data.get("trusted_sellers", []) if str(s).strip()],
         "last_price":              None,
         "last_checked":            None,
         "price_history":           [],
@@ -775,7 +797,7 @@ def update_watchlist_item(item_id):
         return jsonify({"error": "JSON body required"}), 400
 
     numeric_fields = {"my_price", "cost_price", "min_margin_percent", "alert_threshold_percent"}
-    allowed_fields = numeric_fields | {"part_name", "search_term", "market", "active"}
+    allowed_fields = numeric_fields | {"part_name", "search_term", "market", "active", "trusted_sellers"}
 
     with _watchlist_lock:
         items = load_watchlist()
@@ -788,6 +810,8 @@ def update_watchlist_item(item_id):
                             val = float(val)
                         elif field == "active":
                             val = bool(val)
+                        elif field == "trusted_sellers":
+                            val = [str(s).strip().lower() for s in val if str(s).strip()]
                         items[i][field] = val
                 save_watchlist(items)
                 return jsonify(items[i])
