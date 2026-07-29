@@ -630,7 +630,6 @@
   .bpc-table tr.bpc-row-action td { background: #FCEBEB; }
   .bpc-table tr.bpc-row-opportunity td { background: #FEF3C7; }
   .bpc-table tr.bpc-row-notfound td { color: #d97706; font-style: italic; }
-  .bpc-table tr.bpc-row-lowconf td { background: #FEF3E0; color: #92400E; }
   .bpc-table .col-desc { max-width: 240px; white-space: normal; }
   .bpc-fallback-note { font-size: 10px; color: var(--text-muted); font-style: italic; display: block; white-space: normal; }
   .bpc-mode-note { font-size: 12px; color: var(--text-muted); background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; display: flex; align-items: center; gap: 7px; margin-bottom: 14px; }
@@ -1054,7 +1053,8 @@
              ondrop="bpcHandleDrop(event)">
           <i class="ti ti-file-upload"></i>
           <p><strong>Click to upload</strong> or drag &amp; drop a CSV or Excel file<br>
-          Required columns: <code>part_number</code>, <code>description</code>, <code>your_price</code></p>
+          Required columns: <code>part_number</code>, <code>description</code>, <code>your_price</code><br>
+          Recommended: <code>brand</code> — adding brand significantly improves match accuracy since part numbers are sometimes reused across manufacturers</p>
         </div>
         <input type="file" id="bpc-file-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="bpcHandleFileInput(event)" />
 
@@ -1063,7 +1063,7 @@
           <span class="bpc-upload-status" id="bpc-upload-status"></span>
         </div>
 
-        <p class="bpc-mode-note"><i class="ti ti-info-circle"></i> Each part is searched exactly like the Search tab — an exact-match quoted search first, automatically retrying without quotes if it returns fewer than 3 results.</p>
+        <p class="bpc-mode-note"><i class="ti ti-info-circle"></i> If a brand is given, each part is searched as brand + part number (e.g. "Meyle 3282280008") first, falling back to the part number alone in quotes if that returns fewer than 3 results. Without a brand, the part number is searched in quotes first, then without quotes as a fallback.</p>
 
         <div class="bpc-options">
           <div class="bpc-opt-group">
@@ -1121,7 +1121,7 @@
           <span class="bpc-live-pill">🔴 Action needed <strong id="bpc-live-action">0</strong></span>
           <span class="bpc-live-pill">🟡 Opportunities <strong id="bpc-live-opportunity">0</strong></span>
           <span class="bpc-live-pill">🟢 OK <strong id="bpc-live-ok">0</strong></span>
-          <span class="bpc-live-pill">🟡 Partial match <strong id="bpc-live-unverified">0</strong></span>
+          <span class="bpc-live-pill">🟡 Part number only <strong id="bpc-live-unverified">0</strong></span>
         </div>
       </div>
 
@@ -3705,9 +3705,15 @@ function bpcSleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function bpcDownloadTemplate() {
   if (typeof XLSX === 'undefined') { alert('The Excel library failed to load. Check your connection and try again.'); return; }
-  const ws = XLSX.utils.aoa_to_sheet([['part_number', 'description', 'your_price']]);
-  xlsxApplyHdr(ws, ['A', 'B', 'C']);
-  ws['!cols'] = [{ wch: 20 }, { wch: 40 }, { wch: 14 }];
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['part_number', 'description', 'your_price', 'brand'],
+    ['', '', '', 'Adding brand significantly improves accuracy']
+  ]);
+  xlsxApplyHdr(ws, ['A', 'B', 'C', 'D']);
+  // Highlight the brand header distinctly — recommended, not just optional.
+  ws['D1'].s = { font: { bold: true }, fill: { patternType: 'solid', fgColor: { rgb: 'FFF3B0' } } };
+  ws['D2'].s = { font: { italic: true, color: { rgb: '92400E' } } };
+  ws['!cols'] = [{ wch: 20 }, { wch: 40 }, { wch: 14 }, { wch: 40 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Template');
   XLSX.writeFile(wb, 'bulk-price-check-template.xlsx');
@@ -3742,7 +3748,8 @@ async function bpcParseFile(file) {
       return {
         partNumber:  String(norm.part_number ?? norm.partnumber ?? norm.part ?? '').trim(),
         description: String(norm.description ?? '').trim(),
-        yourPrice:   parseFloat(norm.your_price ?? norm.yourprice ?? norm.price ?? '') || 0
+        yourPrice:   parseFloat(norm.your_price ?? norm.yourprice ?? norm.price ?? '') || 0,
+        brand:       String(norm.brand ?? norm.manufacturer ?? '').trim()
       };
     }).filter(r => r.partNumber || r.description);
 
@@ -3767,9 +3774,9 @@ async function bpcParseFile(file) {
 }
 
 function bpcMatchMethodBadge(method) {
-  if (method === 'good')    return '🟢 Good match';
-  if (method === 'partial') return '🟡 Partial match';
-  return '🔴 Not found';
+  if (method === 'brand_part') return '🟢 Brand + Part Number';
+  if (method === 'part_only')  return '🟡 Part Number only';
+  return '🔴 Not Found';
 }
 
 function bpcClassify(yourPrice, competitorLowest, thresholdPct) {
@@ -3807,25 +3814,49 @@ async function bpcFetchSearchResults(q, market) {
 }
 
 async function bpcSearchPart(part, opts) {
-  const term = (part.partNumber || part.description || '').trim();
+  const term  = (part.partNumber || part.description || '').trim();
+  const brand = (part.brand || '').trim();
   if (!term) return { found: false, matchMethod: 'notfound', trustedFallback: false, listings: [] };
 
-  const quotedRaw = await bpcFetchSearchResults(`"${term}"`, opts.market);
+  let raw, matchMethod;
 
-  let raw = quotedRaw;
-  let matchMethod = quotedRaw.length ? 'good' : 'notfound';
-
-  if (quotedRaw.length < 3) {
-    const unquotedRaw = await bpcFetchSearchResults(term, opts.market);
-    if (unquotedRaw.length > 0) {
-      raw = unquotedRaw;
-      matchMethod = 'partial';
-    } else if (quotedRaw.length > 0) {
-      raw = quotedRaw;
-      matchMethod = 'good';
+  if (brand) {
+    // Brand disambiguates part numbers that are reused across manufacturers
+    // (e.g. "3282280008" matches both Meyle and BGA listings).
+    const brandRaw = await bpcFetchSearchResults(`${brand} ${term}`, opts.market);
+    if (brandRaw.length >= 3) {
+      raw = brandRaw;
+      matchMethod = 'brand_part';
     } else {
-      raw = [];
-      matchMethod = 'notfound';
+      const partOnlyRaw = await bpcFetchSearchResults(`"${term}"`, opts.market);
+      if (partOnlyRaw.length > 0) {
+        raw = partOnlyRaw;
+        matchMethod = 'part_only';
+      } else if (brandRaw.length > 0) {
+        raw = brandRaw;
+        matchMethod = 'brand_part';
+      } else {
+        raw = [];
+        matchMethod = 'notfound';
+      }
+    }
+  } else {
+    const quotedRaw = await bpcFetchSearchResults(`"${term}"`, opts.market);
+    if (quotedRaw.length >= 3) {
+      raw = quotedRaw;
+      matchMethod = 'part_only';
+    } else {
+      const unquotedRaw = await bpcFetchSearchResults(term, opts.market);
+      if (unquotedRaw.length > 0) {
+        raw = unquotedRaw;
+        matchMethod = 'part_only';
+      } else if (quotedRaw.length > 0) {
+        raw = quotedRaw;
+        matchMethod = 'part_only';
+      } else {
+        raw = [];
+        matchMethod = 'notfound';
+      }
     }
   }
 
@@ -3874,15 +3905,15 @@ function bpcCounts(results) {
     { action: 0, opportunity: 0, ok: 0, notfound: 0 });
 }
 
-function bpcPartialMatchCount(results) {
-  return results.filter(r => r.matchMethod === 'partial').length;
+function bpcPartOnlyMatchCount(results) {
+  return results.filter(r => r.matchMethod === 'part_only').length;
 }
 
 function bpcUpdateLiveCounts() {
   const counts = bpcCounts(monitorResults);
   document.getElementById('bpc-live-action').textContent      = counts.action;
   document.getElementById('bpc-live-opportunity').textContent = counts.opportunity;
-  document.getElementById('bpc-live-unverified').textContent  = bpcPartialMatchCount(monitorResults);
+  document.getElementById('bpc-live-unverified').textContent  = bpcPartOnlyMatchCount(monitorResults);
   document.getElementById('bpc-live-ok').textContent           = counts.ok;
 }
 
@@ -4002,7 +4033,6 @@ function bpcRowHtml(r) {
 
   const rowClass = r.status === 'action' ? 'bpc-row-action'
     : r.status === 'opportunity' ? 'bpc-row-opportunity'
-    : r.matchMethod === 'partial' ? 'bpc-row-lowconf'
     : '';
   const emoji    = r.status === 'action' ? '🔴' : r.status === 'opportunity' ? '🟡' : '🟢';
   const label    = r.status === 'action' ? 'Action Needed' : r.status === 'opportunity' ? 'Opportunity' : 'OK';
@@ -4047,14 +4077,14 @@ function bpcRenderResults() {
   if (!monitorResults.length) { area.innerHTML = ''; return; }
 
   const counts = bpcCounts(monitorResults);
-  const partialCount = bpcPartialMatchCount(monitorResults);
+  const partOnlyCount = bpcPartOnlyMatchCount(monitorResults);
   const revenueImpact = monitorResults
     .filter(r => r.status === 'action' || r.status === 'opportunity')
     .reduce((sum, r) => sum + (r.suggestedPrice - r.yourPrice), 0);
 
   const filtered = monitorResults.filter(r => {
     if (monitorFilter === 'all') return true;
-    if (monitorFilter === 'partial') return r.matchMethod === 'partial';
+    if (monitorFilter === 'partonly') return r.matchMethod === 'part_only';
     return r.status === monitorFilter;
   });
   const rows = filtered.map(bpcRowHtml).join('');
@@ -4066,7 +4096,7 @@ function bpcRenderResults() {
       <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#A32D2D">${counts.action}</div><div class="bpc-summary-label">🔴 Action Needed</div></div>
       <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${counts.opportunity}</div><div class="bpc-summary-label">🟡 Opportunities</div></div>
       <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#3B6D11">${counts.ok}</div><div class="bpc-summary-label">🟢 Competitive</div></div>
-      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${partialCount}</div><div class="bpc-summary-label">🟡 Partial Match</div></div>
+      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${partOnlyCount}</div><div class="bpc-summary-label">🟡 Part Number Only</div></div>
       <div class="bpc-summary-item"><div class="bpc-summary-value">£${revenueImpact.toFixed(2)}</div><div class="bpc-summary-label">Est. Impact / Unit</div></div>
     </div>
 
@@ -4076,7 +4106,7 @@ function bpcRenderResults() {
         ${pill('action', `🔴 Action Needed (${counts.action})`)}
         ${pill('opportunity', `🟡 Opportunities (${counts.opportunity})`)}
         ${pill('ok', `🟢 OK (${counts.ok})`)}
-        ${pill('partial', `🟡 Partial Match (${partialCount})`)}
+        ${pill('partonly', `🟡 Part Number Only (${partOnlyCount})`)}
         ${pill('notfound', `🔴 Not Found (${counts.notfound})`)}
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -4093,7 +4123,7 @@ function bpcRenderResults() {
         <thead><tr>
           <th>Part Number</th><th>Description</th><th>Your Price</th><th>Competitor Lowest</th>
           <th>Market Avg</th><th>Diff (£)</th><th>Diff (%)</th><th>Competitors</th><th>Matched Listing</th>
-          <th>Match Confidence</th><th>Status</th><th>Action</th><th>Suggested Price</th><th>Matches</th>
+          <th>Search Method</th><th>Status</th><th>Action</th><th>Suggested Price</th><th>Matches</th>
         </tr></thead>
         <tbody>${rows || '<tr><td colspan="14" style="text-align:center;color:var(--text-muted);padding:20px">No parts match this filter</td></tr>'}</tbody>
       </table>
@@ -4105,14 +4135,14 @@ function bpcExportExcel() {
   const rows = monitorResults.filter(r => r.status !== 'notfound' || monitorIncludeNotFound);
   if (!rows.length) { alert('No results to export — tick "Include not-found parts in export" if all parts were excluded.'); return; }
 
-  const aoa = [['Part Number', 'Description', 'Current Price (£)', 'Suggested Price (£)', 'Competitor Lowest (£)', 'Market Average (£)', 'Match Confidence', 'Action', 'Reason']];
+  const aoa = [['Part Number', 'Description', 'Current Price (£)', 'Suggested Price (£)', 'Competitor Lowest (£)', 'Market Average (£)', 'Search Method', 'Action', 'Reason']];
   rows.forEach(r => {
     const noPricing = r.status === 'notfound';
     let reason;
     if (r.status === 'notfound') reason = 'No matching listings found on eBay';
     else {
       reason = r.reason;
-      if (r.matchMethod === 'partial') reason = 'Partial match — found only without quotes, verify manually. ' + reason;
+      if (r.matchMethod === 'part_only') reason = 'Matched on part number only — verify the brand manually. ' + reason;
       if (r.trustedFallback) reason += ' — Trusted seller fallback';
     }
 
@@ -4132,13 +4162,11 @@ function bpcExportExcel() {
 
   const actionFill = { patternType: 'solid', fgColor: { rgb: 'FCEBEB' } };
   const oppFill     = { patternType: 'solid', fgColor: { rgb: 'FEF3C7' } };
-  const partialFill = { patternType: 'solid', fgColor: { rgb: 'FEF3E0' } };
 
   let rIdx = 2;
   rows.forEach(row => {
     const fill = row.status === 'action' ? actionFill
       : row.status === 'opportunity' ? oppFill
-      : row.matchMethod === 'partial' ? partialFill
       : null;
     ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'].forEach(col => {
       const cell = ws[`${col}${rIdx}`];
