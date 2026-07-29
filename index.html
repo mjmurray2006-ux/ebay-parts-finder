@@ -1054,7 +1054,7 @@
              ondrop="bpcHandleDrop(event)">
           <i class="ti ti-file-upload"></i>
           <p><strong>Click to upload</strong> or drag &amp; drop a CSV or Excel file<br>
-          Required columns: <code>part_number</code>, <code>description</code>, <code>your_price</code></p>
+          Required columns: <code>part_number</code>, <code>description</code>, <code>your_price</code> — optional: <code>brand</code></p>
         </div>
         <input type="file" id="bpc-file-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="bpcHandleFileInput(event)" />
 
@@ -3705,9 +3705,9 @@ function bpcSleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function bpcDownloadTemplate() {
   if (typeof XLSX === 'undefined') { alert('The Excel library failed to load. Check your connection and try again.'); return; }
-  const ws = XLSX.utils.aoa_to_sheet([['part_number', 'description', 'your_price']]);
-  xlsxApplyHdr(ws, ['A', 'B', 'C']);
-  ws['!cols'] = [{ wch: 20 }, { wch: 40 }, { wch: 14 }];
+  const ws = XLSX.utils.aoa_to_sheet([['part_number', 'description', 'your_price', 'brand']]);
+  xlsxApplyHdr(ws, ['A', 'B', 'C', 'D']);
+  ws['!cols'] = [{ wch: 20 }, { wch: 40 }, { wch: 14 }, { wch: 16 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Template');
   XLSX.writeFile(wb, 'bulk-price-check-template.xlsx');
