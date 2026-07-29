@@ -629,36 +629,8 @@
   .bpc-table tbody tr:last-child td { border-bottom: none; }
   .bpc-table tr.bpc-row-action td { background: #FCEBEB; }
   .bpc-table tr.bpc-row-opportunity td { background: #FEF3C7; }
-  .bpc-table tr.bpc-row-notfound td { color: #d97706; font-style: italic; }
-  .bpc-table tr.bpc-row-notfound-trusted td { color: #b45309; font-style: italic; background: #FFF7ED; }
-  .bpc-table .col-desc { max-width: 240px; white-space: normal; }
-  .bpc-fallback-note { font-size: 10px; color: var(--text-muted); font-style: italic; display: block; white-space: normal; }
-  .bpc-seller-name { font-size: 10px; color: var(--text-muted); display: block; white-space: normal; }
-  .bpc-trusted-badge { font-size: 12px; }
-  .bpc-legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12px; color: var(--text-muted); background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 12px; }
-  .bpc-legend-item { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
-  .bpc-trusted-banner { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #92400E; background: #FEF3C7; border: 0.5px solid #FBBF24; border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 12px; }
+  .bpc-table tr.bpc-row-notfound td { color: #B45309; font-style: italic; background: #FFF7ED; }
   .bpc-mode-note { font-size: 12px; color: var(--text-muted); background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; display: flex; align-items: center; gap: 7px; margin-bottom: 14px; }
-  .bpc-view-btn { height: 28px; padding: 0 10px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 11.5px; cursor: pointer; background: var(--surface); color: var(--text-muted); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
-  .bpc-view-btn:hover { color: var(--accent); border-color: var(--accent); }
-
-  .bpc-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
-  .bpc-modal-overlay.show { display: flex; }
-  .bpc-modal { background: var(--surface); border-radius: var(--radius); max-width: 720px; width: 100%; max-height: 80vh; overflow-y: auto; }
-  .bpc-modal-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; background: var(--surface); }
-  .bpc-modal-header h4 { font-size: 15px; font-weight: 600; }
-  .bpc-modal-close { background: none; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--text-muted); padding: 0; }
-  .bpc-modal-close:hover { color: var(--text); }
-  .bpc-modal-body { padding: 8px 20px 16px; }
-  .bpc-match-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid var(--border); }
-  .bpc-match-item:last-child { border-bottom: none; }
-  .bpc-match-title { font-size: 13px; flex: 1; line-height: 1.4; }
-  .bpc-match-title a { color: var(--accent); text-decoration: none; }
-  .bpc-match-title a:hover { text-decoration: underline; }
-  .bpc-match-price { font-size: 13px; font-weight: 600; white-space: nowrap; }
-  .bpc-match-verified { font-size: 10px; padding: 2px 7px; border-radius: 99px; margin-left: 8px; white-space: nowrap; }
-  .bpc-match-verified.yes { background: #EAF3DE; color: #3B6D11; }
-  .bpc-match-verified.no  { background: #FCEBEB; color: #A32D2D; }
 </style>
 </head>
 <body>
@@ -1069,7 +1041,7 @@
           <span class="bpc-upload-status" id="bpc-upload-status"></span>
         </div>
 
-        <p class="bpc-mode-note"><i class="ti ti-info-circle"></i> Each part uses the exact same search as the Search tab — brand + part number if a brand is given (e.g. Meyle 3282280008), or just the part number otherwise — with no quotes, sorted by relevance. Results are used exactly as eBay returns them, with no filtering by title or brand. The only post-processing is: listings from your own stores (added via the ⭐ My Stores panel) are always excluded, and when "Trusted sellers only" is selected, only exact matches against your saved sellers are used — it never falls back to the wider market, even with zero or very few results.</p>
+        <p class="bpc-mode-note"><i class="ti ti-info-circle"></i> Each part uses the exact same search as the Search tab — brand + part number if a brand is given (e.g. Meyle 3282280008), or just the part number otherwise — with no quotes, sorted by relevance. Listings from your own stores are always excluded, and when "Trusted sellers only" is selected, only exact matches against your saved sellers are used — it never falls back to the wider market. The filters below are then applied before any price calculation. Suggested price is median minus 5%; status compares your price to the median (10%/15% thresholds).</p>
 
         <div class="bpc-options">
           <div class="bpc-opt-group">
@@ -1077,13 +1049,6 @@
             <div class="bpc-radio-row">
               <label><input type="radio" name="bpc-compare" value="market" checked> Whole eBay market</label>
               <label><input type="radio" name="bpc-compare" value="trusted"> Trusted sellers only</label>
-            </div>
-          </div>
-          <div class="bpc-opt-group">
-            <span class="bpc-opt-label">Alert Threshold</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              <input type="number" id="bpc-threshold" value="5" min="0" step="0.5" style="width:90px" />
-              <span style="font-size:13px;color:var(--text-muted)">% difference</span>
             </div>
           </div>
           <div class="bpc-opt-group">
@@ -1095,6 +1060,20 @@
               <option value="EBAY_FR">🇫🇷 eBay FR</option>
               <option value="EBAY_AU">🇦🇺 eBay AU</option>
             </select>
+          </div>
+        </div>
+
+        <div class="bpc-options">
+          <div class="bpc-opt-group">
+            <span class="bpc-opt-label">Minimum seller feedback score</span>
+            <input type="number" id="bpc-min-feedback" value="1000" min="0" step="50" style="width:110px" />
+          </div>
+          <div class="bpc-opt-group">
+            <span class="bpc-opt-label">New listings only</span>
+            <label style="display:flex;align-items:center;gap:8px;height:36px">
+              <input type="checkbox" id="bpc-new-only" style="width:16px;height:16px;accent-color:var(--accent)" />
+              <span style="font-size:13px;color:var(--text-muted)">Only use "New" condition listings</span>
+            </label>
           </div>
         </div>
 
@@ -1116,24 +1095,14 @@
         <div class="progress-track"><div class="progress-fill" id="bpc-fill"></div></div>
         <div class="progress-current" id="bpc-current"></div>
         <div class="bpc-live-counts">
-          <span class="bpc-live-pill">🔴 Action needed <strong id="bpc-live-action">0</strong></span>
-          <span class="bpc-live-pill">🟡 Opportunities <strong id="bpc-live-opportunity">0</strong></span>
-          <span class="bpc-live-pill">🟢 OK <strong id="bpc-live-ok">0</strong></span>
-          <span class="bpc-live-pill">🟠 Not Found <strong id="bpc-live-unverified">0</strong></span>
+          <span class="bpc-live-pill">🔴 Lower Needed <strong id="bpc-live-action">0</strong></span>
+          <span class="bpc-live-pill">🟡 Raise Opportunity <strong id="bpc-live-opportunity">0</strong></span>
+          <span class="bpc-live-pill">🟢 Competitive <strong id="bpc-live-ok">0</strong></span>
+          <span class="bpc-live-pill">🟠 Insufficient <strong id="bpc-live-unverified">0</strong></span>
         </div>
       </div>
 
       <div id="bpc-results-area"></div>
-
-      <div class="bpc-modal-overlay" id="bpc-modal-overlay" onclick="if(event.target===this) bpcCloseModal()">
-        <div class="bpc-modal">
-          <div class="bpc-modal-header">
-            <h4 id="bpc-modal-title">Matches</h4>
-            <button class="bpc-modal-close" onclick="bpcCloseModal()">&times;</button>
-          </div>
-          <div class="bpc-modal-body" id="bpc-modal-body"></div>
-        </div>
-      </div>
 
     </div>
   </div>
@@ -3772,26 +3741,23 @@ async function bpcParseFile(file) {
   }
 }
 
-function bpcClassify(yourPrice, competitorLowest, thresholdPct) {
+// Status is relative to the median, not the lowest price: >10% above median
+// needs lowering, >15% below median is a raise opportunity, otherwise
+// competitive. Suggested price is always median minus 5%.
+function bpcClassify(yourPrice, median) {
+  const suggestedPrice = parseFloat((median * 0.95).toFixed(2));
   if (!yourPrice || yourPrice <= 0) {
-    return { status: 'ok', action: 'Hold', suggestedPrice: competitorLowest, reason: 'No valid price provided in upload — using competitor lowest as reference' };
+    return { status: 'competitive', action: 'Hold', suggestedPrice, reason: 'No valid price provided in upload' };
   }
-  const diffPct = ((yourPrice - competitorLowest) / yourPrice) * 100;
-  if (diffPct > thresholdPct) {
-    return {
-      status: 'action', action: 'Lower',
-      suggestedPrice: Math.round(competitorLowest * 1.02 * 100) / 100,
-      reason: `Competitor is ${diffPct.toFixed(1)}% cheaper than your price`
-    };
+  if (yourPrice > median * 1.10) {
+    const pct = ((yourPrice - median) / median) * 100;
+    return { status: 'lower', action: 'Lower', suggestedPrice, reason: `Your price is ${pct.toFixed(1)}% above the median` };
   }
-  if (diffPct < -thresholdPct) {
-    return {
-      status: 'opportunity', action: 'Raise',
-      suggestedPrice: Math.round(competitorLowest * 0.95 * 100) / 100,
-      reason: `You are ${Math.abs(diffPct).toFixed(1)}% cheaper than the nearest competitor`
-    };
+  if (yourPrice < median * 0.85) {
+    const pct = ((median - yourPrice) / median) * 100;
+    return { status: 'raise', action: 'Raise', suggestedPrice, reason: `Your price is ${pct.toFixed(1)}% below the median` };
   }
-  return { status: 'ok', action: 'Hold', suggestedPrice: yourPrice, reason: `Price within ${thresholdPct}% of the nearest competitor` };
+  return { status: 'competitive', action: 'Hold', suggestedPrice, reason: 'Within 10% of the median' };
 }
 
 // Exactly the same /search call the Search tab makes: no quotes, no
@@ -3816,7 +3782,7 @@ function bpcMedian(sortedNums) {
 async function bpcSearchPart(part, opts) {
   const term  = (part.partNumber || part.description || '').trim();
   const brand = (part.brand || '').trim();
-  if (!term) return { found: false, matchMethod: 'notfound', ownExcludedCount: 0, listings: [] };
+  if (!term) return { found: false, listingsUsed: 0 };
 
   const q = brand ? `${brand} ${term}` : term;
   const raw = await bpcFetchSearchResults(q, opts.market);
@@ -3824,79 +3790,54 @@ async function bpcSearchPart(part, opts) {
   const ownStores  = new Set(myStores.map(s => s.username));
   const trustedSet = new Set(savedSellers);
 
-  // Taken exactly as eBay returns them — no title or brand filtering.
-  const allItems = raw
+  let items = raw
     .map(i => ({
-      title:     i.title || '',
       price:     parseFloat(i.price?.value || 0),
       seller:    (i.seller?.username || '').toLowerCase(),
-      url:       i.itemWebUrl || '#',
+      feedback:  i.seller?.feedbackScore != null ? Number(i.seller.feedbackScore) : 0,
       condition: i.condition || ''
     }))
-    .filter(i => i.price > 0);
+    .filter(i => i.price > 0)
+    .filter(i => !ownStores.has(i.seller));
 
-  const ownExcludedCount = allItems.filter(i => ownStores.has(i.seller)).length;
-
-  // Own-store exclusion and the trusted-sellers filter are the only
-  // post-processing applied.
-  let items = allItems
-    .filter(i => !ownStores.has(i.seller))
-    .map(i => ({ ...i, trusted: trustedSet.has(i.seller) }));
-
-  const trustedOnly = opts.compare === 'trusted';
-
-  if (trustedOnly) {
+  if (opts.compare === 'trusted') {
     // Strict filter — only exact saved_sellers matches count. Never widen
     // back out to the full market, no matter how few results this leaves.
-    items = items.filter(i => i.trusted);
-    if (items.length === 0) {
-      return { found: false, matchMethod: 'notfound_trusted', ownExcludedCount, listings: [] };
-    }
+    items = items.filter(i => trustedSet.has(i.seller));
   }
 
-  if (!items.length) return { found: false, matchMethod: 'notfound', ownExcludedCount, listings: [] };
+  // The two new filters — both applied before any price calculation.
+  items = items.filter(i => i.feedback >= opts.minFeedback);
+  if (opts.newOnly) {
+    items = items.filter(i => i.condition.toLowerCase() === 'new');
+  }
 
-  // Price calculations use all returned (post-exclusion) results.
-  const lowestListing = items.reduce((min, i) => (i.price < min.price ? i : min), items[0]);
-  const prices        = items.map(i => i.price);
-  const sortedPrices  = [...prices].sort((a, b) => a - b);
-  const marketAverage = prices.reduce((s, p) => s + p, 0) / prices.length;
+  if (items.length < 3) return { found: false, listingsUsed: items.length };
+
+  const prices       = items.map(i => i.price);
+  const sortedPrices = [...prices].sort((a, b) => a - b);
 
   return {
-    found: true,
-    ownExcludedCount,
-    trustedOnly,
-    limitedResults:     trustedOnly && items.length < 3,
-    trustedResultCount: items.length,
-    usedIsTrusted:      lowestListing.trusted,
-    matchedTitle:       lowestListing.title,
-    matchedSeller:      lowestListing.seller,
-    competitorLowest:   lowestListing.price,
-    competitorHighest:  parseFloat(Math.max(...prices).toFixed(2)),
-    marketAverage:      parseFloat(marketAverage.toFixed(2)),
-    marketMedian:       parseFloat(bpcMedian(sortedPrices).toFixed(2)),
-    competitorCount:    items.length,
-    listings:           items
+    found:       true,
+    lowest:      parseFloat(Math.min(...prices).toFixed(2)),
+    highest:     parseFloat(Math.max(...prices).toFixed(2)),
+    average:     parseFloat((prices.reduce((s, p) => s + p, 0) / prices.length).toFixed(2)),
+    median:      parseFloat(bpcMedian(sortedPrices).toFixed(2)),
+    listingsUsed: items.length
   };
 }
 
 function bpcCounts(results) {
   return results.reduce((acc, r) => { acc[r.status] = (acc[r.status] || 0) + 1; return acc; },
-    { action: 0, opportunity: 0, ok: 0, notfound: 0, notfound_trusted: 0 });
-}
-
-function bpcTrustedPriceCounts(results) {
-  const found = results.filter(r => r.status !== 'notfound' && r.status !== 'notfound_trusted');
-  const trusted = found.filter(r => r.usedIsTrusted).length;
-  return { trusted, market: found.length - trusted };
+    { lower: 0, raise: 0, competitive: 0, insufficient: 0 });
 }
 
 function bpcUpdateLiveCounts() {
   const counts = bpcCounts(monitorResults);
-  document.getElementById('bpc-live-action').textContent      = counts.action;
-  document.getElementById('bpc-live-opportunity').textContent = counts.opportunity;
-  document.getElementById('bpc-live-unverified').textContent  = counts.notfound + counts.notfound_trusted;
-  document.getElementById('bpc-live-ok').textContent           = counts.ok;
+  document.getElementById('bpc-live-action').textContent      = counts.lower;
+  document.getElementById('bpc-live-opportunity').textContent = counts.raise;
+  document.getElementById('bpc-live-unverified').textContent  = counts.insufficient;
+  document.getElementById('bpc-live-ok').textContent           = counts.competitive;
 }
 
 async function startBulkPriceCheck() {
@@ -3910,9 +3851,10 @@ async function startBulkPriceCheck() {
   document.getElementById('bpc-results-area').innerHTML = '';
 
   const opts = {
-    compare:   document.querySelector('input[name="bpc-compare"]:checked').value,
-    threshold: parseFloat(document.getElementById('bpc-threshold').value) || 5,
-    market:    document.getElementById('bpc-market').value
+    compare:     document.querySelector('input[name="bpc-compare"]:checked').value,
+    market:      document.getElementById('bpc-market').value,
+    minFeedback: parseInt(document.getElementById('bpc-min-feedback').value, 10) || 0,
+    newOnly:     document.getElementById('bpc-new-only').checked
   };
   monitorTrustedOnly = opts.compare === 'trusted';
 
@@ -3943,34 +3885,29 @@ async function startBulkPriceCheck() {
     try {
       const search = await bpcSearchPart(part, opts);
       if (!search.found) {
-        const status = search.matchMethod === 'notfound_trusted' ? 'notfound_trusted' : 'notfound';
-        result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status, ownExcludedCount: search.ownExcludedCount || 0, listings: [] };
-      } else {
-        const cls = bpcClassify(part.yourPrice, search.competitorLowest, opts.threshold);
         result = {
-          partNumber:         part.partNumber,
-          description:        part.description,
-          yourPrice:          part.yourPrice,
-          matchedTitle:       search.matchedTitle,
-          matchedSeller:      search.matchedSeller,
-          competitorLowest:   search.competitorLowest,
-          competitorHighest:  search.competitorHighest,
-          marketAverage:      search.marketAverage,
-          marketMedian:       search.marketMedian,
-          priceDiff:          parseFloat((part.yourPrice - search.competitorLowest).toFixed(2)),
-          priceDiffPct:       parseFloat((((part.yourPrice - search.competitorLowest) / (part.yourPrice || search.competitorLowest || 1)) * 100).toFixed(1)),
-          competitorCount:    search.competitorCount,
-          trustedOnly:        search.trustedOnly,
-          limitedResults:     search.limitedResults,
-          trustedResultCount: search.trustedResultCount,
-          usedIsTrusted:      search.usedIsTrusted,
-          ownExcludedCount:   search.ownExcludedCount || 0,
-          listings:           search.listings,
+          partNumber:   part.partNumber,
+          brand:        part.brand,
+          yourPrice:    part.yourPrice,
+          status:       'insufficient',
+          listingsUsed: search.listingsUsed || 0
+        };
+      } else {
+        const cls = bpcClassify(part.yourPrice, search.median);
+        result = {
+          partNumber:   part.partNumber,
+          brand:        part.brand,
+          yourPrice:    part.yourPrice,
+          lowest:       search.lowest,
+          highest:      search.highest,
+          average:      search.average,
+          median:       search.median,
+          listingsUsed: search.listingsUsed,
           ...cls
         };
       }
     } catch {
-      result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', ownExcludedCount: 0, listings: [] };
+      result = { partNumber: part.partNumber, brand: part.brand, yourPrice: part.yourPrice, status: 'insufficient', listingsUsed: 0 };
     }
 
     result.idx = monitorResults.length;
@@ -3998,96 +3935,42 @@ function bpcSetFilter(f) { monitorFilter = f; bpcRenderResults(); }
 
 function bpcToggleIncludeNotFound(checked) { monitorIncludeNotFound = checked; }
 
-function bpcViewBtnHtml(r) {
-  return (r.listings && r.listings.length)
-    ? `<button class="bpc-view-btn" onclick="bpcShowMatches(${r.idx})"><i class="ti ti-list-search"></i> View matches</button>`
-    : '—';
-}
-
-function bpcOwnExcludedNote(r) {
-  const n = r.ownExcludedCount || 0;
-  if (!n) return '';
-  return `<span class="bpc-fallback-note">${n} own listing${n === 1 ? '' : 's'} excluded</span>`;
-}
-
-function bpcLimitedResultsNote(r) {
-  if (!r.limitedResults) return '';
-  return `<span class="bpc-fallback-note">Limited results — ${r.trustedResultCount} trusted seller listing${r.trustedResultCount === 1 ? '' : 's'} found</span>`;
+function bpcStatusBadge(status) {
+  if (status === 'lower')  return '🔴 Lower Needed';
+  if (status === 'raise')  return '🟡 Raise Opportunity';
+  if (status === 'insufficient') return '🟠 Insufficient Results';
+  return '🟢 Competitive';
 }
 
 function bpcRowHtml(r) {
   const S = '£';
-  const viewBtn = bpcViewBtnHtml(r);
 
-  if (r.status === 'notfound_trusted') {
-    return `<tr class="bpc-row-notfound-trusted">
-      <td>${r.partNumber || '—'}</td><td class="col-desc">${r.description || '—'}${bpcOwnExcludedNote(r)}</td>
-      <td>${S}${(r.yourPrice || 0).toFixed(2)}</td>
-      <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0</td>
-      <td class="col-desc">—</td>
-      <td>🟠 Not found in trusted sellers</td><td>—</td><td>—</td>
-      <td>${viewBtn}</td>
-    </tr>`;
-  }
-
-  if (r.status === 'notfound') {
+  if (r.status === 'insufficient') {
     return `<tr class="bpc-row-notfound">
-      <td>${r.partNumber || '—'}</td><td class="col-desc">${r.description || '—'}${bpcOwnExcludedNote(r)}</td>
+      <td>${r.partNumber || '—'}</td>
+      <td>${r.brand || '—'}</td>
       <td>${S}${(r.yourPrice || 0).toFixed(2)}</td>
-      <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0</td>
-      <td class="col-desc">—</td>
-      <td>🔴 Not Found</td><td>—</td><td>—</td>
-      <td>${viewBtn}</td>
+      <td>—</td><td>—</td><td>—</td><td>—</td>
+      <td>${r.listingsUsed || 0}</td>
+      <td>${bpcStatusBadge('insufficient')}</td>
     </tr>`;
   }
 
-  const rowClass = r.status === 'action' ? 'bpc-row-action'
-    : r.status === 'opportunity' ? 'bpc-row-opportunity'
-    : '';
-  const emoji    = r.status === 'action' ? '🔴' : r.status === 'opportunity' ? '🟡' : '🟢';
-  const label    = r.status === 'action' ? 'Action Needed' : r.status === 'opportunity' ? 'Opportunity' : 'OK';
-  const descNote = bpcLimitedResultsNote(r) + bpcOwnExcludedNote(r);
-  const diffSign = r.priceDiff > 0 ? '+' : r.priceDiff < 0 ? '-' : '';
-  const starBadge = r.usedIsTrusted ? '<span class="bpc-trusted-badge" title="Trusted seller listing">⭐</span> ' : '';
-  const sellerLine = r.matchedSeller
-    ? `<span class="bpc-seller-name">by ${r.matchedSeller}${r.usedIsTrusted ? ' ⭐' : ''}</span>`
+  const rowClass = r.status === 'lower' ? 'bpc-row-action'
+    : r.status === 'raise' ? 'bpc-row-opportunity'
     : '';
   return `<tr class="${rowClass}">
     <td>${r.partNumber || '—'}</td>
-    <td class="col-desc">${r.description || '—'}${descNote}</td>
+    <td>${r.brand || '—'}</td>
     <td>${S}${r.yourPrice.toFixed(2)}</td>
-    <td>${starBadge}${S}${r.competitorLowest.toFixed(2)}</td>
-    <td>${S}${r.competitorHighest.toFixed(2)}</td>
-    <td>${S}${r.marketAverage.toFixed(2)}</td>
-    <td>${S}${r.marketMedian.toFixed(2)}</td>
-    <td>${diffSign}${S}${Math.abs(r.priceDiff).toFixed(2)}</td>
-    <td>${r.priceDiffPct.toFixed(1)}%</td>
-    <td>${r.competitorCount}</td>
-    <td class="col-desc">${r.matchedTitle || '—'}${sellerLine}</td>
-    <td>${emoji} ${label}</td>
-    <td>${r.action}</td>
+    <td>${S}${r.lowest.toFixed(2)}</td>
+    <td>${S}${r.average.toFixed(2)}</td>
+    <td>${S}${r.median.toFixed(2)}</td>
     <td>${S}${r.suggestedPrice.toFixed(2)}</td>
-    <td>${viewBtn}</td>
+    <td>${r.listingsUsed}</td>
+    <td>${bpcStatusBadge(r.status)}</td>
   </tr>`;
 }
-
-function bpcShowMatches(idx) {
-  const r = monitorResults[idx];
-  if (!r || !r.listings || !r.listings.length) return;
-  document.getElementById('bpc-modal-title').textContent = `Matches for ${r.partNumber || r.description}`;
-  document.getElementById('bpc-modal-body').innerHTML = r.listings.map(l => {
-    return `
-    <div class="bpc-match-item">
-      <div class="bpc-match-title">
-        <a href="${l.url}" target="_blank" rel="noopener">${l.title || '(no title)'}</a>
-        <span class="bpc-seller-name">by ${l.seller || 'unknown'}${l.trusted ? ' <span class="bpc-trusted-badge" title="Trusted seller">⭐ Trusted Seller</span>' : ''}</span>
-      </div>
-      <div class="bpc-match-price">£${l.price.toFixed(2)}</div>
-    </div>`;
-  }).join('');
-  document.getElementById('bpc-modal-overlay').classList.add('show');
-}
-function bpcCloseModal() { document.getElementById('bpc-modal-overlay').classList.remove('show'); }
 
 function bpcRenderResults() {
   const area = document.getElementById('bpc-results-area');
@@ -4095,53 +3978,32 @@ function bpcRenderResults() {
   if (!monitorResults.length) { area.innerHTML = ''; return; }
 
   const counts = bpcCounts(monitorResults);
-  const priceSourceCounts = bpcTrustedPriceCounts(monitorResults);
-  const revenueImpact = monitorResults
-    .filter(r => r.status === 'action' || r.status === 'opportunity')
-    .reduce((sum, r) => sum + (r.suggestedPrice - r.yourPrice), 0);
 
   const filtered = monitorResults.filter(r => monitorFilter === 'all' || r.status === monitorFilter);
   const rows = filtered.map(bpcRowHtml).join('');
   const pill = (key, labelHtml) => `<button class="pill${monitorFilter === key ? ' active' : ''}" onclick="bpcSetFilter('${key}')">${labelHtml}</button>`;
 
-  const legend = `
-    <div class="bpc-legend">
-      <span class="bpc-legend-item">⭐ Trusted Seller</span>
-      <span class="bpc-legend-item">🔴 Action Needed</span>
-      <span class="bpc-legend-item">🟡 Raise Opportunity</span>
-      <span class="bpc-legend-item">🟢 Competitive</span>
-      <span class="bpc-legend-item">🟠 Not Found</span>
-    </div>`;
-
-  const trustedBanner = monitorTrustedOnly
-    ? `<div class="bpc-trusted-banner"><i class="ti ti-star-filled"></i> Showing trusted seller prices only — ⭐ indicates verified trusted seller listing</div>`
-    : '';
-
   area.innerHTML = `
-    ${legend}
-    ${trustedBanner}
     <div class="bpc-summary">
       <div class="bpc-summary-item"><div class="bpc-summary-value">${monitorResults.length}</div><div class="bpc-summary-label">Parts Checked</div></div>
-      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#A32D2D">${counts.action}</div><div class="bpc-summary-label">🔴 Action Needed</div></div>
-      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${counts.opportunity}</div><div class="bpc-summary-label">🟡 Opportunities</div></div>
-      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#3B6D11">${counts.ok}</div><div class="bpc-summary-label">🟢 Competitive</div></div>
-      <div class="bpc-summary-item"><div class="bpc-summary-value">£${revenueImpact.toFixed(2)}</div><div class="bpc-summary-label">Est. Impact / Unit</div></div>
-      <div class="bpc-summary-item"><div class="bpc-summary-value">⭐ ${priceSourceCounts.trusted} / ${priceSourceCounts.market}</div><div class="bpc-summary-label">Trusted vs Market Priced</div></div>
+      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#A32D2D">${counts.lower}</div><div class="bpc-summary-label">🔴 Lower Needed</div></div>
+      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${counts.raise}</div><div class="bpc-summary-label">🟡 Raise Opportunity</div></div>
+      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#3B6D11">${counts.competitive}</div><div class="bpc-summary-label">🟢 Competitive</div></div>
+      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#B45309">${counts.insufficient}</div><div class="bpc-summary-label">🟠 Insufficient</div></div>
     </div>
 
     <div class="bulk-results-bar">
       <div class="bpc-filters">
         ${pill('all', `All (${monitorResults.length})`)}
-        ${pill('action', `🔴 Action Needed (${counts.action})`)}
-        ${pill('opportunity', `🟡 Opportunities (${counts.opportunity})`)}
-        ${pill('ok', `🟢 OK (${counts.ok})`)}
-        ${pill('notfound', `🔴 Not Found (${counts.notfound})`)}
-        ${pill('notfound_trusted', `🟠 Not in Trusted Sellers (${counts.notfound_trusted})`)}
+        ${pill('lower', `🔴 Lower Needed (${counts.lower})`)}
+        ${pill('raise', `🟡 Raise Opportunity (${counts.raise})`)}
+        ${pill('competitive', `🟢 Competitive (${counts.competitive})`)}
+        ${pill('insufficient', `🟠 Insufficient (${counts.insufficient})`)}
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)">
           <input type="checkbox" style="width:14px;height:14px;accent-color:var(--accent)" ${monitorIncludeNotFound ? 'checked' : ''} onchange="bpcToggleIncludeNotFound(this.checked)" />
-          Include not-found parts in export
+          Include insufficient-results parts in export
         </label>
         <button class="bulk-export-btn" onclick="bpcExportExcel()"><i class="ti ti-file-spreadsheet"></i> Download Excel</button>
       </div>
@@ -4150,119 +4012,67 @@ function bpcRenderResults() {
     <div class="bpc-table-wrap">
       <table class="bpc-table">
         <thead><tr>
-          <th>Part Number</th><th>Description</th><th>Your Price</th><th>Competitor Lowest</th>
-          <th>Competitor Highest</th><th>Market Avg</th><th>Market Median</th><th>Diff (£)</th><th>Diff (%)</th><th>Competitors</th><th>Matched Listing</th>
-          <th>Status</th><th>Action</th><th>Suggested Price</th><th>Matches</th>
+          <th>Part Number</th><th>Brand</th><th>Your Price</th><th>Lowest Found</th>
+          <th>Average</th><th>Median</th><th>Suggested Price</th><th>Listings Used</th><th>Status</th>
         </tr></thead>
-        <tbody>${rows || '<tr><td colspan="15" style="text-align:center;color:var(--text-muted);padding:20px">No parts match this filter</td></tr>'}</tbody>
+        <tbody>${rows || '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px">No parts match this filter</td></tr>'}</tbody>
       </table>
     </div>`;
 }
 
-function bpcSourceLabel(r) {
-  if (r.status === 'notfound' || r.status === 'notfound_trusted') return '';
-  return r.usedIsTrusted ? `⭐ Trusted Seller — ${r.matchedSeller || ''}` : 'Market';
-}
-
-function bpcBuildLegendSheet() {
-  const aoa = [
-    ['eBay Parts Finder — Bulk Price Check Legend'],
-    [],
-    ['Icon / Colour', 'Meaning'],
-    ['⭐ Trusted Seller', 'Price was sourced from a seller saved in your trusted sellers list'],
-    ['Light blue row fill', 'Price source is a trusted seller (see Source column)'],
-    ['🔴 Action Needed / pink row fill', 'Competitor price is significantly lower — consider lowering your price'],
-    ['🟡 Raise Opportunity / yellow row fill', 'You are significantly cheaper than competitors — opportunity to raise price'],
-    ['🟢 Competitive', 'Your price is within the alert threshold of competitors'],
-    ['🟠 Not Found in Trusted Sellers', 'Trusted-sellers-only search found zero matching listings from your saved sellers — never falls back to the wider market'],
-    ['🔴 Not Found', 'No matching listings found anywhere on eBay'],
-    ['Competitor Highest / Market Median', 'Highest price and median price among all returned listings used for this part (same pool as Competitor Lowest and Market Average)'],
-    [],
-    ['Search query', 'Brand + part number (or just the part number if no brand), no quotes — exactly the same /search call the Search tab makes. Results are used exactly as eBay returns them, with no title or brand filtering.'],
-  ];
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-  ws['A1'].s = { font: { bold: true, sz: 13 } };
-  ['A3', 'B3'].forEach(ref => {
-    if (ws[ref]) ws[ref].s = { font: { bold: true }, fill: { patternType: 'solid', fgColor: { rgb: 'E8E8E8' } } };
-  });
-  ws['!cols'] = [{ wch: 34 }, { wch: 70 }];
-  return ws;
-}
-
 function bpcExportExcel() {
   if (!monitorResults.length || typeof XLSX === 'undefined') { alert('No results to export yet.'); return; }
-  const rows = monitorResults.filter(r => (r.status !== 'notfound' && r.status !== 'notfound_trusted') || monitorIncludeNotFound);
-  if (!rows.length) { alert('No results to export — tick "Include not-found parts in export" if all parts were excluded.'); return; }
+  const rows = monitorResults.filter(r => r.status !== 'insufficient' || monitorIncludeNotFound);
+  if (!rows.length) { alert('No results to export — tick "Include insufficient-results parts in export" if all parts were excluded.'); return; }
 
-  const filterNote = monitorTrustedOnly
-    ? `Trusted Sellers Filter: ON — Sellers included: ${savedSellers.length ? savedSellers.join(', ') : '(none saved)'}`
-    : 'Trusted Sellers Filter: OFF — showing whole market results';
+  const cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+  const aoa = [['Part Number', 'Brand', 'Your Price (£)', 'Suggested Price (£)', 'Lowest Found (£)', 'Average Price (£)', 'Median Price (£)', 'Listings Used', 'Status', 'Action']];
 
-  const headerRow = ['Part Number', 'Description', 'Current Price (£)', 'Suggested Price (£)', 'Competitor Lowest (£)', 'Competitor Highest (£)', 'Market Average (£)', 'Market Median (£)', 'Source', 'Action', 'Reason'];
-  const cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
-  const aoa = [[filterNote], [], headerRow];
+  const actionText = { lower: 'Lower', raise: 'Raise', competitive: 'Hold', insufficient: 'N/A' };
+  const statusText = { lower: 'Lower Needed', raise: 'Raise Opportunity', competitive: 'Competitive', insufficient: 'Insufficient Results' };
 
   rows.forEach(r => {
-    const noPricing = r.status === 'notfound' || r.status === 'notfound_trusted';
-    let reason;
-    if (r.status === 'notfound_trusted') reason = 'Not found in trusted sellers — no listings from your saved sellers matched this part';
-    else if (r.status === 'notfound') reason = 'No matching listings found on eBay';
-    else {
-      reason = r.reason;
-      if (r.limitedResults) reason = `Limited results — ${r.trustedResultCount} trusted seller listing${r.trustedResultCount === 1 ? '' : 's'} found. ` + reason;
-    }
-    if (r.ownExcludedCount) reason += ` — ${r.ownExcludedCount} own listing${r.ownExcludedCount === 1 ? '' : 's'} excluded`;
-
+    const noPricing = r.status === 'insufficient';
     aoa.push([
-      r.partNumber || '', r.description || '', r.yourPrice,
+      r.partNumber || '', r.brand || '', r.yourPrice,
       noPricing ? '' : r.suggestedPrice,
-      noPricing ? '' : r.competitorLowest,
-      noPricing ? '' : r.competitorHighest,
-      noPricing ? '' : r.marketAverage,
-      noPricing ? '' : r.marketMedian,
-      bpcSourceLabel(r),
-      r.status === 'notfound' ? 'Not Found' : r.status === 'notfound_trusted' ? 'Not Found' : r.action,
-      reason
+      noPricing ? '' : r.lowest,
+      noPricing ? '' : r.average,
+      noPricing ? '' : r.median,
+      r.listingsUsed || 0,
+      statusText[r.status] || '',
+      actionText[r.status] || ''
     ]);
   });
 
   const ws = XLSX.utils.aoa_to_sheet(aoa);
-  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: cols.length - 1 } }];
-  ws['A1'].s = { font: { bold: true, italic: true, color: { rgb: '92400E' } }, fill: { patternType: 'solid', fgColor: { rgb: 'FEF3C7' } } };
-  const hdrStyle = { font: { bold: true }, fill: { patternType: 'solid', fgColor: { rgb: 'E8E8E8' } } };
-  cols.forEach(c => { if (ws[`${c}3`]) ws[`${c}3`].s = hdrStyle; });
+  xlsxApplyHdr(ws, cols);
 
-  const actionFill  = { patternType: 'solid', fgColor: { rgb: 'FCEBEB' } };
-  const oppFill     = { patternType: 'solid', fgColor: { rgb: 'FEF3C7' } };
-  const trustedFill = { patternType: 'solid', fgColor: { rgb: 'DBEAFE' } };
+  const lowerFill = { patternType: 'solid', fgColor: { rgb: 'FCEBEB' } };
+  const raiseFill = { patternType: 'solid', fgColor: { rgb: 'FEF3C7' } };
+  const insufFill = { patternType: 'solid', fgColor: { rgb: 'FFF7ED' } };
 
-  let rIdx = 4;
+  let rIdx = 2;
   rows.forEach(row => {
-    const fill = row.usedIsTrusted ? trustedFill
-      : row.status === 'action' ? actionFill
-      : row.status === 'opportunity' ? oppFill
+    const fill = row.status === 'lower' ? lowerFill
+      : row.status === 'raise' ? raiseFill
+      : row.status === 'insufficient' ? insufFill
       : null;
     cols.forEach(col => {
       const cell = ws[`${col}${rIdx}`];
       if (cell && fill) cell.s = { ...(cell.s || {}), fill };
     });
-    ['C', 'D', 'E', 'F', 'G', 'H'].forEach(col => {
+    ['C', 'D', 'E', 'F', 'G'].forEach(col => {
       const cell = ws[`${col}${rIdx}`];
       if (cell && typeof cell.v === 'number') { cell.t = 'n'; cell.z = '"£"#,##0.00'; }
     });
     rIdx++;
   });
 
-  ws['!cols'] = cols.map((c, i) => {
-    const width = Math.min(Math.max(...aoa.slice(2).map(r => String(r[i] ?? '').length), 10) + 2, 60);
-    return { wch: width };
-  });
-  ws['!cols'][1]  = { wch: 40 };
-  ws['!cols'][10] = { wch: 55 };
+  xlsxAutoWidth(ws, aoa);
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'MAM Price Update');
-  XLSX.utils.book_append_sheet(wb, bpcBuildLegendSheet(), 'Legend');
+  XLSX.utils.book_append_sheet(wb, ws, 'Bulk Price Check');
   XLSX.writeFile(wb, `bulk-price-check-${xlsxDateStr()}.xlsx`);
 }
 </script>
