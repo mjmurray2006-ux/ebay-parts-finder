@@ -635,6 +635,7 @@
   .bpc-fallback-note { font-size: 10px; color: var(--text-muted); font-style: italic; display: block; white-space: normal; }
   .bpc-seller-name { font-size: 10px; color: var(--text-muted); display: block; white-space: normal; }
   .bpc-trusted-badge { font-size: 12px; }
+  .bpc-warn-badge { font-size: 11px; cursor: help; }
   .bpc-legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12px; color: var(--text-muted); background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 12px; }
   .bpc-legend-item { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
   .bpc-trusted-banner { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #92400E; background: #FEF3C7; border: 0.5px solid #FBBF24; border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 12px; }
@@ -1069,7 +1070,7 @@
           <span class="bpc-upload-status" id="bpc-upload-status"></span>
         </div>
 
-        <p class="bpc-mode-note"><i class="ti ti-info-circle"></i> Each part runs a single exact-match search — the same standard search the Search tab uses — using brand + part number in quotes if a brand is given (e.g. "Meyle 3282280008"), or just the part number in quotes otherwise. No fallback searches. Listings from your own stores (added via the ⭐ My Stores panel) are always excluded from results. When "Trusted sellers only" is selected, only exact matches against your saved sellers are used for pricing — it never falls back to the wider market, even with zero or very few results.</p>
+        <p class="bpc-mode-note"><i class="ti ti-info-circle"></i> Each part runs a single exact-match search sorted by relevance — the same standard search the Search tab uses — using brand + part number in quotes if a brand is given (e.g. "Meyle 3282280008"), or just the part number in quotes otherwise. No fallback searches. Listings from your own stores (added via the ⭐ My Stores panel) are always excluded from results. Sellers below the minimum feedback score are excluded from whole-market pricing (trusted sellers are exempt but flagged ⚠️ if below it). When "Trusted sellers only" is selected, only exact matches against your saved sellers are used for pricing — it never falls back to the wider market, even with zero or very few results.</p>
 
         <div class="bpc-options">
           <div class="bpc-opt-group">
@@ -1103,6 +1104,10 @@
               <option value="EBAY_FR">🇫🇷 eBay FR</option>
               <option value="EBAY_AU">🇦🇺 eBay AU</option>
             </select>
+          </div>
+          <div class="bpc-opt-group">
+            <span class="bpc-opt-label">Minimum seller feedback score</span>
+            <input type="number" id="bpc-min-feedback" value="1000" min="0" step="50" style="width:110px" />
           </div>
         </div>
 
@@ -3811,7 +3816,8 @@ function bpcClassify(yourPrice, competitorLowest, thresholdPct) {
 // Same search the Search tab uses — plain /search with a keyword query.
 async function bpcFetchSearchResults(q, market) {
   try {
-    const params = new URLSearchParams({ q, limit: 50, sort: 'price', market });
+    // No sort param — relevance, exactly matching the Search tab's default.
+    const params = new URLSearchParams({ q, limit: 50, market });
     const res  = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(15000) });
     const data = await res.json();
     return data.itemSummaries || [];
@@ -3823,7 +3829,7 @@ async function bpcFetchSearchResults(q, market) {
 async function bpcSearchPart(part, opts) {
   const term  = (part.partNumber || part.description || '').trim();
   const brand = (part.brand || '').trim();
-  if (!term) return { found: false, matchMethod: 'notfound', ownExcludedCount: 0, listings: [] };
+  if (!term) return { found: false, matchMethod: 'notfound', ownExcludedCount: 0, feedbackExcludedCount: 0, listings: [] };
 
   // Identical to the Search tab's own exact-match mode: one quoted query, no
   // fallbacks or alternate endpoints. Brand + part number when a brand is known
@@ -3833,14 +3839,16 @@ async function bpcSearchPart(part, opts) {
 
   const raw = await bpcFetchSearchResults(q, opts.market);
 
-  const ownStores  = new Set(myStores.map(s => s.username));
-  const trustedSet = new Set(savedSellers);
+  const ownStores    = new Set(myStores.map(s => s.username));
+  const trustedSet   = new Set(savedSellers);
+  const minFeedback  = opts.minFeedback || 0;
 
   const allItems = raw
     .map(i => ({
       title:     i.title || '',
       price:     parseFloat(i.price?.value || 0),
       seller:    (i.seller?.username || '').toLowerCase(),
+      feedback:  i.seller?.feedbackScore != null ? Number(i.seller.feedbackScore) : 0,
       url:       i.itemWebUrl || '#',
       condition: i.condition || ''
     }))
@@ -3848,25 +3856,33 @@ async function bpcSearchPart(part, opts) {
 
   const ownExcludedCount = allItems.filter(i => ownStores.has(i.seller)).length;
 
-  // `trusted` is tracked on every listing regardless of compare mode, so the
-  // UI can badge trusted-seller listings even when browsing the whole market.
+  // `trusted` and `lowFeedback` are tracked on every listing regardless of
+  // compare mode, so the UI can badge trusted/low-feedback listings even
+  // when browsing the whole market.
   let items = allItems
     .filter(i => !ownStores.has(i.seller))
-    .map(i => ({ ...i, trusted: trustedSet.has(i.seller) }))
+    .map(i => ({ ...i, trusted: trustedSet.has(i.seller), lowFeedback: i.feedback < minFeedback }))
     .sort((a, b) => a.price - b.price);
 
   const trustedOnly = opts.compare === 'trusted';
+  let feedbackExcludedCount = 0;
 
   if (trustedOnly) {
     // Strict filter — only exact saved_sellers matches count. Never widen
     // back out to the full market, no matter how few results this leaves.
     items = items.filter(i => i.trusted);
+    // Trusted sellers are manually vetted, so they're never excluded for low
+    // feedback — only flagged (lowFeedback stays set for the UI to warn on).
     if (items.length === 0) {
-      return { found: false, matchMethod: 'notfound_trusted', ownExcludedCount, listings: [] };
+      return { found: false, matchMethod: 'notfound_trusted', ownExcludedCount, feedbackExcludedCount, listings: [] };
     }
+  } else {
+    const before = items.length;
+    items = items.filter(i => !i.lowFeedback);
+    feedbackExcludedCount = before - items.length;
   }
 
-  if (!items.length) return { found: false, matchMethod: 'notfound', ownExcludedCount, listings: [] };
+  if (!items.length) return { found: false, matchMethod: 'notfound', ownExcludedCount, feedbackExcludedCount, listings: [] };
 
   const used = items.slice(0, opts.resultsPerPart);
   const marketAverage = used.reduce((s, i) => s + i.price, 0) / used.length;
@@ -3875,12 +3891,15 @@ async function bpcSearchPart(part, opts) {
     found: true,
     matchMethod,
     ownExcludedCount,
+    feedbackExcludedCount,
     trustedOnly,
     limitedResults:     trustedOnly && items.length < 3,
     trustedResultCount: items.length,
     usedIsTrusted:      used[0].trusted,
+    usedLowFeedback:    used[0].lowFeedback,
     matchedTitle:       used[0].title,
     matchedSeller:      used[0].seller,
+    matchedFeedback:    used[0].feedback,
     competitorLowest:   used[0].price,
     marketAverage:      parseFloat(marketAverage.toFixed(2)),
     competitorCount:    used.length,
@@ -3925,7 +3944,8 @@ async function startBulkPriceCheck() {
     compare:        document.querySelector('input[name="bpc-compare"]:checked').value,
     threshold:      parseFloat(document.getElementById('bpc-threshold').value) || 5,
     resultsPerPart: parseInt(document.getElementById('bpc-results-per-part').value, 10) || 5,
-    market:         document.getElementById('bpc-market').value
+    market:         document.getElementById('bpc-market').value,
+    minFeedback:    parseInt(document.getElementById('bpc-min-feedback').value, 10) || 0
   };
   monitorTrustedOnly = opts.compare === 'trusted';
 
@@ -3957,32 +3977,35 @@ async function startBulkPriceCheck() {
       const search = await bpcSearchPart(part, opts);
       if (!search.found) {
         const status = search.matchMethod === 'notfound_trusted' ? 'notfound_trusted' : 'notfound';
-        result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status, matchMethod: search.matchMethod || 'notfound', ownExcludedCount: search.ownExcludedCount || 0, listings: [] };
+        result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status, matchMethod: search.matchMethod || 'notfound', ownExcludedCount: search.ownExcludedCount || 0, feedbackExcludedCount: search.feedbackExcludedCount || 0, listings: [] };
       } else {
         const cls = bpcClassify(part.yourPrice, search.competitorLowest, opts.threshold);
         result = {
-          partNumber:         part.partNumber,
-          description:        part.description,
-          yourPrice:          part.yourPrice,
-          matchedTitle:       search.matchedTitle,
-          matchedSeller:      search.matchedSeller,
-          competitorLowest:   search.competitorLowest,
-          marketAverage:      search.marketAverage,
-          priceDiff:          parseFloat((part.yourPrice - search.competitorLowest).toFixed(2)),
-          priceDiffPct:       parseFloat((((part.yourPrice - search.competitorLowest) / (part.yourPrice || search.competitorLowest || 1)) * 100).toFixed(1)),
-          competitorCount:    search.competitorCount,
-          matchMethod:        search.matchMethod,
-          trustedOnly:        search.trustedOnly,
-          limitedResults:     search.limitedResults,
-          trustedResultCount: search.trustedResultCount,
-          usedIsTrusted:      search.usedIsTrusted,
-          ownExcludedCount:   search.ownExcludedCount || 0,
-          listings:           search.listings,
+          partNumber:            part.partNumber,
+          description:           part.description,
+          yourPrice:             part.yourPrice,
+          matchedTitle:          search.matchedTitle,
+          matchedSeller:         search.matchedSeller,
+          matchedFeedback:       search.matchedFeedback,
+          competitorLowest:      search.competitorLowest,
+          marketAverage:         search.marketAverage,
+          priceDiff:             parseFloat((part.yourPrice - search.competitorLowest).toFixed(2)),
+          priceDiffPct:          parseFloat((((part.yourPrice - search.competitorLowest) / (part.yourPrice || search.competitorLowest || 1)) * 100).toFixed(1)),
+          competitorCount:       search.competitorCount,
+          matchMethod:           search.matchMethod,
+          trustedOnly:           search.trustedOnly,
+          limitedResults:        search.limitedResults,
+          trustedResultCount:    search.trustedResultCount,
+          usedIsTrusted:         search.usedIsTrusted,
+          usedLowFeedback:       search.usedLowFeedback,
+          ownExcludedCount:      search.ownExcludedCount || 0,
+          feedbackExcludedCount: search.feedbackExcludedCount || 0,
+          listings:              search.listings,
           ...cls
         };
       }
     } catch {
-      result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', matchMethod: 'notfound', ownExcludedCount: 0, listings: [] };
+      result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', matchMethod: 'notfound', ownExcludedCount: 0, feedbackExcludedCount: 0, listings: [] };
     }
 
     result.idx = monitorResults.length;
@@ -4027,6 +4050,12 @@ function bpcLimitedResultsNote(r) {
   return `<span class="bpc-fallback-note">Limited results — ${r.trustedResultCount} trusted seller listing${r.trustedResultCount === 1 ? '' : 's'} found</span>`;
 }
 
+function bpcFeedbackExcludedNote(r) {
+  const n = r.feedbackExcludedCount || 0;
+  if (!n) return '';
+  return `<span class="bpc-fallback-note">${n} seller${n === 1 ? '' : 's'} below minimum feedback excluded</span>`;
+}
+
 function bpcRowHtml(r) {
   const S = '£';
   const viewBtn = bpcViewBtnHtml(r);
@@ -4045,7 +4074,7 @@ function bpcRowHtml(r) {
 
   if (r.status === 'notfound') {
     return `<tr class="bpc-row-notfound">
-      <td>${r.partNumber || '—'}</td><td class="col-desc">${r.description || '—'}${bpcOwnExcludedNote(r)}</td>
+      <td>${r.partNumber || '—'}</td><td class="col-desc">${r.description || '—'}${bpcOwnExcludedNote(r)}${bpcFeedbackExcludedNote(r)}</td>
       <td>${S}${(r.yourPrice || 0).toFixed(2)}</td>
       <td>—</td><td>—</td><td>—</td><td>—</td><td>0</td>
       <td class="col-desc">—</td>
@@ -4060,11 +4089,13 @@ function bpcRowHtml(r) {
     : '';
   const emoji    = r.status === 'action' ? '🔴' : r.status === 'opportunity' ? '🟡' : '🟢';
   const label    = r.status === 'action' ? 'Action Needed' : r.status === 'opportunity' ? 'Opportunity' : 'OK';
-  const descNote = bpcLimitedResultsNote(r) + bpcOwnExcludedNote(r);
+  const descNote = bpcLimitedResultsNote(r) + bpcOwnExcludedNote(r) + bpcFeedbackExcludedNote(r);
   const diffSign = r.priceDiff > 0 ? '+' : r.priceDiff < 0 ? '-' : '';
   const starBadge = r.usedIsTrusted ? '<span class="bpc-trusted-badge" title="Trusted seller listing">⭐</span> ' : '';
+  const feedbackTxt = r.matchedFeedback != null ? `${Number(r.matchedFeedback).toLocaleString()} feedback` : '';
+  const warnBadge = r.usedLowFeedback ? ' <span class="bpc-warn-badge" title="Trusted seller below minimum feedback — included anyway since they were manually added">⚠️</span>' : '';
   const sellerLine = r.matchedSeller
-    ? `<span class="bpc-seller-name">by ${r.matchedSeller}${r.usedIsTrusted ? ' ⭐' : ''}</span>`
+    ? `<span class="bpc-seller-name">by ${r.matchedSeller}${r.usedIsTrusted ? ' ⭐' : ''}${feedbackTxt ? ` · ${feedbackTxt}` : ''}${warnBadge}</span>`
     : '';
   return `<tr class="${rowClass}">
     <td>${r.partNumber || '—'}</td>
@@ -4088,14 +4119,20 @@ function bpcShowMatches(idx) {
   const r = monitorResults[idx];
   if (!r || !r.listings || !r.listings.length) return;
   document.getElementById('bpc-modal-title').textContent = `Top matches for ${r.partNumber || r.description} — ${bpcMatchMethodBadge(r.matchMethod)}`;
-  document.getElementById('bpc-modal-body').innerHTML = r.listings.map(l => `
+  document.getElementById('bpc-modal-body').innerHTML = r.listings.map(l => {
+    const feedbackTxt = l.feedback != null ? `${Number(l.feedback).toLocaleString()} feedback` : '';
+    const warn = (l.trusted && l.lowFeedback)
+      ? ' <span class="bpc-warn-badge" title="Below minimum feedback — included anyway since this is a trusted seller">⚠️</span>'
+      : '';
+    return `
     <div class="bpc-match-item">
       <div class="bpc-match-title">
         <a href="${l.url}" target="_blank" rel="noopener">${l.title || '(no title)'}</a>
-        <span class="bpc-seller-name">by ${l.seller || 'unknown'}${l.trusted ? ' <span class="bpc-trusted-badge" title="Trusted seller">⭐ Trusted Seller</span>' : ''}</span>
+        <span class="bpc-seller-name">by ${l.seller || 'unknown'}${l.trusted ? ' <span class="bpc-trusted-badge" title="Trusted seller">⭐ Trusted Seller</span>' : ''}${feedbackTxt ? ` · ${feedbackTxt}` : ''}${warn}</span>
       </div>
       <div class="bpc-match-price">£${l.price.toFixed(2)}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   document.getElementById('bpc-modal-overlay').classList.add('show');
 }
 function bpcCloseModal() { document.getElementById('bpc-modal-overlay').classList.remove('show'); }
@@ -4127,6 +4164,7 @@ function bpcRenderResults() {
       <span class="bpc-legend-item">🟡 Raise Opportunity</span>
       <span class="bpc-legend-item">🟢 Competitive</span>
       <span class="bpc-legend-item">🟠 Not Found</span>
+      <span class="bpc-legend-item">⚠️ Trusted seller below min. feedback</span>
     </div>`;
 
   const trustedBanner = monitorTrustedOnly
@@ -4194,6 +4232,8 @@ function bpcBuildLegendSheet() {
     ['🟢 Competitive', 'Your price is within the alert threshold of competitors'],
     ['🟠 Not Found in Trusted Sellers', 'Trusted-sellers-only search found zero matching listings from your saved sellers — never falls back to the wider market'],
     ['🔴 Not Found', 'No matching listings found anywhere on eBay'],
+    ['⚠️ Warning icon', 'A trusted seller\'s price was used despite having feedback below your minimum threshold — trusted sellers are never excluded for low feedback, only flagged'],
+    ['Seller Feedback column', 'Feedback score of the seller whose listing price was used for this part. Whole-market results exclude sellers below your minimum feedback score entirely'],
     [],
     ['Search Method', 'Meaning'],
     ['🟢 Brand + Part Number', 'A brand was provided, so the query combined brand + part number in quotes'],
@@ -4201,7 +4241,7 @@ function bpcBuildLegendSheet() {
   ];
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   ws['A1'].s = { font: { bold: true, sz: 13 } };
-  ['A3', 'B3', 'A12', 'B12'].forEach(ref => {
+  ['A3', 'B3', 'A14', 'B14'].forEach(ref => {
     if (ws[ref]) ws[ref].s = { font: { bold: true }, fill: { patternType: 'solid', fgColor: { rgb: 'E8E8E8' } } };
   });
   ws['!cols'] = [{ wch: 34 }, { wch: 70 }];
@@ -4217,8 +4257,8 @@ function bpcExportExcel() {
     ? `Trusted Sellers Filter: ON — Sellers included: ${savedSellers.length ? savedSellers.join(', ') : '(none saved)'}`
     : 'Trusted Sellers Filter: OFF — showing whole market results';
 
-  const headerRow = ['Part Number', 'Description', 'Current Price (£)', 'Suggested Price (£)', 'Competitor Lowest (£)', 'Market Average (£)', 'Search Method', 'Source', 'Action', 'Reason'];
-  const cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+  const headerRow = ['Part Number', 'Description', 'Current Price (£)', 'Suggested Price (£)', 'Competitor Lowest (£)', 'Market Average (£)', 'Search Method', 'Source', 'Seller Feedback', 'Action', 'Reason'];
+  const cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
   const aoa = [[filterNote], [], headerRow];
 
   rows.forEach(r => {
@@ -4230,8 +4270,10 @@ function bpcExportExcel() {
       reason = r.reason;
       if (r.matchMethod === 'part_only') reason = 'Matched on part number only — verify the brand manually. ' + reason;
       if (r.limitedResults) reason = `Limited results — ${r.trustedResultCount} trusted seller listing${r.trustedResultCount === 1 ? '' : 's'} found. ` + reason;
+      if (r.usedLowFeedback) reason = '⚠ Trusted seller has feedback below your minimum threshold — included anyway since they were manually added. ' + reason;
     }
     if (r.ownExcludedCount) reason += ` — ${r.ownExcludedCount} own listing${r.ownExcludedCount === 1 ? '' : 's'} excluded`;
+    if (r.feedbackExcludedCount) reason += ` — ${r.feedbackExcludedCount} seller${r.feedbackExcludedCount === 1 ? '' : 's'} below minimum feedback excluded`;
 
     aoa.push([
       r.partNumber || '', r.description || '', r.yourPrice,
@@ -4240,6 +4282,7 @@ function bpcExportExcel() {
       noPricing ? '' : r.marketAverage,
       noPricing ? '' : bpcMatchMethodBadge(r.matchMethod),
       bpcSourceLabel(r),
+      noPricing ? '' : (r.matchedFeedback != null ? r.matchedFeedback : ''),
       r.status === 'notfound' ? 'Not Found' : r.status === 'notfound_trusted' ? 'Not Found' : r.action,
       reason
     ]);
@@ -4276,8 +4319,8 @@ function bpcExportExcel() {
     const width = Math.min(Math.max(...aoa.slice(2).map(r => String(r[i] ?? '').length), 10) + 2, 60);
     return { wch: width };
   });
-  ws['!cols'][1] = { wch: 40 };
-  ws['!cols'][9] = { wch: 55 };
+  ws['!cols'][1]  = { wch: 40 };
+  ws['!cols'][10] = { wch: 55 };
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'MAM Price Update');

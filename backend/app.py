@@ -165,7 +165,8 @@ def scan_watchlist_item(item):
             "X-EBAY-C-MARKETPLACE-ID": item.get("market", "EBAY_GB"),
             "Content-Type":            "application/json",
         },
-        params={"q": item["search_term"], "limit": 10},
+        # No sort param — relevance (eBay's default), matching the Search tab.
+        params={"q": item["search_term"], "limit": 50},
         timeout=15,
     )
     resp.raise_for_status()
@@ -178,21 +179,35 @@ def scan_watchlist_item(item):
             continue
         if p <= 0:
             continue
-        seller = (s.get("seller", {}) or {}).get("username", "") or ""
-        listings.append({"price": p, "seller": seller.lower()})
+        seller_obj = s.get("seller", {}) or {}
+        seller     = (seller_obj.get("username", "") or "").lower()
+        try:
+            feedback = int(seller_obj.get("feedbackScore") or 0)
+        except (ValueError, TypeError):
+            feedback = 0
+        listings.append({"price": p, "seller": seller, "feedback": feedback})
 
-    # Trusted-sellers-only mode: strict exact-username match, applied before
-    # any price calculation. Never widens back out to the whole market — an
-    # item with zero trusted-seller listings raises rather than silently
-    # falling back to unfiltered market prices.
-    trusted_sellers = [s.lower() for s in item.get("trusted_sellers", []) if s]
-    limited_results = False
+    trusted_sellers  = [s.lower() for s in item.get("trusted_sellers", []) if s]
+    min_feedback     = item.get("min_feedback_score", 1000)
+    limited_results  = False
+    low_feedback_used = False
+
     if trusted_sellers:
+        # Trusted-sellers-only mode: strict exact-username match, applied
+        # before any price calculation. Never widens back out to the whole
+        # market — an item with zero trusted-seller listings raises rather
+        # than silently falling back to unfiltered market prices. Trusted
+        # sellers are manually vetted, so they're exempt from the feedback
+        # filter (only flagged if below it).
         listings = [l for l in listings if l["seller"] in trusted_sellers]
         if not listings:
             raise ValueError("Not found in trusted sellers")
         if len(listings) < 3:
             limited_results = True
+    else:
+        # Whole-market mode: strictly exclude sellers below the minimum
+        # feedback score before any price calculation.
+        listings = [l for l in listings if l["feedback"] >= min_feedback]
 
     if not listings:
         raise ValueError("No valid prices in eBay results")
@@ -201,6 +216,8 @@ def scan_watchlist_item(item):
     competitor_lowest = round(min(prices), 2)
     market_average    = round(sum(prices) / len(prices), 2)
     listing_count     = len(prices)
+    lowest_listing    = min(listings, key=lambda l: l["price"])
+    low_feedback_used = trusted_sellers and lowest_listing["feedback"] < min_feedback
 
     action, suggested_price, reason, confidence = calculate_action(
         item["my_price"],
@@ -212,6 +229,12 @@ def scan_watchlist_item(item):
 
     if limited_results:
         reason = f"Limited results — {listing_count} trusted seller listing(s) found. " + reason
+    if low_feedback_used:
+        reason = (
+            f"Trusted seller '{lowest_listing['seller']}' has feedback "
+            f"({lowest_listing['feedback']}) below the minimum ({min_feedback}) — "
+            "included anyway since they were manually added. " + reason
+        )
 
     return {
         "item":              item,
@@ -220,6 +243,8 @@ def scan_watchlist_item(item):
         "listing_count":     listing_count,
         "action":            action,
         "suggested_price":   suggested_price,
+        "seller_feedback":   lowest_listing["feedback"],
+        "low_feedback_used": bool(low_feedback_used),
         "reason":            reason,
         "confidence":        confidence,
         "part_number":       extract_part_number(item["search_term"]),
@@ -776,6 +801,7 @@ def add_watchlist_item():
         "alert_threshold_percent": float(data.get("alert_threshold_percent", 2)),
         "market":                  str(data.get("market", "EBAY_GB")),
         "trusted_sellers":         [str(s).strip().lower() for s in data.get("trusted_sellers", []) if str(s).strip()],
+        "min_feedback_score":      int(data.get("min_feedback_score", 1000)),
         "last_price":              None,
         "last_checked":            None,
         "price_history":           [],
@@ -797,7 +823,7 @@ def update_watchlist_item(item_id):
         return jsonify({"error": "JSON body required"}), 400
 
     numeric_fields = {"my_price", "cost_price", "min_margin_percent", "alert_threshold_percent"}
-    allowed_fields = numeric_fields | {"part_name", "search_term", "market", "active", "trusted_sellers"}
+    allowed_fields = numeric_fields | {"part_name", "search_term", "market", "active", "trusted_sellers", "min_feedback_score"}
 
     with _watchlist_lock:
         items = load_watchlist()
@@ -812,6 +838,8 @@ def update_watchlist_item(item_id):
                             val = bool(val)
                         elif field == "trusted_sellers":
                             val = [str(s).strip().lower() for s in val if str(s).strip()]
+                        elif field == "min_feedback_score":
+                            val = int(val)
                         items[i][field] = val
                 save_watchlist(items)
                 return jsonify(items[i])
