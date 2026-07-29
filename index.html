@@ -1070,7 +1070,7 @@
           <span class="bpc-upload-status" id="bpc-upload-status"></span>
         </div>
 
-        <p class="bpc-mode-note"><i class="ti ti-info-circle"></i> Each part runs a single exact-match search sorted by relevance — the same standard search the Search tab uses — using brand + part number in quotes if a brand is given (e.g. "Meyle 3282280008"), or just the part number in quotes otherwise. No fallback searches. Listings from your own stores (added via the ⭐ My Stores panel) are always excluded from results. Sellers below the minimum feedback score are excluded from whole-market pricing (trusted sellers are exempt but flagged ⚠️ if below it). When "Trusted sellers only" is selected, only exact matches against your saved sellers are used for pricing — it never falls back to the wider market, even with zero or very few results.</p>
+        <p class="bpc-mode-note"><i class="ti ti-info-circle"></i> Each part is searched sorted by relevance with no quotes — brand + part number if a brand is given (e.g. Meyle 3282280008), or just the part number otherwise — exactly as you'd type it into eBay. Results are then kept only if the title mentions the brand and/or the part number, ranked Brand + Part No. above Part No. only above Brand only. Listings from your own stores (added via the ⭐ My Stores panel) are always excluded. Sellers below the minimum feedback score are excluded from whole-market pricing (trusted sellers are exempt but flagged ⚠️ if below it). When "Trusted sellers only" is selected, only exact matches against your saved sellers are used for pricing — it never falls back to the wider market, even with zero or very few results.</p>
 
         <div class="bpc-options">
           <div class="bpc-opt-group">
@@ -1132,7 +1132,7 @@
           <span class="bpc-live-pill">🔴 Action needed <strong id="bpc-live-action">0</strong></span>
           <span class="bpc-live-pill">🟡 Opportunities <strong id="bpc-live-opportunity">0</strong></span>
           <span class="bpc-live-pill">🟢 OK <strong id="bpc-live-ok">0</strong></span>
-          <span class="bpc-live-pill">🟡 Part number only <strong id="bpc-live-unverified">0</strong></span>
+          <span class="bpc-live-pill">🟡 Weak match <strong id="bpc-live-unverified">0</strong></span>
         </div>
       </div>
 
@@ -3786,8 +3786,9 @@ async function bpcParseFile(file) {
 }
 
 function bpcMatchMethodBadge(method) {
-  if (method === 'brand_part') return '🟢 Brand + Part Number';
-  if (method === 'part_only')  return '🟡 Part Number only';
+  if (method === 'brand_part') return '🟢 Brand + Part No.';
+  if (method === 'part_only')  return '🟡 Part No. only';
+  if (method === 'brand_only') return '🟠 Brand only';
   return '🔴 Not Found';
 }
 
@@ -3826,43 +3827,66 @@ async function bpcFetchSearchResults(q, market) {
   }
 }
 
+// Strips punctuation/whitespace so a part number like "3003133601" still
+// matches a title that renders it as "300 313 3601" or "300-313-3601".
+function bpcNormalizeForMatch(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
+const BPC_TIER_ORDER = { brand_part: 0, part_only: 1, brand_only: 2 };
+
+function bpcMedian(sortedNums) {
+  const n = sortedNums.length;
+  const mid = Math.floor(n / 2);
+  return n % 2 ? sortedNums[mid] : (sortedNums[mid - 1] + sortedNums[mid]) / 2;
+}
+
 async function bpcSearchPart(part, opts) {
   const term  = (part.partNumber || part.description || '').trim();
   const brand = (part.brand || '').trim();
   if (!term) return { found: false, matchMethod: 'notfound', ownExcludedCount: 0, feedbackExcludedCount: 0, listings: [] };
 
-  // Identical to the Search tab's own exact-match mode: one quoted query, no
-  // fallbacks or alternate endpoints. Brand + part number when a brand is known
-  // disambiguates part numbers that are reused across manufacturers.
-  const q = brand ? `"${brand} ${term}"` : `"${term}"`;
-  const matchMethod = brand ? 'brand_part' : 'part_only';
+  // No quotes — searched exactly as a user would type it into eBay manually.
+  const q = brand ? `${brand} ${term}` : term;
 
   const raw = await bpcFetchSearchResults(q, opts.market);
 
-  const ownStores    = new Set(myStores.map(s => s.username));
-  const trustedSet   = new Set(savedSellers);
-  const minFeedback  = opts.minFeedback || 0;
+  const ownStores   = new Set(myStores.map(s => s.username));
+  const trustedSet  = new Set(savedSellers);
+  const minFeedback = opts.minFeedback || 0;
+  const normTerm    = bpcNormalizeForMatch(term);
+  const brandLower  = brand.toLowerCase();
 
+  // Post-filter: keep only listings whose title mentions the brand and/or the
+  // part number (this is what actually removes unrelated results now that the
+  // search itself is a loose, unquoted keyword query). Tier reflects how
+  // strong that title match is, independent of which query found the listing.
   const allItems = raw
-    .map(i => ({
-      title:     i.title || '',
-      price:     parseFloat(i.price?.value || 0),
-      seller:    (i.seller?.username || '').toLowerCase(),
-      feedback:  i.seller?.feedbackScore != null ? Number(i.seller.feedbackScore) : 0,
-      url:       i.itemWebUrl || '#',
-      condition: i.condition || ''
-    }))
-    .filter(i => i.price > 0);
+    .map(i => {
+      const title      = i.title || '';
+      const hasPart     = normTerm && bpcNormalizeForMatch(title).includes(normTerm);
+      const hasBrand    = brand && title.toLowerCase().includes(brandLower);
+      const tier        = hasBrand && hasPart ? 'brand_part' : hasPart ? 'part_only' : hasBrand ? 'brand_only' : null;
+      return {
+        title,
+        tier,
+        price:     parseFloat(i.price?.value || 0),
+        seller:    (i.seller?.username || '').toLowerCase(),
+        feedback:  i.seller?.feedbackScore != null ? Number(i.seller.feedbackScore) : 0,
+        url:       i.itemWebUrl || '#',
+        condition: i.condition || ''
+      };
+    })
+    .filter(i => i.price > 0 && i.tier !== null);
 
   const ownExcludedCount = allItems.filter(i => ownStores.has(i.seller)).length;
 
   // `trusted` and `lowFeedback` are tracked on every listing regardless of
   // compare mode, so the UI can badge trusted/low-feedback listings even
-  // when browsing the whole market.
+  // when browsing the whole market. Sorted by match tier first (brand+part
+  // beats part-only beats brand-only), then price within each tier.
   let items = allItems
     .filter(i => !ownStores.has(i.seller))
     .map(i => ({ ...i, trusted: trustedSet.has(i.seller), lowFeedback: i.feedback < minFeedback }))
-    .sort((a, b) => a.price - b.price);
+    .sort((a, b) => BPC_TIER_ORDER[a.tier] - BPC_TIER_ORDER[b.tier] || a.price - b.price);
 
   const trustedOnly = opts.compare === 'trusted';
   let feedbackExcludedCount = 0;
@@ -3885,23 +3909,31 @@ async function bpcSearchPart(part, opts) {
   if (!items.length) return { found: false, matchMethod: 'notfound', ownExcludedCount, feedbackExcludedCount, listings: [] };
 
   const used = items.slice(0, opts.resultsPerPart);
-  const marketAverage = used.reduce((s, i) => s + i.price, 0) / used.length;
+  // The lowest-priced listing among the top matches drives the price
+  // comparison/action — it isn't necessarily used[0], since tier sorting
+  // ranks a pricier brand+part match ahead of a cheaper part-only one.
+  const lowestListing = used.reduce((min, i) => (i.price < min.price ? i : min), used[0]);
+  const prices        = used.map(i => i.price);
+  const sortedPrices  = [...prices].sort((a, b) => a - b);
+  const marketAverage = prices.reduce((s, p) => s + p, 0) / prices.length;
 
   return {
     found: true,
-    matchMethod,
+    matchMethod:        lowestListing.tier,
     ownExcludedCount,
     feedbackExcludedCount,
     trustedOnly,
     limitedResults:     trustedOnly && items.length < 3,
     trustedResultCount: items.length,
-    usedIsTrusted:      used[0].trusted,
-    usedLowFeedback:    used[0].lowFeedback,
-    matchedTitle:       used[0].title,
-    matchedSeller:      used[0].seller,
-    matchedFeedback:    used[0].feedback,
-    competitorLowest:   used[0].price,
+    usedIsTrusted:      lowestListing.trusted,
+    usedLowFeedback:    lowestListing.lowFeedback,
+    matchedTitle:       lowestListing.title,
+    matchedSeller:      lowestListing.seller,
+    matchedFeedback:    lowestListing.feedback,
+    competitorLowest:   lowestListing.price,
+    competitorHighest:  parseFloat(Math.max(...prices).toFixed(2)),
     marketAverage:      parseFloat(marketAverage.toFixed(2)),
+    marketMedian:       parseFloat(bpcMedian(sortedPrices).toFixed(2)),
     competitorCount:    used.length,
     listings:           items.slice(0, 5)
   };
@@ -3912,8 +3944,8 @@ function bpcCounts(results) {
     { action: 0, opportunity: 0, ok: 0, notfound: 0, notfound_trusted: 0 });
 }
 
-function bpcPartOnlyMatchCount(results) {
-  return results.filter(r => r.matchMethod === 'part_only').length;
+function bpcWeakMatchCount(results) {
+  return results.filter(r => r.matchMethod === 'part_only' || r.matchMethod === 'brand_only').length;
 }
 
 function bpcTrustedPriceCounts(results) {
@@ -3926,7 +3958,7 @@ function bpcUpdateLiveCounts() {
   const counts = bpcCounts(monitorResults);
   document.getElementById('bpc-live-action').textContent      = counts.action;
   document.getElementById('bpc-live-opportunity').textContent = counts.opportunity;
-  document.getElementById('bpc-live-unverified').textContent  = bpcPartOnlyMatchCount(monitorResults);
+  document.getElementById('bpc-live-unverified').textContent  = bpcWeakMatchCount(monitorResults);
   document.getElementById('bpc-live-ok').textContent           = counts.ok;
 }
 
@@ -4064,7 +4096,7 @@ function bpcRowHtml(r) {
     return `<tr class="bpc-row-notfound-trusted">
       <td>${r.partNumber || '—'}</td><td class="col-desc">${r.description || '—'}${bpcOwnExcludedNote(r)}</td>
       <td>${S}${(r.yourPrice || 0).toFixed(2)}</td>
-      <td>—</td><td>—</td><td>—</td><td>—</td><td>0</td>
+      <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0</td>
       <td class="col-desc">—</td>
       <td>—</td>
       <td>🟠 Not found in trusted sellers</td><td>—</td><td>—</td>
@@ -4076,7 +4108,7 @@ function bpcRowHtml(r) {
     return `<tr class="bpc-row-notfound">
       <td>${r.partNumber || '—'}</td><td class="col-desc">${r.description || '—'}${bpcOwnExcludedNote(r)}${bpcFeedbackExcludedNote(r)}</td>
       <td>${S}${(r.yourPrice || 0).toFixed(2)}</td>
-      <td>—</td><td>—</td><td>—</td><td>—</td><td>0</td>
+      <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0</td>
       <td class="col-desc">—</td>
       <td>${bpcMatchMethodBadge('notfound')}</td>
       <td>🔴 Not Found</td><td>—</td><td>—</td>
@@ -4102,7 +4134,9 @@ function bpcRowHtml(r) {
     <td class="col-desc">${r.description || '—'}${descNote}</td>
     <td>${S}${r.yourPrice.toFixed(2)}</td>
     <td>${starBadge}${S}${r.competitorLowest.toFixed(2)}</td>
+    <td>${S}${r.competitorHighest.toFixed(2)}</td>
     <td>${S}${r.marketAverage.toFixed(2)}</td>
+    <td>${S}${r.marketMedian.toFixed(2)}</td>
     <td>${diffSign}${S}${Math.abs(r.priceDiff).toFixed(2)}</td>
     <td>${r.priceDiffPct.toFixed(1)}%</td>
     <td>${r.competitorCount}</td>
@@ -4129,6 +4163,7 @@ function bpcShowMatches(idx) {
       <div class="bpc-match-title">
         <a href="${l.url}" target="_blank" rel="noopener">${l.title || '(no title)'}</a>
         <span class="bpc-seller-name">by ${l.seller || 'unknown'}${l.trusted ? ' <span class="bpc-trusted-badge" title="Trusted seller">⭐ Trusted Seller</span>' : ''}${feedbackTxt ? ` · ${feedbackTxt}` : ''}${warn}</span>
+        <span class="bpc-seller-name">${bpcMatchMethodBadge(l.tier)}</span>
       </div>
       <div class="bpc-match-price">£${l.price.toFixed(2)}</div>
     </div>`;
@@ -4143,7 +4178,9 @@ function bpcRenderResults() {
   if (!monitorResults.length) { area.innerHTML = ''; return; }
 
   const counts = bpcCounts(monitorResults);
-  const partOnlyCount = bpcPartOnlyMatchCount(monitorResults);
+  const brandPartCount = monitorResults.filter(r => r.matchMethod === 'brand_part').length;
+  const partOnlyCount = monitorResults.filter(r => r.matchMethod === 'part_only').length;
+  const brandOnlyCount = monitorResults.filter(r => r.matchMethod === 'brand_only').length;
   const priceSourceCounts = bpcTrustedPriceCounts(monitorResults);
   const revenueImpact = monitorResults
     .filter(r => r.status === 'action' || r.status === 'opportunity')
@@ -4151,7 +4188,9 @@ function bpcRenderResults() {
 
   const filtered = monitorResults.filter(r => {
     if (monitorFilter === 'all') return true;
+    if (monitorFilter === 'brandpart') return r.matchMethod === 'brand_part';
     if (monitorFilter === 'partonly') return r.matchMethod === 'part_only';
+    if (monitorFilter === 'brandonly') return r.matchMethod === 'brand_only';
     return r.status === monitorFilter;
   });
   const rows = filtered.map(bpcRowHtml).join('');
@@ -4179,7 +4218,7 @@ function bpcRenderResults() {
       <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#A32D2D">${counts.action}</div><div class="bpc-summary-label">🔴 Action Needed</div></div>
       <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${counts.opportunity}</div><div class="bpc-summary-label">🟡 Opportunities</div></div>
       <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#3B6D11">${counts.ok}</div><div class="bpc-summary-label">🟢 Competitive</div></div>
-      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${partOnlyCount}</div><div class="bpc-summary-label">🟡 Part Number Only</div></div>
+      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${partOnlyCount + brandOnlyCount}</div><div class="bpc-summary-label">🟡 Weak Match</div></div>
       <div class="bpc-summary-item"><div class="bpc-summary-value">£${revenueImpact.toFixed(2)}</div><div class="bpc-summary-label">Est. Impact / Unit</div></div>
       <div class="bpc-summary-item"><div class="bpc-summary-value">⭐ ${priceSourceCounts.trusted} / ${priceSourceCounts.market}</div><div class="bpc-summary-label">Trusted vs Market Priced</div></div>
     </div>
@@ -4190,7 +4229,9 @@ function bpcRenderResults() {
         ${pill('action', `🔴 Action Needed (${counts.action})`)}
         ${pill('opportunity', `🟡 Opportunities (${counts.opportunity})`)}
         ${pill('ok', `🟢 OK (${counts.ok})`)}
-        ${pill('partonly', `🟡 Part Number Only (${partOnlyCount})`)}
+        ${pill('brandpart', `🟢 Brand + Part No. (${brandPartCount})`)}
+        ${pill('partonly', `🟡 Part No. Only (${partOnlyCount})`)}
+        ${pill('brandonly', `🟠 Brand Only (${brandOnlyCount})`)}
         ${pill('notfound', `🔴 Not Found (${counts.notfound})`)}
         ${pill('notfound_trusted', `🟠 Not in Trusted Sellers (${counts.notfound_trusted})`)}
       </div>
@@ -4207,10 +4248,10 @@ function bpcRenderResults() {
       <table class="bpc-table">
         <thead><tr>
           <th>Part Number</th><th>Description</th><th>Your Price</th><th>Competitor Lowest</th>
-          <th>Market Avg</th><th>Diff (£)</th><th>Diff (%)</th><th>Competitors</th><th>Matched Listing</th>
-          <th>Search Method</th><th>Status</th><th>Action</th><th>Suggested Price</th><th>Matches</th>
+          <th>Competitor Highest</th><th>Market Avg</th><th>Market Median</th><th>Diff (£)</th><th>Diff (%)</th><th>Competitors</th><th>Matched Listing</th>
+          <th>Match Criteria</th><th>Status</th><th>Action</th><th>Suggested Price</th><th>Matches</th>
         </tr></thead>
-        <tbody>${rows || '<tr><td colspan="14" style="text-align:center;color:var(--text-muted);padding:20px">No parts match this filter</td></tr>'}</tbody>
+        <tbody>${rows || '<tr><td colspan="16" style="text-align:center;color:var(--text-muted);padding:20px">No parts match this filter</td></tr>'}</tbody>
       </table>
     </div>`;
 }
@@ -4234,14 +4275,17 @@ function bpcBuildLegendSheet() {
     ['🔴 Not Found', 'No matching listings found anywhere on eBay'],
     ['⚠️ Warning icon', 'A trusted seller\'s price was used despite having feedback below your minimum threshold — trusted sellers are never excluded for low feedback, only flagged'],
     ['Seller Feedback column', 'Feedback score of the seller whose listing price was used for this part. Whole-market results exclude sellers below your minimum feedback score entirely'],
+    ['Competitor Highest / Market Median', 'Highest price and median price among the top matched listings used for this part (same pool as Competitor Lowest and Market Average)'],
     [],
-    ['Search Method', 'Meaning'],
-    ['🟢 Brand + Part Number', 'A brand was provided, so the query combined brand + part number in quotes'],
-    ['🟡 Part Number only', 'No brand was provided, so the query used the part number alone in quotes'],
+    ['Match Criteria', 'Meaning'],
+    ['🟢 Brand + Part No.', 'The listing title mentions both the brand and the part number — highest confidence'],
+    ['🟡 Part No. only', 'The listing title mentions the part number but not the brand'],
+    ['🟠 Brand only', 'The listing title mentions the brand but not the part number — lowest confidence, verify manually'],
+    ['Search query', 'No quotes are used (e.g. Meyle 3282280008, exactly as typed into eBay) — the Match Criteria title filter above is what removes unrelated listings and ranks the rest'],
   ];
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   ws['A1'].s = { font: { bold: true, sz: 13 } };
-  ['A3', 'B3', 'A14', 'B14'].forEach(ref => {
+  ['A3', 'B3', 'A15', 'B15'].forEach(ref => {
     if (ws[ref]) ws[ref].s = { font: { bold: true }, fill: { patternType: 'solid', fgColor: { rgb: 'E8E8E8' } } };
   });
   ws['!cols'] = [{ wch: 34 }, { wch: 70 }];
@@ -4257,8 +4301,8 @@ function bpcExportExcel() {
     ? `Trusted Sellers Filter: ON — Sellers included: ${savedSellers.length ? savedSellers.join(', ') : '(none saved)'}`
     : 'Trusted Sellers Filter: OFF — showing whole market results';
 
-  const headerRow = ['Part Number', 'Description', 'Current Price (£)', 'Suggested Price (£)', 'Competitor Lowest (£)', 'Market Average (£)', 'Search Method', 'Source', 'Seller Feedback', 'Action', 'Reason'];
-  const cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+  const headerRow = ['Part Number', 'Description', 'Current Price (£)', 'Suggested Price (£)', 'Competitor Lowest (£)', 'Competitor Highest (£)', 'Market Average (£)', 'Market Median (£)', 'Match Criteria', 'Source', 'Seller Feedback', 'Action', 'Reason'];
+  const cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
   const aoa = [[filterNote], [], headerRow];
 
   rows.forEach(r => {
@@ -4268,7 +4312,8 @@ function bpcExportExcel() {
     else if (r.status === 'notfound') reason = 'No matching listings found on eBay';
     else {
       reason = r.reason;
-      if (r.matchMethod === 'part_only') reason = 'Matched on part number only — verify the brand manually. ' + reason;
+      if (r.matchMethod === 'part_only') reason = 'Title matched on part number only, not brand — verify manually. ' + reason;
+      else if (r.matchMethod === 'brand_only') reason = 'Title matched on brand only, not part number — lowest confidence, verify manually. ' + reason;
       if (r.limitedResults) reason = `Limited results — ${r.trustedResultCount} trusted seller listing${r.trustedResultCount === 1 ? '' : 's'} found. ` + reason;
       if (r.usedLowFeedback) reason = '⚠ Trusted seller has feedback below your minimum threshold — included anyway since they were manually added. ' + reason;
     }
@@ -4279,7 +4324,9 @@ function bpcExportExcel() {
       r.partNumber || '', r.description || '', r.yourPrice,
       noPricing ? '' : r.suggestedPrice,
       noPricing ? '' : r.competitorLowest,
+      noPricing ? '' : r.competitorHighest,
       noPricing ? '' : r.marketAverage,
+      noPricing ? '' : r.marketMedian,
       noPricing ? '' : bpcMatchMethodBadge(r.matchMethod),
       bpcSourceLabel(r),
       noPricing ? '' : (r.matchedFeedback != null ? r.matchedFeedback : ''),
@@ -4308,7 +4355,7 @@ function bpcExportExcel() {
       const cell = ws[`${col}${rIdx}`];
       if (cell && fill) cell.s = { ...(cell.s || {}), fill };
     });
-    ['C', 'D', 'E', 'F'].forEach(col => {
+    ['C', 'D', 'E', 'F', 'G', 'H'].forEach(col => {
       const cell = ws[`${col}${rIdx}`];
       if (cell && typeof cell.v === 'number') { cell.t = 'n'; cell.z = '"£"#,##0.00'; }
     });
@@ -4320,7 +4367,7 @@ function bpcExportExcel() {
     return { wch: width };
   });
   ws['!cols'][1]  = { wch: 40 };
-  ws['!cols'][10] = { wch: 55 };
+  ws['!cols'][12] = { wch: 55 };
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'MAM Price Update');
