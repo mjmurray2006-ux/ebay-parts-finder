@@ -649,6 +649,69 @@
   .bpc-listing-title a:hover { text-decoration: underline; }
   .bpc-listing-meta { font-size: 10.5px; color: var(--text-muted); display: block; margin-top: 3px; }
   .bpc-listing-price { font-size: 13px; font-weight: 600; white-space: nowrap; }
+
+  /* Price Watchlist tab */
+  .wl-dash { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .wl-dash-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .wl-dash-value { font-size: 22px; font-weight: 700; }
+  .wl-dash-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .wl-dash-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+  .wl-btn { height: 38px; padding: 0 16px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; border: 0.5px solid var(--border); background: var(--surface); color: var(--text); }
+  .wl-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .wl-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  .wl-scan-progress { display: none; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-muted); }
+  .wl-scan-progress.show { display: inline-flex; }
+  .wl-spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: wl-spin 0.7s linear infinite; }
+  @keyframes wl-spin { to { transform: rotate(360deg); } }
+
+  .wl-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 20px; }
+  .wl-section h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+  .wl-add-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .wl-add-tab { padding: 6px 14px; border-radius: 99px; font-size: 12.5px; font-weight: 500; cursor: pointer; border: 0.5px solid var(--border); background: var(--bg); color: var(--text-muted); }
+  .wl-add-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .wl-add-panel { display: none; }
+  .wl-add-panel.active { display: block; }
+  .wl-form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .wl-field { display: flex; flex-direction: column; gap: 5px; }
+  .wl-field label { font-size: 11.5px; color: var(--text-muted); font-weight: 500; }
+  .wl-field input, .wl-field select { height: 36px; padding: 0 10px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 13px; }
+
+  .wl-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .wl-summary-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .wl-summary-value { font-size: 20px; font-weight: 700; }
+  .wl-summary-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .wl-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+
+  .wl-table-wrap { overflow-x: auto; border-radius: var(--radius); border: 0.5px solid var(--border); margin-bottom: 24px; }
+  .wl-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .wl-table thead th { background: var(--bg); padding: 9px 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; }
+  .wl-table tbody td { padding: 8px 10px; border-bottom: 0.5px solid var(--border); vertical-align: top; white-space: nowrap; }
+  .wl-table tbody tr:last-child td { border-bottom: none; }
+  .wl-table tbody tr { cursor: pointer; }
+  .wl-table .col-desc { max-width: 220px; white-space: normal; }
+  .wl-table tr.wl-row-action td { background: #FCEBEB; }
+  .wl-table tr.wl-row-opportunity td { background: #FEF3C7; }
+  .wl-table tr.wl-row-competitive td { background: #EAF3DE; }
+  .wl-table tr.wl-row-outofstock td { background: #FFE8CC; }
+  .wl-table tr.wl-row-grey td { background: var(--bg); color: var(--text-muted); }
+  .wl-trend-up { color: #3B6D11; font-weight: 600; }
+  .wl-trend-down { color: #A32D2D; font-weight: 600; }
+  .wl-trend-stable { color: var(--text-muted); font-weight: 600; }
+  .wl-row-btn { border: 0.5px solid var(--border); background: var(--surface); border-radius: 6px; font-size: 11px; padding: 3px 8px; cursor: pointer; color: var(--text-muted); margin-right: 4px; }
+  .wl-row-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .wl-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 110; align-items: center; justify-content: center; padding: 20px; }
+  .wl-modal-overlay.show { display: flex; }
+  .wl-modal { background: var(--surface); border-radius: var(--radius); max-width: 900px; width: 100%; max-height: 85vh; overflow-y: auto; }
+  .wl-modal-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; background: var(--surface); }
+  .wl-modal-header h4 { font-size: 15px; font-weight: 600; }
+  .wl-modal-close { background: none; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--text-muted); padding: 0; }
+  .wl-modal-close:hover { color: var(--text); }
+  .wl-modal-body { padding: 8px 20px 20px; }
+  .wl-chart-wrap { height: 220px; margin-bottom: 20px; }
+  .wl-modal-section { margin-bottom: 22px; }
+  .wl-modal-section h5 { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
 </style>
 </head>
 <body>
@@ -705,6 +768,7 @@
     <div class="tab" onclick="switchTab('specifics')"><i class="ti ti-list-details"></i> Item Specifics</div>
     <div class="tab" onclick="switchTab('library')"><i class="ti ti-folders"></i> Item Specifics Library</div>
     <div class="tab" onclick="switchTab('monitor')"><i class="ti ti-report-money"></i> Price Monitor</div>
+    <div class="tab" onclick="switchTab('watchlist')"><i class="ti ti-bell"></i> Price Watchlist</div>
   </div>
 
   <!-- Search Tab -->
@@ -1134,6 +1198,93 @@
     </div>
   </div>
 
+  <!-- Price Watchlist Tab -->
+  <div id="tab-watchlist" class="tab-content">
+    <div class="container">
+
+      <div id="wl-dash" class="wl-dash"></div>
+
+      <div class="wl-dash-actions">
+        <button class="wl-btn primary" id="wl-scan-btn" onclick="wlRunScan()"><i class="ti ti-refresh"></i> Run Scan Now</button>
+        <span class="wl-scan-progress" id="wl-scan-progress"><span class="wl-spinner"></span> Scanning — this can take a few minutes for large watchlists…</span>
+        <button class="wl-btn" onclick="wlDownloadExcel()"><i class="ti ti-file-spreadsheet"></i> Download MAM Excel</button>
+        <button class="wl-btn" onclick="wlSyncTrustedSellers()"><i class="ti ti-star"></i> Sync Trusted Sellers To Watchlist</button>
+        <span id="wl-sync-status" style="font-size:12px;color:var(--text-muted)"></span>
+      </div>
+
+      <div class="wl-section">
+        <h4><i class="ti ti-plus" style="color:var(--accent)"></i> Add Parts</h4>
+        <div class="wl-add-tabs">
+          <div class="wl-add-tab active" id="wl-add-tab-single" onclick="wlSwitchAddTab('single')">Single Part</div>
+          <div class="wl-add-tab" id="wl-add-tab-bulk" onclick="wlSwitchAddTab('bulk')">Bulk Import</div>
+        </div>
+
+        <div class="wl-add-panel active" id="wl-add-panel-single">
+          <div class="wl-form-row">
+            <div class="wl-field"><label>Part Number</label><input type="text" id="wl-new-part-number" placeholder="e.g. 3282280008" /></div>
+            <div class="wl-field"><label>Brand</label><input type="text" id="wl-new-brand" placeholder="e.g. Meyle" /></div>
+            <div class="wl-field"><label>Description (optional)</label><input type="text" id="wl-new-description" placeholder="e.g. Front strut mount" style="width:220px" /></div>
+            <div class="wl-field"><label>Your Current Price (£)</label><input type="number" id="wl-new-price" min="0" step="0.01" style="width:110px" /></div>
+            <div class="wl-field"><label>Alert Threshold %</label><input type="number" id="wl-new-threshold" min="1" max="20" value="5" step="1" style="width:90px" /></div>
+            <div class="wl-field">
+              <label>Active</label>
+              <label style="display:flex;align-items:center;gap:6px;height:36px">
+                <input type="checkbox" id="wl-new-active" checked style="width:16px;height:16px;accent-color:var(--accent)" /> Active
+              </label>
+            </div>
+            <div class="wl-field">
+              <label>&nbsp;</label>
+              <button class="wl-btn primary" onclick="wlAddPart()"><i class="ti ti-plus"></i> Add</button>
+            </div>
+          </div>
+          <div id="wl-add-status" style="font-size:12px;margin-top:10px"></div>
+        </div>
+
+        <div class="wl-add-panel" id="wl-add-panel-bulk">
+          <div class="bpc-upload-zone" id="wl-drop-zone" onclick="document.getElementById('wl-file-input').click()"
+               ondragover="event.preventDefault(); this.classList.add('drag')"
+               ondragleave="this.classList.remove('drag')"
+               ondrop="wlHandleDrop(event)">
+            <i class="ti ti-file-upload"></i>
+            <p><strong>Click to upload</strong> or drag &amp; drop a CSV or Excel file<br>
+            Columns: <code>part_number</code>, <code>brand</code>, <code>description</code>, <code>your_price</code>, <code>alert_threshold_percent</code></p>
+          </div>
+          <input type="file" id="wl-file-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="wlHandleFileInput(event)" />
+          <div class="bpc-upload-actions">
+            <button class="bpc-template-btn" onclick="wlDownloadTemplate()"><i class="ti ti-download"></i> Download Template</button>
+            <span class="bpc-upload-status" id="wl-upload-status"></span>
+          </div>
+        </div>
+      </div>
+
+      <div id="wl-summary" class="wl-summary"></div>
+
+      <div class="wl-filters" id="wl-filters"></div>
+
+      <div class="wl-table-wrap">
+        <table class="wl-table">
+          <thead><tr>
+            <th>Part Number</th><th>Brand</th><th>Description</th><th>Your Price</th>
+            <th>Competitor Lowest</th><th>Diff (£)</th><th>Diff (%)</th><th>Trend</th>
+            <th>Status</th><th>Last Checked</th><th>Threshold</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="wl-table-body"><tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:20px">No parts on your watchlist yet — add one above</td></tr></tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <div class="wl-modal-overlay" id="wl-modal-overlay" onclick="if(event.target===this) wlCloseModal()">
+      <div class="wl-modal">
+        <div class="wl-modal-header">
+          <h4 id="wl-modal-title">Price History</h4>
+          <button class="wl-modal-close" onclick="wlCloseModal()">&times;</button>
+        </div>
+        <div class="wl-modal-body" id="wl-modal-body"></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1185,6 +1336,7 @@ function switchTab(name) {
   if (name === 'keywords') { /* nothing to pre-render */ }
   if (name === 'specifics') { /* nothing to pre-render */ }
   if (name === 'library' && !libData) libLoadSaved();
+  if (name === 'watchlist' && !wlLoaded) wlInit();
 }
 
 // ── State ──────────────────────────────────────────────────
@@ -4174,6 +4326,517 @@ function bpcExportExcel() {
   XLSX.utils.book_append_sheet(wb, bpcBuildSummarySheet(rows), 'Price Summary');
   XLSX.utils.book_append_sheet(wb, bpcBuildListingLinksSheet(rows), 'Listing Links');
   XLSX.writeFile(wb, `bulk-price-check-${xlsxDateStr()}.xlsx`);
+}
+
+// ── Price Watchlist ─────────────────────────────────────────
+let wlLoaded         = false;
+let wlParts          = [];
+let wlScanStatusData = {};
+let wlFilter         = 'all';
+let wlChart          = null;
+
+async function wlInit() {
+  wlLoaded = true;
+  if (!backendUrl) {
+    document.getElementById('wl-dash').innerHTML = '<div class="wl-dash-card"><div class="wl-dash-label">Please configure your backend URL in the Search tab first.</div></div>';
+    return;
+  }
+  await wlRefreshAll();
+}
+
+async function wlFetchParts() {
+  try {
+    const res = await fetch(`${backendUrl}/watchlist`, { signal: AbortSignal.timeout(15000) });
+    const data = await res.json();
+    wlParts = Array.isArray(data) ? data : [];
+  } catch {
+    wlParts = [];
+  }
+}
+
+async function wlFetchStatus() {
+  try {
+    const res = await fetch(`${backendUrl}/watchlist/scan/status`, { signal: AbortSignal.timeout(15000) });
+    wlScanStatusData = await res.json();
+  } catch {
+    wlScanStatusData = {};
+  }
+}
+
+async function wlRefreshAll() {
+  await Promise.all([wlFetchParts(), wlFetchStatus()]);
+  wlRenderDashboard();
+  wlRenderSummary();
+  wlRenderFilters();
+  wlRenderTable();
+}
+
+function wlRenderDashboard() {
+  const total   = wlParts.length;
+  const active  = wlParts.filter(p => p.active).length;
+  const paused  = total - active;
+  const lastScan = wlScanStatusData.last_ran ? new Date(wlScanStatusData.last_ran).toLocaleString('en-GB') : 'Never';
+  const nextScan = wlScanStatusData.next_scan ? new Date(wlScanStatusData.next_scan).toLocaleString('en-GB') : '—';
+  const alerts   = wlScanStatusData.total_alerts ?? 0;
+
+  document.getElementById('wl-dash').innerHTML = `
+    <div class="wl-dash-card"><div class="wl-dash-value">${total}</div><div class="wl-dash-label">Parts Monitored</div></div>
+    <div class="wl-dash-card"><div class="wl-dash-value">${active} / ${paused}</div><div class="wl-dash-label">Active / Paused</div></div>
+    <div class="wl-dash-card"><div class="wl-dash-value" style="font-size:13.5px">${lastScan}</div><div class="wl-dash-label">Last Scan</div></div>
+    <div class="wl-dash-card"><div class="wl-dash-value" style="font-size:13.5px">${nextScan}</div><div class="wl-dash-label">Next Scan (daily 7am UTC)</div></div>
+    <div class="wl-dash-card"><div class="wl-dash-value" style="color:#A32D2D">${alerts}</div><div class="wl-dash-label">Alerts Today</div></div>
+  `;
+}
+
+async function wlRunScan() {
+  if (!backendUrl) { alert('Please configure your backend URL in the Search tab first.'); return; }
+  const btn  = document.getElementById('wl-scan-btn');
+  const prog = document.getElementById('wl-scan-progress');
+  btn.disabled = true;
+  prog.classList.add('show');
+  try {
+    const res  = await fetch(`${backendUrl}/watchlist/scan`, { method: 'POST', signal: AbortSignal.timeout(600000) });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Server error ${res.status}`);
+    await wlRefreshAll();
+  } catch (err) {
+    alert('Scan failed: ' + (err.message || 'Unknown error'));
+  } finally {
+    btn.disabled = false;
+    prog.classList.remove('show');
+  }
+}
+
+function wlDownloadExcel() {
+  if (!backendUrl) { alert('Please configure your backend URL in the Search tab first.'); return; }
+  window.open(`${backendUrl}/watchlist/export`, '_blank');
+}
+
+async function wlSyncTrustedSellers() {
+  if (!backendUrl) { alert('Please configure your backend URL in the Search tab first.'); return; }
+  const statusEl = document.getElementById('wl-sync-status');
+  statusEl.style.color = 'var(--text-muted)';
+  statusEl.textContent = 'Syncing…';
+  try {
+    const res  = await fetch(`${backendUrl}/watchlist/trusted-sellers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(savedSellers)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Sync failed');
+    statusEl.style.color = '#3B6D11';
+    statusEl.textContent = `✓ Synced ${data.count} trusted seller${data.count === 1 ? '' : 's'} to the backend`;
+  } catch (err) {
+    statusEl.style.color = '#A32D2D';
+    statusEl.textContent = '✗ ' + (err.message || 'Sync failed');
+  }
+}
+
+function wlSwitchAddTab(tab) {
+  document.getElementById('wl-add-tab-single').classList.toggle('active', tab === 'single');
+  document.getElementById('wl-add-tab-bulk').classList.toggle('active', tab === 'bulk');
+  document.getElementById('wl-add-panel-single').classList.toggle('active', tab === 'single');
+  document.getElementById('wl-add-panel-bulk').classList.toggle('active', tab === 'bulk');
+}
+
+async function wlAddPart() {
+  if (!backendUrl) { alert('Please configure your backend URL in the Search tab first.'); return; }
+  const statusEl     = document.getElementById('wl-add-status');
+  const partNumber   = document.getElementById('wl-new-part-number').value.trim();
+  const brand        = document.getElementById('wl-new-brand').value.trim();
+  const description  = document.getElementById('wl-new-description').value.trim();
+  const yourPrice    = parseFloat(document.getElementById('wl-new-price').value);
+  const threshold    = Math.min(20, Math.max(1, parseFloat(document.getElementById('wl-new-threshold').value) || 5));
+  const active       = document.getElementById('wl-new-active').checked;
+
+  if (!partNumber) { statusEl.style.color = '#A32D2D'; statusEl.textContent = 'Part number is required.'; return; }
+  if (!yourPrice || yourPrice <= 0) { statusEl.style.color = '#A32D2D'; statusEl.textContent = 'Enter a valid current price.'; return; }
+
+  statusEl.style.color = 'var(--text-muted)';
+  statusEl.textContent = 'Adding…';
+  try {
+    const res = await fetch(`${backendUrl}/watchlist`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        part_number: partNumber, brand, description, your_price: yourPrice,
+        alert_threshold_percent: threshold, active
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to add part');
+    statusEl.style.color = '#3B6D11';
+    statusEl.textContent = `✓ Added ${partNumber}`;
+    ['wl-new-part-number', 'wl-new-brand', 'wl-new-description', 'wl-new-price'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('wl-new-threshold').value = '5';
+    document.getElementById('wl-new-active').checked  = true;
+    await wlRefreshAll();
+  } catch (err) {
+    statusEl.style.color = '#A32D2D';
+    statusEl.textContent = '✗ ' + (err.message || 'Failed to add part');
+  }
+}
+
+function wlDownloadTemplate() {
+  if (typeof XLSX === 'undefined') { alert('The Excel library failed to load. Check your connection and try again.'); return; }
+  const ws = XLSX.utils.aoa_to_sheet([['part_number', 'brand', 'description', 'your_price', 'alert_threshold_percent']]);
+  xlsxApplyHdr(ws, ['A', 'B', 'C', 'D', 'E']);
+  ws['!cols'] = [{ wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 14 }, { wch: 20 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+  XLSX.writeFile(wb, 'watchlist-import-template.xlsx');
+}
+
+function wlHandleDrop(event) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('drag');
+  const file = event.dataTransfer.files && event.dataTransfer.files[0];
+  if (file) wlParseAndImport(file);
+}
+function wlHandleFileInput(event) {
+  const file = event.target.files && event.target.files[0];
+  if (file) wlParseAndImport(file);
+}
+
+async function wlParseAndImport(file) {
+  const status = document.getElementById('wl-upload-status');
+  status.textContent = 'Reading file...';
+  status.className = 'bpc-upload-status';
+
+  if (!backendUrl) {
+    status.textContent = 'Please configure your backend URL in the Search tab first.';
+    status.className = 'bpc-upload-status err';
+    return;
+  }
+
+  try {
+    if (typeof XLSX === 'undefined') throw new Error('Excel library not loaded');
+    const buf = await file.arrayBuffer();
+    const wb  = XLSX.read(buf, { type: 'array' });
+    const ws  = wb.Sheets[wb.SheetNames[0]];
+    const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+    const rows = raw.map(row => {
+      const norm = {};
+      Object.keys(row).forEach(k => { norm[String(k).trim().toLowerCase().replace(/\s+/g, '_')] = row[k]; });
+      return {
+        part_number:             String(norm.part_number ?? norm.partnumber ?? norm.part ?? '').trim(),
+        brand:                   String(norm.brand ?? '').trim(),
+        description:             String(norm.description ?? '').trim(),
+        your_price:              parseFloat(norm.your_price ?? norm.yourprice ?? norm.price ?? '') || 0,
+        alert_threshold_percent: parseFloat(norm.alert_threshold_percent ?? norm.threshold ?? '') || 5
+      };
+    }).filter(r => r.part_number);
+
+    if (!rows.length) {
+      status.textContent = 'No valid rows found — make sure the file has a part_number column.';
+      status.className = 'bpc-upload-status err';
+      return;
+    }
+
+    status.textContent = `Importing ${rows.length} part${rows.length === 1 ? '' : 's'}...`;
+    const res  = await fetch(`${backendUrl}/watchlist/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rows)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Import failed');
+
+    status.textContent = `✓ Imported ${data.imported} part${data.imported === 1 ? '' : 's'}${data.errors && data.errors.length ? `, ${data.errors.length} row(s) skipped` : ''} from ${file.name}`;
+    status.className = 'bpc-upload-status ok';
+    await wlRefreshAll();
+  } catch (e) {
+    status.textContent = 'Could not import that file — ' + (e.message || 'please check the format.');
+    status.className = 'bpc-upload-status err';
+  }
+}
+
+function wlPartStatus(part) {
+  if (!part.active) return 'paused';
+  if (!part.last_checked) return 'not_scanned';
+  if (part.competitor_out_of_stock) return 'out_of_stock';
+  if (part.last_price == null) return 'not_scanned';
+  const threshold = part.alert_threshold_percent || 5;
+  if (part.your_price > part.last_price * (1 + threshold / 100)) return 'action';
+  if (part.your_price < part.last_price * (1 - threshold / 100)) return 'opportunity';
+  return 'competitive';
+}
+
+function wlStatusBadge(status) {
+  if (status === 'action')       return '🔴 Action Needed';
+  if (status === 'opportunity')  return '🟡 Opportunity';
+  if (status === 'competitive')  return '🟢 Competitive';
+  if (status === 'out_of_stock') return '🟠 Out of Stock';
+  if (status === 'paused')       return '⚪ Paused';
+  return '⚪ Not Scanned';
+}
+
+function wlRowClass(status) {
+  if (status === 'action')       return 'wl-row-action';
+  if (status === 'opportunity')  return 'wl-row-opportunity';
+  if (status === 'competitive')  return 'wl-row-competitive';
+  if (status === 'out_of_stock') return 'wl-row-outofstock';
+  return 'wl-row-grey'; // paused or not_scanned
+}
+
+function wlRenderSummary() {
+  const statuses  = wlParts.map(wlPartStatus);
+  const undercut  = statuses.filter(s => s === 'action').length;
+  const raiseOpp  = statuses.filter(s => s === 'opportunity').length;
+  const outStock  = statuses.filter(s => s === 'out_of_stock').length;
+
+  const withPrices = wlParts.filter(p => p.last_price != null);
+  let avgPositionText = '—';
+  if (withPrices.length) {
+    const avgDiffPct = withPrices.reduce((sum, p) => sum + ((p.your_price - p.last_price) / p.last_price * 100), 0) / withPrices.length;
+    avgPositionText = `${avgDiffPct > 0 ? '+' : ''}${avgDiffPct.toFixed(1)}%`;
+  }
+
+  document.getElementById('wl-summary').innerHTML = `
+    <div class="wl-summary-card"><div class="wl-summary-value" style="color:#A32D2D">${undercut}</div><div class="wl-summary-label">🔴 Being Undercut Right Now</div></div>
+    <div class="wl-summary-card"><div class="wl-summary-value" style="color:#92400E">${raiseOpp}</div><div class="wl-summary-label">🟡 Could Raise Price</div></div>
+    <div class="wl-summary-card"><div class="wl-summary-value">${avgPositionText}</div><div class="wl-summary-label">Avg Market Position (your price vs competitor)</div></div>
+    <div class="wl-summary-card"><div class="wl-summary-value" style="color:#C2703D">${outStock}</div><div class="wl-summary-label">🟠 Competitor Out of Stock</div></div>
+  `;
+}
+
+function wlRenderFilters() {
+  const statuses = wlParts.map(wlPartStatus);
+  const counts = { action: 0, opportunity: 0, competitive: 0, out_of_stock: 0, not_scanned: 0, paused: 0 };
+  statuses.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
+
+  const pill = (key, label) => `<button class="pill${wlFilter === key ? ' active' : ''}" onclick="wlSetFilter('${key}')">${label} (${counts[key] || 0})</button>`;
+
+  document.getElementById('wl-filters').innerHTML = `
+    <button class="pill${wlFilter === 'all' ? ' active' : ''}" onclick="wlSetFilter('all')">All (${wlParts.length})</button>
+    ${pill('action', '🔴 Action Needed')}
+    ${pill('opportunity', '🟡 Opportunities')}
+    ${pill('competitive', '🟢 Competitive')}
+    ${pill('out_of_stock', '🟠 Out of Stock')}
+    ${pill('not_scanned', '⚪ Not Scanned')}
+    ${pill('paused', '⚪ Paused')}
+  `;
+}
+
+function wlSetFilter(f) { wlFilter = f; wlRenderTable(); wlRenderFilters(); }
+
+function wlRenderTable() {
+  const tbody = document.getElementById('wl-table-body');
+  if (!wlParts.length) {
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:20px">No parts on your watchlist yet — add one above</td></tr>';
+    return;
+  }
+
+  const filtered = wlParts.filter(p => wlFilter === 'all' || wlPartStatus(p) === wlFilter);
+  tbody.innerHTML = filtered.length
+    ? filtered.map(wlRowHtml).join('')
+    : '<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:20px">No parts match this filter</td></tr>';
+}
+
+function wlRowHtml(part) {
+  const S        = '£';
+  const status   = wlPartStatus(part);
+  const rowClass = wlRowClass(status);
+  const hasPrice = part.last_price != null;
+  const diff     = hasPrice ? part.your_price - part.last_price : null;
+  const diffPct  = hasPrice ? (diff / part.last_price * 100) : null;
+  const trend    = part.price_trend || 'stable';
+  const trendHtml = trend === 'rising' ? '<span class="wl-trend-up">↑ Rising</span>'
+    : trend === 'falling' ? '<span class="wl-trend-down">↓ Falling</span>'
+    : '<span class="wl-trend-stable">→ Stable</span>';
+  const lastChecked = part.last_checked ? new Date(part.last_checked).toLocaleDateString('en-GB') : '—';
+  const competitorCell = hasPrice ? `${S}${part.last_price.toFixed(2)}` : (part.competitor_out_of_stock ? 'Out of stock' : '—');
+
+  return `<tr class="${rowClass}" onclick="wlShowHistory('${part.id}')">
+    <td>${part.part_number || '—'}</td>
+    <td>${part.brand || '—'}</td>
+    <td class="col-desc">${part.description || '—'}</td>
+    <td>${S}${(part.your_price || 0).toFixed(2)}</td>
+    <td>${competitorCell}</td>
+    <td>${hasPrice ? (diff > 0 ? '+' : diff < 0 ? '-' : '') + S + Math.abs(diff).toFixed(2) : '—'}</td>
+    <td>${hasPrice ? diffPct.toFixed(1) + '%' : '—'}</td>
+    <td>${trendHtml}</td>
+    <td>${wlStatusBadge(status)}</td>
+    <td>${lastChecked}</td>
+    <td>${part.alert_threshold_percent}%</td>
+    <td onclick="event.stopPropagation()">
+      <button class="wl-row-btn" title="Edit threshold" onclick="wlEditThreshold('${part.id}')"><i class="ti ti-edit"></i></button>
+      <button class="wl-row-btn" title="${part.active ? 'Pause' : 'Resume'}" onclick="wlTogglePause('${part.id}')"><i class="ti ${part.active ? 'ti-player-pause' : 'ti-player-play'}"></i></button>
+      <button class="wl-row-btn" title="Delete" onclick="wlDeletePart('${part.id}')"><i class="ti ti-trash"></i></button>
+    </td>
+  </tr>`;
+}
+
+async function wlEditThreshold(id) {
+  const part = wlParts.find(p => p.id === id);
+  if (!part) return;
+  const val = prompt(`New alert threshold % for ${part.part_number} (1-20):`, part.alert_threshold_percent);
+  if (val === null) return;
+  const num = Math.min(20, Math.max(1, parseFloat(val) || part.alert_threshold_percent));
+  try {
+    await fetch(`${backendUrl}/watchlist/${id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alert_threshold_percent: num })
+    });
+    await wlRefreshAll();
+  } catch { alert('Failed to update threshold.'); }
+}
+
+async function wlTogglePause(id) {
+  const part = wlParts.find(p => p.id === id);
+  if (!part) return;
+  try {
+    await fetch(`${backendUrl}/watchlist/${id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: !part.active })
+    });
+    await wlRefreshAll();
+  } catch { alert('Failed to update part.'); }
+}
+
+async function wlDeletePart(id) {
+  const part = wlParts.find(p => p.id === id);
+  if (!part) return;
+  if (!confirm(`Remove ${part.part_number} from the watchlist?`)) return;
+  try {
+    await fetch(`${backendUrl}/watchlist/${id}`, { method: 'DELETE' });
+    await wlRefreshAll();
+  } catch { alert('Failed to delete part.'); }
+}
+
+function wlCloseModal() { document.getElementById('wl-modal-overlay').classList.remove('show'); }
+
+async function wlShowHistory(id) {
+  const part = wlParts.find(p => p.id === id);
+  if (!part) return;
+
+  document.getElementById('wl-modal-title').textContent = `${part.part_number}${part.brand ? ' — ' + part.brand : ''}`;
+  const history = part.price_history || [];
+
+  let trendText = 'Not enough price history yet to determine a trend.';
+  if (history.length >= 2) {
+    let streak = 1;
+    for (let i = history.length - 1; i > 0; i--) {
+      if (part.price_trend === 'falling' && history[i].price < history[i - 1].price) streak++;
+      else if (part.price_trend === 'rising' && history[i].price > history[i - 1].price) streak++;
+      else break;
+    }
+    if (part.price_trend === 'falling')      trendText = `Price has been falling for ${streak} check${streak === 1 ? '' : 's'} in a row.`;
+    else if (part.price_trend === 'rising')  trendText = `Price has been rising for ${streak} check${streak === 1 ? '' : 's'} in a row.`;
+    else                                     trendText = 'Price has been stable recently.';
+  }
+
+  const historyRows = history.slice().reverse()
+    .map(h => `<tr><td>${h.date}</td><td>£${h.price.toFixed(2)}</td></tr>`)
+    .join('') || '<tr><td colspan="2" style="color:var(--text-muted)">No price history yet</td></tr>';
+
+  document.getElementById('wl-modal-body').innerHTML = `
+    <div class="wl-modal-section"><div class="wl-chart-wrap"><canvas id="wl-modal-chart"></canvas></div></div>
+    <div class="wl-modal-section">
+      <h5>Trend Analysis</h5>
+      <p style="font-size:13px;color:var(--text-muted)">${trendText}</p>
+    </div>
+    <div class="wl-modal-section">
+      <h5>Price History</h5>
+      <table class="wl-table"><thead><tr><th>Date</th><th>Price</th></tr></thead><tbody>${historyRows}</tbody></table>
+    </div>
+    <div class="wl-modal-section">
+      <h5>Trusted Seller Listings (live snapshot)</h5>
+      <div id="wl-modal-listings" style="font-size:13px;color:var(--text-muted)">Loading…</div>
+    </div>
+  `;
+
+  document.getElementById('wl-modal-overlay').classList.add('show');
+
+  if (wlChart) { wlChart.destroy(); wlChart = null; }
+  const canvas = document.getElementById('wl-modal-chart');
+  if (canvas && history.length) {
+    const data = history.map(h => h.price);
+    const pointColor = (idx) => {
+      if (idx === 0 || data.length <= 1) return '#3b82f6';
+      if (data[idx] < data[idx - 1]) return '#ef4444';
+      if (data[idx] > data[idx - 1]) return '#22c55e';
+      return '#3b82f6';
+    };
+    wlChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: history.map(h => h.date),
+        datasets: [{
+          data, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.06)',
+          tension: 0.3, fill: true, pointRadius: 4, pointHoverRadius: 6,
+          pointBackgroundColor: (ctx) => pointColor(ctx.dataIndex),
+          pointBorderColor:     (ctx) => pointColor(ctx.dataIndex),
+          segment: {
+            borderColor: (ctx) => {
+              const a = ctx.p0.parsed.y, b = ctx.p1.parsed.y;
+              if (b < a) return '#ef4444';
+              if (b > a) return '#22c55e';
+              return '#3b82f6';
+            }
+          }
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => `£${ctx.parsed.y.toFixed(2)}` } }
+        },
+        scales: {
+          x: { ticks: { font: { size: 10 }, maxTicksLimit: 8 }, grid: { display: false } },
+          y: { ticks: { font: { size: 10 }, callback: v => `£${v.toFixed(0)}` }, grid: { color: 'rgba(0,0,0,0.05)' } }
+        }
+      }
+    });
+  }
+
+  wlLoadLiveListings(part);
+}
+
+async function wlLoadLiveListings(part) {
+  const el = document.getElementById('wl-modal-listings');
+  if (!backendUrl) { el.textContent = 'Backend not configured.'; return; }
+
+  const term = part.part_number || '';
+  const q    = part.brand ? `${part.brand} ${term}` : term;
+
+  try {
+    const params = new URLSearchParams({ q, limit: 10, sort: 'relevance', market: part.market || 'EBAY_GB' });
+    const res  = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(15000) });
+    const data = await res.json();
+    const trustedSet = new Set(savedSellers);
+
+    const listings = (data.itemSummaries || [])
+      .map(i => ({
+        title:     i.title || '',
+        price:     parseFloat(i.price?.value || 0),
+        seller:    (i.seller?.username || '').toLowerCase(),
+        feedback:  i.seller?.feedbackScore != null ? Number(i.seller.feedbackScore) : 0,
+        condition: i.condition || '',
+        url:       i.itemWebUrl || '#'
+      }))
+      .filter(i => i.price > 0 && trustedSet.has(i.seller) && i.feedback >= 1000 && i.condition.toLowerCase() === 'new');
+
+    if (!listings.length) {
+      el.innerHTML = 'No current trusted-seller listings found for this part.';
+      return;
+    }
+
+    el.innerHTML = listings.map(l => `
+      <div class="bpc-listing-item">
+        <div class="bpc-listing-title">
+          <a href="${l.url}" target="_blank" rel="noopener">${l.title || '(no title)'}</a>
+          <span class="bpc-listing-meta">by ${l.seller} · ${l.feedback.toLocaleString()} feedback · ${l.condition}</span>
+        </div>
+        <div class="bpc-listing-price">£${l.price.toFixed(2)}</div>
+      </div>`).join('');
+  } catch {
+    el.textContent = 'Could not load live listings.';
+  }
 }
 </script>
 </body>

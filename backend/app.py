@@ -9,7 +9,7 @@ import threading
 from datetime import datetime, timedelta, timezone
 
 import requests
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from apscheduler.schedulers.background import BackgroundScheduler
 import sendgrid
@@ -111,6 +111,11 @@ def load_trusted_sellers():
             return [str(s).strip().lower() for s in json.load(f) if str(s).strip()]
     except (OSError, ValueError):
         return []
+
+
+def save_trusted_sellers(sellers):
+    with open(TRUSTED_SELLERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sellers, f, indent=2)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1052,6 +1057,58 @@ def delete_watchlist_item(item_id):
             return jsonify({"error": "Item not found"}), 404
         save_watchlist(filtered)
     return jsonify({"deleted": item_id})
+
+
+@app.route("/watchlist/trusted-sellers", methods=["GET"])
+def get_trusted_sellers_route():
+    return jsonify(load_trusted_sellers())
+
+
+@app.route("/watchlist/trusted-sellers", methods=["POST"])
+def set_trusted_sellers_route():
+    data = request.get_json(silent=True)
+    if not isinstance(data, list):
+        return jsonify({"error": "JSON body must be an array of seller usernames"}), 400
+
+    sellers = sorted({str(s).strip().lower() for s in data if str(s).strip()})
+    save_trusted_sellers(sellers)
+    return jsonify({"trusted_sellers": sellers, "count": len(sellers)})
+
+
+@app.route("/watchlist/export", methods=["GET"])
+def export_watchlist_excel():
+    with _watchlist_lock:
+        items = load_watchlist()
+
+    if _last_scan_results:
+        results = _last_scan_results
+    else:
+        # No scan has run yet this process — export a "not yet scanned" sheet
+        # rather than failing, so the button always produces something.
+        results = [{
+            "item":                  it,
+            "competitor_lowest":     it.get("last_price"),
+            "listings_found":        0,
+            "trusted_sellers_found": 0,
+            "out_of_stock":          bool(it.get("competitor_out_of_stock")),
+            "action":                "Hold",
+            "suggested_price":       it.get("your_price", 0),
+            "reason":                "Not yet scanned",
+            "confidence":            "Low",
+            "pct_diff":              None,
+            "price_changed":         False,
+            "price_7d_ago":          price_n_days_ago(it.get("price_history", [])),
+        } for it in items]
+
+    excel_bytes = generate_mam_excel(results)
+    today       = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    return send_file(
+        io.BytesIO(excel_bytes),
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name=f"mam_reprice_{today}.xlsx",
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
