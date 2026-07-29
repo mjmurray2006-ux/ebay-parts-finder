@@ -6,7 +6,7 @@ import uuid
 import json
 import base64
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import requests
 from flask import Flask, jsonify, request
@@ -33,19 +33,22 @@ SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
 ALERT_EMAIL_TO   = os.environ.get("ALERT_EMAIL_TO",   "marcus@apd.co.uk")
 ALERT_EMAIL_FROM = os.environ.get("ALERT_EMAIL_FROM", "alerts@apd.co.uk")
 
-# ─── Watchlist persistence ────────────────────────────────────────────────────
-WATCHLIST_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "watchlist.json")
+# ─── Watchlist / trusted sellers persistence ──────────────────────────────────
+WATCHLIST_FILE       = os.path.join(os.path.dirname(os.path.abspath(__file__)), "watchlist.json")
+TRUSTED_SELLERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "trusted_sellers.json")
+MIN_FEEDBACK_SCORE   = 1000
 
 # ─── In-memory state ──────────────────────────────────────────────────────────
 _token_cache    = {"token": None, "expires_at": 0}
 _watchlist_lock = threading.Lock()
 _scan_status    = {
-    "last_ran":      None,
+    "last_ran":     None,
     "items_checked": 0,
-    "changes_found": 0,
-    "email_sent":    False,
-    "scanning":      False,
+    "alerts_found": 0,
+    "email_sent":   False,
+    "scanning":     False,
 }
+_last_scan_results = []  # most recent scan's per-item results, in-memory, for the weekly digest
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -85,7 +88,7 @@ def get_token():
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Watchlist helpers
+# Watchlist / trusted-sellers helpers
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def load_watchlist():
@@ -100,20 +103,19 @@ def save_watchlist(items):
         json.dump(items, f, indent=2)
 
 
+def load_trusted_sellers():
+    if not os.path.exists(TRUSTED_SELLERS_FILE):
+        return []
+    try:
+        with open(TRUSTED_SELLERS_FILE, "r", encoding="utf-8") as f:
+            return [str(s).strip().lower() for s in json.load(f) if str(s).strip()]
+    except (OSError, ValueError):
+        return []
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Pricing logic
 # ═══════════════════════════════════════════════════════════════════════════════
-
-def extract_part_number(search_term):
-    """Extract a part number from a search term string."""
-    m = re.search(r'\b\d{4,}\b', search_term)
-    if m:
-        return m.group(0)
-    m = re.search(r'\b[A-Za-z]{1,5}[-]?\d{3,}\b', search_term)
-    if m:
-        return m.group(0).upper()
-    return ""
-
 
 def get_confidence(listing_count):
     if listing_count >= 10:
@@ -123,32 +125,49 @@ def get_confidence(listing_count):
     return "Low"
 
 
-def calculate_action(my_price, cost_price, min_margin_percent, competitor_lowest, listing_count):
-    """Return (action, suggested_price, reason, confidence)."""
-    min_floor  = cost_price * (1 + min_margin_percent / 100)
-    confidence = get_confidence(listing_count)
+def calculate_action(your_price, competitor_lowest, threshold_percent):
+    """Return (action, suggested_price, reason). competitor_lowest is None when out of stock."""
+    if competitor_lowest is None:
+        return "Raise", round(your_price, 2), "Trusted sellers out of stock — opportunity to raise price"
 
-    if competitor_lowest < my_price * 0.85:
-        pct      = (my_price - competitor_lowest) / my_price * 100
-        suggested = max(round(competitor_lowest * 1.02, 2), round(min_floor, 2))
+    if your_price > competitor_lowest * (1 + threshold_percent / 100):
+        pct = (your_price - competitor_lowest) / your_price * 100
         return (
             "Lower",
-            suggested,
-            f"Competitor is {pct:.1f}% cheaper than your price",
-            confidence,
+            round(competitor_lowest * 1.02, 2),
+            f"You are {pct:.1f}% above the trusted-seller lowest price",
         )
 
-    if my_price < competitor_lowest * 0.85:
-        pct      = (competitor_lowest - my_price) / competitor_lowest * 100
-        suggested = max(round(competitor_lowest * 0.95, 2), round(min_floor, 2))
+    if your_price < competitor_lowest * (1 - threshold_percent / 100):
+        pct = (competitor_lowest - your_price) / competitor_lowest * 100
         return (
             "Raise",
-            suggested,
-            f"You are {pct:.1f}% cheaper than nearest competitor",
-            confidence,
+            round(competitor_lowest * 0.95, 2),
+            f"You are {pct:.1f}% below the trusted-seller lowest price — room to raise",
         )
 
-    return "Hold", round(my_price, 2), "Price within 15% of nearest competitor", confidence
+    return "Hold", round(your_price, 2), f"Within {threshold_percent:.0f}% of the trusted-seller lowest price"
+
+
+def calculate_price_trend(price_history):
+    """rising only if each of the last 3 entries is strictly higher than the last,
+    falling only if each is strictly lower, stable otherwise (incl. <3 entries)."""
+    if len(price_history) < 3:
+        return "stable"
+    last3 = [h["price"] for h in price_history[-3:]]
+    if last3[0] < last3[1] < last3[2]:
+        return "rising"
+    if last3[0] > last3[1] > last3[2]:
+        return "falling"
+    return "stable"
+
+
+def price_n_days_ago(price_history, days=7):
+    if not price_history:
+        return None
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+    candidates = [h for h in price_history if h["date"] <= cutoff]
+    return candidates[-1]["price"] if candidates else price_history[0]["price"]
 
 
 def _ebay_base_url():
@@ -156,100 +175,66 @@ def _ebay_base_url():
 
 
 def scan_watchlist_item(item):
-    """Search eBay for item, return pricing dict. Raises on failure."""
+    """
+    Search eBay for this part exactly like /search (q = brand + part_number,
+    relevance sort, limit 10), then filter to trusted sellers (from
+    trusted_sellers.json) with 1000+ feedback and New condition only. Returns
+    a dict describing what was found; raises only on a hard eBay/auth failure,
+    which the caller records as a per-item scan error.
+    """
     token = get_token()
-    resp  = requests.get(
+    q = f"{item.get('brand', '')} {item.get('part_number', '')}".strip()
+    resp = requests.get(
         f"{_ebay_base_url()}/buy/browse/v1/item_summary/search",
         headers={
             "Authorization":           f"Bearer {token}",
             "X-EBAY-C-MARKETPLACE-ID": item.get("market", "EBAY_GB"),
             "Content-Type":            "application/json",
         },
-        # No sort param — relevance (eBay's default), matching the Search tab.
-        params={"q": item["search_term"], "limit": 50},
+        # No sort param — relevance (eBay's default), matching /search.
+        params={"q": q, "limit": 10},
         timeout=15,
     )
     resp.raise_for_status()
 
+    trusted_sellers = set(load_trusted_sellers())
+    raw_items       = resp.json().get("itemSummaries", [])
+
     listings = []
-    for s in resp.json().get("itemSummaries", []):
+    for s in raw_items:
         try:
-            p = float(s.get("price", {}).get("value", 0))
+            price = float(s.get("price", {}).get("value", 0))
         except (ValueError, TypeError):
             continue
-        if p <= 0:
+        if price <= 0:
             continue
         seller_obj = s.get("seller", {}) or {}
-        seller     = (seller_obj.get("username", "") or "").lower()
+        seller     = (seller_obj.get("username") or "").lower()
+        if seller not in trusted_sellers:
+            continue
         try:
             feedback = int(seller_obj.get("feedbackScore") or 0)
         except (ValueError, TypeError):
             feedback = 0
-        listings.append({"price": p, "seller": seller, "feedback": feedback})
-
-    trusted_sellers  = [s.lower() for s in item.get("trusted_sellers", []) if s]
-    min_feedback     = item.get("min_feedback_score", 1000)
-    limited_results  = False
-    low_feedback_used = False
-
-    if trusted_sellers:
-        # Trusted-sellers-only mode: strict exact-username match, applied
-        # before any price calculation. Never widens back out to the whole
-        # market — an item with zero trusted-seller listings raises rather
-        # than silently falling back to unfiltered market prices. Trusted
-        # sellers are manually vetted, so they're exempt from the feedback
-        # filter (only flagged if below it).
-        listings = [l for l in listings if l["seller"] in trusted_sellers]
-        if not listings:
-            raise ValueError("Not found in trusted sellers")
-        if len(listings) < 3:
-            limited_results = True
-    else:
-        # Whole-market mode: strictly exclude sellers below the minimum
-        # feedback score before any price calculation.
-        listings = [l for l in listings if l["feedback"] >= min_feedback]
+        if feedback < MIN_FEEDBACK_SCORE:
+            continue
+        if (s.get("condition") or "").strip().lower() != "new":
+            continue
+        listings.append({"price": price, "seller": seller, "feedback": feedback})
 
     if not listings:
-        raise ValueError("No valid prices in eBay results")
-
-    prices            = [l["price"] for l in listings]
-    competitor_lowest = round(min(prices), 2)
-    market_average    = round(sum(prices) / len(prices), 2)
-    listing_count     = len(prices)
-    lowest_listing    = min(listings, key=lambda l: l["price"])
-    low_feedback_used = trusted_sellers and lowest_listing["feedback"] < min_feedback
-
-    action, suggested_price, reason, confidence = calculate_action(
-        item["my_price"],
-        item.get("cost_price", 0),
-        item.get("min_margin_percent", 20),
-        competitor_lowest,
-        listing_count,
-    )
-
-    if limited_results:
-        reason = f"Limited results — {listing_count} trusted seller listing(s) found. " + reason
-    if low_feedback_used:
-        reason = (
-            f"Trusted seller '{lowest_listing['seller']}' has feedback "
-            f"({lowest_listing['feedback']}) below the minimum ({min_feedback}) — "
-            "included anyway since they were manually added. " + reason
-        )
+        return {
+            "out_of_stock":          True,
+            "trusted_sellers_found": 0,
+            "listings_found":        len(raw_items),
+            "competitor_lowest":     None,
+        }
 
     return {
-        "item":              item,
-        "competitor_lowest": competitor_lowest,
-        "market_average":    market_average,
-        "listing_count":     listing_count,
-        "action":            action,
-        "suggested_price":   suggested_price,
-        "seller_feedback":   lowest_listing["feedback"],
-        "low_feedback_used": bool(low_feedback_used),
-        "reason":            reason,
-        "confidence":        confidence,
-        "part_number":       extract_part_number(item["search_term"]),
-        "trusted_only":      bool(trusted_sellers),
-        "limited_results":   limited_results,
+        "out_of_stock":          False,
+        "trusted_sellers_found": len(listings),
+        "listings_found":        len(raw_items),
+        "competitor_lowest":     round(min(l["price"] for l in listings), 2),
     }
 
 
@@ -257,17 +242,18 @@ def scan_watchlist_item(item):
 # Scan runner (called by routes and scheduler)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def run_scan():
-    global _scan_status
+def run_scan(send_daily_email=True):
+    global _scan_status, _last_scan_results
     if _scan_status["scanning"]:
         return {"error": "Scan already in progress"}, 409
 
     _scan_status["scanning"] = True
-    lower_items   = []
-    raise_items   = []
-    all_results   = []
-    errors        = []
-    price_changes = 0
+    lower_items  = []
+    raise_items  = []
+    clear_items  = []
+    all_results  = []
+    errors       = []
+    alerts_count = 0
 
     try:
         with _watchlist_lock:
@@ -275,46 +261,75 @@ def run_scan():
 
         active = [it for it in items if it.get("active", True)]
 
-        for item in active:
+        for idx, item in enumerate(active):
+            was_out_of_stock = bool(item.get("competitor_out_of_stock"))
             try:
-                result = scan_watchlist_item(item)
+                scan = scan_watchlist_item(item)
             except Exception as e:
                 errors.append({
-                    "id":        item["id"],
-                    "part_name": item["part_name"],
-                    "error":     str(e),
+                    "id":          item["id"],
+                    "part_number": item.get("part_number", ""),
+                    "error":       str(e),
                 })
+                if idx < len(active) - 1:
+                    time.sleep(0.3)
                 continue
 
             now_str    = datetime.now(timezone.utc).isoformat()
-            new_price  = result["competitor_lowest"]
-            last_price = item.get("last_price")
-            threshold  = item.get("alert_threshold_percent", 2) / 100
+            your_price = item.get("your_price", 0)
+            threshold  = item.get("alert_threshold_percent", 5)
 
-            price_changed = (
-                last_price is not None
-                and abs(new_price - last_price) / max(last_price, 0.01) > threshold
-            )
+            item["last_checked"]            = now_str
+            item["competitor_out_of_stock"] = scan["out_of_stock"]
+
+            if scan["out_of_stock"]:
+                new_price = None
+            else:
+                new_price = scan["competitor_lowest"]
+                item["last_price"] = new_price
+                item.setdefault("price_history", []).append({"date": now_str[:10], "price": new_price})
+                item["price_history"] = item["price_history"][-90:]
+                item["price_trend"]   = calculate_price_trend(item["price_history"])
+
+            action, suggested_price, reason = calculate_action(your_price, new_price, threshold)
+
+            pct_diff = round((your_price - new_price) / new_price * 100, 1) if new_price else None
+            price_changed = pct_diff is not None and abs(pct_diff) > threshold
             if price_changed:
-                price_changes += 1
+                alerts_count += 1
 
-            item["last_price"]   = new_price
-            item["last_checked"] = now_str
-            item.setdefault("price_history", []).append(
-                {"date": now_str[:10], "price": new_price}
-            )
-            item["price_history"] = item["price_history"][-90:]
-
-            result["price_changed"] = price_changed
+            result = {
+                "item":                  item,
+                "competitor_lowest":     new_price,
+                "listings_found":        scan["listings_found"],
+                "trusted_sellers_found": scan["trusted_sellers_found"],
+                "out_of_stock":          scan["out_of_stock"],
+                "newly_out_of_stock":    scan["out_of_stock"] and not was_out_of_stock,
+                "back_in_stock":         (not scan["out_of_stock"]) and was_out_of_stock,
+                "action":                action,
+                "suggested_price":       suggested_price,
+                "reason":                reason,
+                "confidence":            get_confidence(scan["trusted_sellers_found"]),
+                "pct_diff":              pct_diff,
+                "price_changed":         price_changed,
+                "price_7d_ago":          price_n_days_ago(item.get("price_history", [])),
+            }
             all_results.append(result)
 
-            if result["action"] == "Lower":
+            if action == "Lower":
                 lower_items.append(result)
-            elif result["action"] == "Raise":
+            elif action == "Raise":
                 raise_items.append(result)
+            else:
+                clear_items.append(result)
+
+            if idx < len(active) - 1:
+                time.sleep(0.3)  # avoid hammering the eBay API
 
         with _watchlist_lock:
             save_watchlist(items)
+
+        _last_scan_results = all_results
 
         summary = {
             "total_active":   len(active),
@@ -322,31 +337,36 @@ def run_scan():
             "errors":         len(errors),
             "lower_needed":   len(lower_items),
             "raise_possible": len(raise_items),
-            "hold":           len(all_results) - len(lower_items) - len(raise_items),
-            "price_changes":  price_changes,
+            "hold":           len(clear_items),
+            "alerts":         alerts_count,
         }
 
-        email_sent, email_msg = send_alert_email(lower_items, raise_items, summary, all_results)
+        email_sent, email_msg = (
+            send_daily_alert_email(lower_items, raise_items, clear_items, summary, all_results)
+            if send_daily_email else (False, "Daily email skipped")
+        )
 
         _scan_status.update({
             "last_ran":      datetime.now(timezone.utc).isoformat(),
             "items_checked": len(all_results),
-            "changes_found": price_changes,
+            "alerts_found":  alerts_count,
             "email_sent":    email_sent,
             "scanning":      False,
         })
 
         return {
-            "summary":    summary,
+            "summary": summary,
             "results": [
                 {
-                    "id":               r["item"]["id"],
-                    "part_name":        r["item"]["part_name"],
-                    "action":           r["action"],
+                    "id":                r["item"]["id"],
+                    "part_number":       r["item"].get("part_number", ""),
+                    "brand":             r["item"].get("brand", ""),
+                    "action":            r["action"],
                     "competitor_lowest": r["competitor_lowest"],
-                    "suggested_price":  r["suggested_price"],
-                    "confidence":       r["confidence"],
-                    "price_changed":    r["price_changed"],
+                    "suggested_price":   r["suggested_price"],
+                    "confidence":        r["confidence"],
+                    "price_changed":     r["price_changed"],
+                    "out_of_stock":      r["out_of_stock"],
                 }
                 for r in all_results
             ],
@@ -361,67 +381,102 @@ def run_scan():
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Excel generation (MAM format)
+# Excel generation (MAM-compatible, two sheets)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def generate_excel(scan_results):
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "MAM Price Update"
+TREND_ARROW = {"rising": "↑", "falling": "↓", "stable": "→"}
 
-    headers = [
-        "Part Number",
-        "Description",
-        "Current Price (£)",
-        "Suggested Price (£)",
-        "Competitor Lowest (£)",
-        "Market Average (£)",
-        "Confidence",
-        "Action",
-        "Reason",
+REPRICE_HEADERS = [
+    "Part Number", "Brand", "Description", "Current Price (£)", "Suggested Price (£)",
+    "Competitor Lowest (£)", "Difference (%)", "Trend", "Action", "Confidence", "Reason",
+]
+MARKET_HEADERS = REPRICE_HEADERS + [
+    "Listings Found", "Trusted Sellers Found", "Last Checked", "Price 7 Days Ago", "Price Change This Week",
+]
+
+HDR_FILL = PatternFill(start_color="D9D9D9", end_color="D9D9D9", fill_type="solid")
+HDR_FONT = Font(bold=True)
+
+ROW_FILLS = {
+    "Lower": PatternFill(start_color="FFD7D7", end_color="FFD7D7", fill_type="solid"),
+    "Raise": PatternFill(start_color="FFE8B3", end_color="FFE8B3", fill_type="solid"),
+    "Hold":  PatternFill(start_color="D7FFD7", end_color="D7FFD7", fill_type="solid"),
+}
+
+
+def _write_header(ws, headers):
+    for col, h in enumerate(headers, 1):
+        cell           = ws.cell(row=1, column=col, value=h)
+        cell.fill      = HDR_FILL
+        cell.font      = HDR_FONT
+        cell.alignment = Alignment(horizontal="center")
+
+
+def _reprice_row(result):
+    item = result["item"]
+    return [
+        item.get("part_number", ""),
+        item.get("brand", ""),
+        item.get("description", ""),
+        item.get("your_price", 0),
+        result.get("suggested_price"),
+        result.get("competitor_lowest"),
+        result.get("pct_diff"),
+        TREND_ARROW.get(item.get("price_trend", "stable"), "→"),
+        result.get("action", "Hold"),
+        result.get("confidence", "Low"),
+        result.get("reason", ""),
     ]
 
-    hdr_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
-    hdr_font = Font(color="FFFFFF", bold=True)
 
-    for col, h in enumerate(headers, 1):
-        cell            = ws.cell(row=1, column=col, value=h)
-        cell.fill       = hdr_fill
-        cell.font       = hdr_font
-        cell.alignment  = Alignment(horizontal="center")
+def generate_mam_excel(all_results):
+    """Two-sheet MAM-compatible workbook: Reprice Actions (Lower/Raise only) and
+    Full Market Report (every part scanned)."""
+    wb = openpyxl.Workbook()
 
-    action_fills = {
-        "Lower": PatternFill(start_color="FFD7D7", end_color="FFD7D7", fill_type="solid"),
-        "Raise": PatternFill(start_color="D7FFD7", end_color="D7FFD7", fill_type="solid"),
-        "Hold":  PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid"),
-    }
+    # ── Sheet 1 — Reprice Actions ────────────────────────────────────────────
+    ws1 = wb.active
+    ws1.title = "Reprice Actions"
+    _write_header(ws1, REPRICE_HEADERS)
 
-    for row_idx, result in enumerate(scan_results, 2):
-        item   = result["item"]
-        action = result.get("action", "Hold")
-        fill   = action_fills.get(action, action_fills["Hold"])
-
-        row_data = [
-            result.get("part_number") or extract_part_number(item["search_term"]),
-            item["part_name"],
-            item["my_price"],
-            result.get("suggested_price", item["my_price"]),
-            result.get("competitor_lowest"),
-            result.get("market_average"),
-            result.get("confidence", "Low"),
-            action,
-            result.get("reason", ""),
-        ]
-
-        for col_idx, val in enumerate(row_data, 1):
-            cell      = ws.cell(row=row_idx, column=col_idx, value=val)
+    reprice_results = [r for r in all_results if r.get("action") in ("Lower", "Raise")]
+    for row_idx, result in enumerate(reprice_results, 2):
+        fill = ROW_FILLS.get(result.get("action"), ROW_FILLS["Hold"])
+        for col_idx, val in enumerate(_reprice_row(result), 1):
+            cell      = ws1.cell(row=row_idx, column=col_idx, value=val)
             cell.fill = fill
-            if col_idx in (3, 4, 5, 6) and isinstance(val, (int, float)):
+            if col_idx in (4, 5, 6) and isinstance(val, (int, float)):
                 cell.number_format = "£#,##0.00"
 
-    col_widths = [16, 36, 18, 20, 22, 18, 12, 8, 55]
-    for i, width in enumerate(col_widths, 1):
-        ws.column_dimensions[get_column_letter(i)].width = width
+    for i, width in enumerate([16, 14, 30, 16, 18, 20, 14, 8, 10, 12, 50], 1):
+        ws1.column_dimensions[get_column_letter(i)].width = width
+
+    # ── Sheet 2 — Full Market Report ─────────────────────────────────────────
+    ws2 = wb.create_sheet("Full Market Report")
+    _write_header(ws2, MARKET_HEADERS)
+
+    for row_idx, result in enumerate(all_results, 2):
+        item = result["item"]
+        row_data = _reprice_row(result) + [
+            result.get("listings_found", 0),
+            result.get("trusted_sellers_found", 0),
+            (item.get("last_checked") or "")[:10],
+            result.get("price_7d_ago"),
+            (
+                round(result["competitor_lowest"] - result["price_7d_ago"], 2)
+                if result.get("competitor_lowest") is not None and result.get("price_7d_ago") is not None
+                else None
+            ),
+        ]
+        fill = ROW_FILLS.get(result.get("action"), ROW_FILLS["Hold"])
+        for col_idx, val in enumerate(row_data, 1):
+            cell      = ws2.cell(row=row_idx, column=col_idx, value=val)
+            cell.fill = fill
+            if col_idx in (4, 5, 6, 15, 16) and isinstance(val, (int, float)):
+                cell.number_format = "£#,##0.00"
+
+    for i, width in enumerate([16, 14, 30, 16, 18, 20, 14, 8, 10, 12, 50, 14, 16, 14, 16, 18], 1):
+        ws2.column_dimensions[get_column_letter(i)].width = width
 
     buf = io.BytesIO()
     wb.save(buf)
@@ -430,107 +485,135 @@ def generate_excel(scan_results):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Email
+# Email — daily alert + weekly digest
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _table_rows(results):
+def _email_table_rows(results, out_of_stock=False):
     rows = ""
     for r in results:
-        item = r["item"]
+        item  = r["item"]
+        trend = TREND_ARROW.get(item.get("price_trend", "stable"), "→")
+        comp  = "Out of stock" if r.get("out_of_stock") else f"£{r.get('competitor_lowest', 0):.2f}"
+        pct   = "—" if r.get("pct_diff") is None else f"{r['pct_diff']:.1f}%"
         rows += (
             f"<tr>"
-            f"<td style='padding:6px 10px;border-bottom:1px solid #eee'>{item['part_name']}</td>"
-            f"<td style='padding:6px 10px;border-bottom:1px solid #eee'>£{item['my_price']:.2f}</td>"
-            f"<td style='padding:6px 10px;border-bottom:1px solid #eee'>£{r.get('competitor_lowest',0):.2f}</td>"
-            f"<td style='padding:6px 10px;border-bottom:1px solid #eee;font-weight:bold'>"
-            f"£{r.get('suggested_price', item['my_price']):.2f}</td>"
-            f"<td style='padding:6px 10px;border-bottom:1px solid #eee'>{r.get('confidence','')}</td>"
-            f"<td style='padding:6px 10px;border-bottom:1px solid #eee'>{r.get('reason','')}</td>"
+            f"<td style='padding:6px 10px;border-bottom:1px solid #eee'>{item.get('part_number','')}</td>"
+            f"<td style='padding:6px 10px;border-bottom:1px solid #eee'>{item.get('brand','')}</td>"
+            f"<td style='padding:6px 10px;border-bottom:1px solid #eee'>£{item.get('your_price',0):.2f}</td>"
+            f"<td style='padding:6px 10px;border-bottom:1px solid #eee'>{comp}</td>"
+            f"<td style='padding:6px 10px;border-bottom:1px solid #eee'>{pct}</td>"
+            f"<td style='padding:6px 10px;border-bottom:1px solid #eee'>{trend}</td>"
+            f"<td style='padding:6px 10px;border-bottom:1px solid #eee;font-weight:bold'>{r.get('action','Hold')}</td>"
             f"</tr>"
         )
     return rows
 
 
-def _section(title, color, emoji, results):
+def _email_section(title, color, emoji, results):
     if not results:
         return ""
-    rows = _table_rows(results)
     return f"""
     <div style="margin-bottom:32px">
       <h2 style="color:{color};margin-bottom:8px">{emoji} {title}</h2>
       <table style="width:100%;border-collapse:collapse;font-size:13px">
         <thead>
           <tr style="background:{color};color:#fff">
-            <th style="padding:8px 10px;text-align:left">Part</th>
+            <th style="padding:8px 10px;text-align:left">Part Number</th>
+            <th style="padding:8px 10px;text-align:left">Brand</th>
             <th style="padding:8px 10px;text-align:left">Your Price</th>
-            <th style="padding:8px 10px;text-align:left">Competitor</th>
-            <th style="padding:8px 10px;text-align:left">Suggested</th>
-            <th style="padding:8px 10px;text-align:left">Confidence</th>
-            <th style="padding:8px 10px;text-align:left">Reason</th>
+            <th style="padding:8px 10px;text-align:left">Competitor Lowest</th>
+            <th style="padding:8px 10px;text-align:left">Diff %</th>
+            <th style="padding:8px 10px;text-align:left">Trend</th>
+            <th style="padding:8px 10px;text-align:left">Action</th>
           </tr>
         </thead>
-        <tbody>{rows}</tbody>
+        <tbody>{_email_table_rows(results)}</tbody>
       </table>
     </div>"""
 
 
-def build_email_html(lower_items, raise_items, summary):
+def build_daily_email_html(lower_items, raise_items, clear_items, summary):
     today = datetime.now(timezone.utc).strftime("%d %B %Y")
     return f"""<!DOCTYPE html>
 <html>
-<body style="font-family:Arial,sans-serif;max-width:920px;margin:0 auto;padding:20px;color:#222">
+<body style="font-family:Arial,sans-serif;max-width:960px;margin:0 auto;padding:20px;color:#222">
   <h1 style="border-bottom:3px solid #1a5276;padding-bottom:10px;margin-bottom:24px">
-    eBay Parts Finder — Daily Price Report
+    APD Price Alert
     <span style="display:block;font-size:14px;font-weight:normal;color:#555;margin-top:4px">{today}</span>
   </h1>
 
-  {_section("Urgent — Reprice Lower", "#c0392b", "🔴", lower_items)}
-  {_section("Opportunities — Raise Prices", "#d68910", "🟡", raise_items)}
+  {_email_section("Urgent — You're Being Undercut", "#c0392b", "🔴", lower_items)}
+  {_email_section("Opportunity — Room To Raise", "#d68910", "🟡", raise_items)}
 
   <div style="background:#eafaf1;border-radius:8px;padding:20px;margin-top:24px">
-    <h2 style="color:#1e8449;margin-top:0">🟢 Daily Summary</h2>
-    <table style="font-size:14px;border-collapse:collapse">
-      <tr><td style="padding:4px 20px 4px 0;color:#555">Active items monitored</td>
-          <td><strong>{summary.get('total_active', 0)}</strong></td></tr>
-      <tr><td style="padding:4px 20px 4px 0;color:#555">Successfully scanned</td>
-          <td><strong>{summary.get('total_scanned', 0)}</strong></td></tr>
-      <tr><td style="padding:4px 20px 4px 0;color:#555">Scan errors</td>
-          <td><strong>{summary.get('errors', 0)}</strong></td></tr>
-      <tr><td style="padding:4px 20px 4px 0;color:#555">Price changes detected</td>
-          <td><strong>{summary.get('price_changes', 0)}</strong></td></tr>
-      <tr><td style="padding:4px 20px 4px 0;color:#555">Urgent reprice needed</td>
-          <td><strong style="color:#c0392b">{summary.get('lower_needed', 0)}</strong></td></tr>
-      <tr><td style="padding:4px 20px 4px 0;color:#555">Raise opportunities</td>
-          <td><strong style="color:#d68910">{summary.get('raise_possible', 0)}</strong></td></tr>
-      <tr><td style="padding:4px 20px 4px 0;color:#555">Holding (no action needed)</td>
-          <td><strong style="color:#1e8449">{summary.get('hold', 0)}</strong></td></tr>
-    </table>
+    <h2 style="color:#1e8449;margin-top:0">🟢 All Clear</h2>
+    <p style="margin:0;font-size:14px;color:#333">
+      <strong>{len(clear_items)}</strong> part(s) checked with no action needed, out of
+      <strong>{summary.get('total_scanned', 0)}</strong> scanned
+      ({summary.get('errors', 0)} scan error(s)).
+    </p>
   </div>
 
   <p style="margin-top:24px;font-size:12px;color:#999">
-    MAM-compatible price update spreadsheet attached. Generated by eBay Parts Finder.
+    MAM-compatible reprice spreadsheet attached (Reprice Actions + Full Market Report).
+    Generated by eBay Parts Finder.
   </p>
 </body>
 </html>"""
 
 
-def send_alert_email(lower_items, raise_items, summary, all_results):
-    if not lower_items and not raise_items:
-        return False, "No actionable changes — email not sent"
+def build_weekly_email_html(all_results):
+    today          = datetime.now(timezone.utc)
+    week_of        = today.strftime("%d %B %Y")
+    changed        = [r for r in all_results if r.get("price_changed")]
+    raise_ops      = [r for r in all_results if r.get("action") == "Raise" and not r.get("out_of_stock")]
+    out_of_stock   = [r for r in all_results if r.get("out_of_stock")]
+    back_in_stock  = [r for r in all_results if r.get("back_in_stock")]
+    trend_counts   = {"rising": 0, "falling": 0, "stable": 0}
+    for r in all_results:
+        trend_counts[r["item"].get("price_trend", "stable")] = trend_counts.get(r["item"].get("price_trend", "stable"), 0) + 1
+
+    return f"""<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;max-width:960px;margin:0 auto;padding:20px;color:#222">
+  <h1 style="border-bottom:3px solid #1a5276;padding-bottom:10px;margin-bottom:24px">
+    APD Weekly Price Report
+    <span style="display:block;font-size:14px;font-weight:normal;color:#555;margin-top:4px">Week of {week_of}</span>
+  </h1>
+
+  <div style="background:#eef3fb;border-radius:8px;padding:20px;margin-bottom:28px">
+    <h2 style="color:#1a5276;margin-top:0">Overview</h2>
+    <table style="font-size:14px;border-collapse:collapse">
+      <tr><td style="padding:4px 20px 4px 0;color:#555">Parts monitored</td><td><strong>{len(all_results)}</strong></td></tr>
+      <tr><td style="padding:4px 20px 4px 0;color:#555">Changed price this week</td><td><strong>{len(changed)}</strong></td></tr>
+      <tr><td style="padding:4px 20px 4px 0;color:#555">Raise opportunities</td><td><strong style="color:#1e8449">{len(raise_ops)}</strong></td></tr>
+      <tr><td style="padding:4px 20px 4px 0;color:#555">Trusted sellers currently out of stock</td><td><strong style="color:#d68910">{len(out_of_stock)}</strong></td></tr>
+      <tr><td style="padding:4px 20px 4px 0;color:#555">New competitors appeared (back in stock)</td><td><strong>{len(back_in_stock)}</strong></td></tr>
+      <tr><td style="padding:4px 20px 4px 0;color:#555">Price trend — rising / falling / stable</td>
+          <td><strong>↑ {trend_counts.get('rising',0)} / ↓ {trend_counts.get('falling',0)} / → {trend_counts.get('stable',0)}</strong></td></tr>
+    </table>
+  </div>
+
+  {_email_section("Changed Price This Week", "#1a5276", "📈", changed)}
+  {_email_section("Raise Opportunities", "#1e8449", "🟢", raise_ops)}
+  {_email_section("Trusted Sellers Out Of Stock — Opportunity To Raise", "#d68910", "🟠", out_of_stock)}
+  {_email_section("New Competitors Appeared (Back In Stock)", "#8e44ad", "🆕", back_in_stock)}
+
+  <p style="margin-top:24px;font-size:12px;color:#999">
+    Full weekly MAM spreadsheet attached with suggested prices for every part.
+    Generated by eBay Parts Finder.
+  </p>
+</body>
+</html>"""
+
+
+def _send_email(subject, html, all_results, filename_prefix):
     if not SENDGRID_API_KEY:
         return False, "SENDGRID_API_KEY not configured"
 
-    today         = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    urgent_count  = len(lower_items)
-    subject       = (
-        f"⚠️ {urgent_count} urgent reprice(s) — eBay Parts {today}"
-        if urgent_count
-        else f"eBay Parts — price raise opportunities {today}"
-    )
-
-    html          = build_email_html(lower_items, raise_items, summary)
-    excel_bytes   = generate_excel(all_results)
+    excel_bytes   = generate_mam_excel(all_results)
     encoded_excel = base64.b64encode(excel_bytes).decode()
+    today         = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     message = Mail(
         from_email=ALERT_EMAIL_FROM,
@@ -540,7 +623,7 @@ def send_alert_email(lower_items, raise_items, summary, all_results):
     )
     message.attachment = Attachment(
         FileContent(encoded_excel),
-        FileName(f"mam_price_update_{today}.xlsx"),
+        FileName(f"{filename_prefix}_{today}.xlsx"),
         FileType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
         Disposition("attachment"),
     )
@@ -553,20 +636,91 @@ def send_alert_email(lower_items, raise_items, summary, all_results):
         return False, str(e)
 
 
+def send_daily_alert_email(lower_items, raise_items, clear_items, summary, all_results):
+    if not lower_items and not raise_items:
+        return False, "No thresholds breached — daily email not sent"
+
+    today   = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    needing = len(lower_items) + len(raise_items)
+    subject = f"⚠️ APD Price Alert — {needing} part{'s' if needing != 1 else ''} need attention {today}"
+    html    = build_daily_email_html(lower_items, raise_items, clear_items, summary)
+
+    return _send_email(subject, html, all_results, "mam_reprice")
+
+
+def send_weekly_digest_email(all_results):
+    week_of = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    subject = f"📊 APD Weekly Price Report — week of {week_of}"
+    html    = build_weekly_email_html(all_results)
+
+    return _send_email(subject, html, all_results, "mam_weekly_report")
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
-# Scheduler — daily 07:00 UTC
+# Scheduler — daily scan 07:00 UTC, weekly digest Monday 08:00 UTC
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _scheduled_scan():
+def _scheduled_daily_scan():
     try:
-        run_scan()
+        run_scan(send_daily_email=True)
     except Exception:
         pass
 
 
+def _scheduled_weekly_digest():
+    try:
+        # The daily 07:00 UTC job already ran an hour earlier today, so reuse
+        # its results rather than scanning again — falls back to a fresh scan
+        # only if nothing recent is cached (e.g. first run after a restart).
+        if not _last_scan_results:
+            run_scan(send_daily_email=False)
+        send_weekly_digest_email(_last_scan_results)
+    except Exception:
+        pass
+
+
+SCHEDULER_LOCK_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".scheduler.lock")
+
+
+def _acquire_scheduler_lock():
+    """
+    Guard against the daily/weekly jobs firing once per gunicorn worker if the
+    worker count is ever increased beyond the current single-worker Procfile —
+    only the process that wins this PID-file lock starts the scheduler. Stale
+    locks (owning process no longer alive) are reclaimed automatically.
+    """
+    try:
+        fd = os.open(SCHEDULER_LOCK_FILE, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.write(fd, str(os.getpid()).encode())
+        os.close(fd)
+        return True
+    except FileExistsError:
+        try:
+            with open(SCHEDULER_LOCK_FILE, "r", encoding="utf-8") as f:
+                old_pid = int(f.read().strip())
+            os.kill(old_pid, 0)
+            return False  # owning process is still alive
+        except Exception:
+            # Stale or unreadable lock — reclaim it.
+            try:
+                os.remove(SCHEDULER_LOCK_FILE)
+            except OSError:
+                pass
+            try:
+                fd = os.open(SCHEDULER_LOCK_FILE, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                os.write(fd, str(os.getpid()).encode())
+                os.close(fd)
+                return True
+            except OSError:
+                return False
+
+
 _scheduler = BackgroundScheduler(daemon=True)
-_scheduler.add_job(_scheduled_scan, "cron", hour=7, minute=0)
-_scheduler.start()
+
+if _acquire_scheduler_lock():
+    _scheduler.add_job(_scheduled_daily_scan, "cron", hour=7, minute=0, id="daily_scan", replace_existing=True)
+    _scheduler.add_job(_scheduled_weekly_digest, "cron", day_of_week="mon", hour=8, minute=0, id="weekly_digest", replace_existing=True)
+    _scheduler.start()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -765,7 +919,17 @@ def _normalize_finding(item):
 
 @app.route("/watchlist/scan/status", methods=["GET"])
 def scan_status():
-    return jsonify(_scan_status)
+    with _watchlist_lock:
+        total_parts = len(load_watchlist())
+
+    daily_job  = _scheduler.get_job("daily_scan")
+    next_scan  = daily_job.next_run_time.isoformat() if daily_job and daily_job.next_run_time else None
+
+    status = dict(_scan_status)
+    status["total_parts"] = total_parts
+    status["next_scan"]   = next_scan
+    status["total_alerts"] = _scan_status.get("alerts_found", 0)
+    return jsonify(status)
 
 
 @app.route("/watchlist/scan", methods=["POST"])
@@ -781,32 +945,40 @@ def get_watchlist():
     return jsonify(items)
 
 
+def _build_watchlist_item(data):
+    """Build a new watchlist item dict from request data. Raises KeyError/ValueError on bad input."""
+    return {
+        "id":                      str(uuid.uuid4()),
+        "part_number":             str(data["part_number"]),
+        "brand":                   str(data.get("brand", "")),
+        "description":             str(data.get("description", "")),
+        "your_price":              float(data["your_price"]),
+        "alert_threshold_percent": float(data.get("alert_threshold_percent", 5)),
+        "market":                  str(data.get("market", "EBAY_GB")),
+        "active":                  bool(data.get("active", True)),
+        "added_date":              datetime.now(timezone.utc).isoformat(),
+        "last_checked":            None,
+        "last_price":              None,
+        "price_history":           [],
+        "price_trend":             "stable",
+        "competitor_out_of_stock": False,
+    }
+
+
 @app.route("/watchlist", methods=["POST"])
 def add_watchlist_item():
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "JSON body required"}), 400
 
-    missing = [f for f in ("part_name", "search_term", "my_price", "cost_price") if f not in data]
+    missing = [f for f in ("part_number", "your_price") if f not in data]
     if missing:
         return jsonify({"error": f"Missing fields: {', '.join(missing)}"}), 400
 
-    item = {
-        "id":                      str(uuid.uuid4()),
-        "part_name":               str(data["part_name"]),
-        "search_term":             str(data["search_term"]),
-        "my_price":                float(data["my_price"]),
-        "cost_price":              float(data["cost_price"]),
-        "min_margin_percent":      float(data.get("min_margin_percent", 20)),
-        "alert_threshold_percent": float(data.get("alert_threshold_percent", 2)),
-        "market":                  str(data.get("market", "EBAY_GB")),
-        "trusted_sellers":         [str(s).strip().lower() for s in data.get("trusted_sellers", []) if str(s).strip()],
-        "min_feedback_score":      int(data.get("min_feedback_score", 1000)),
-        "last_price":              None,
-        "last_checked":            None,
-        "price_history":           [],
-        "active":                  bool(data.get("active", True)),
-    }
+    try:
+        item = _build_watchlist_item(data)
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": f"Invalid field value: {e}"}), 400
 
     with _watchlist_lock:
         items = load_watchlist()
@@ -816,14 +988,40 @@ def add_watchlist_item():
     return jsonify(item), 201
 
 
+@app.route("/watchlist/import", methods=["POST"])
+def import_watchlist():
+    data = request.get_json(silent=True)
+    if not isinstance(data, list):
+        return jsonify({"error": "JSON body must be an array of parts"}), 400
+
+    imported = []
+    errors   = []
+    for i, entry in enumerate(data):
+        if not isinstance(entry, dict) or "part_number" not in entry or "your_price" not in entry:
+            errors.append({"index": i, "error": "Missing part_number or your_price"})
+            continue
+        try:
+            imported.append(_build_watchlist_item(entry))
+        except (ValueError, TypeError) as e:
+            errors.append({"index": i, "error": str(e)})
+
+    with _watchlist_lock:
+        items = load_watchlist()
+        items.extend(imported)
+        save_watchlist(items)
+
+    return jsonify({"imported": len(imported), "errors": errors, "items": imported}), 201
+
+
 @app.route("/watchlist/<item_id>", methods=["PUT"])
 def update_watchlist_item(item_id):
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "JSON body required"}), 400
 
-    numeric_fields = {"my_price", "cost_price", "min_margin_percent", "alert_threshold_percent"}
-    allowed_fields = numeric_fields | {"part_name", "search_term", "market", "active", "trusted_sellers", "min_feedback_score"}
+    numeric_fields = {"your_price", "alert_threshold_percent"}
+    string_fields  = {"part_number", "brand", "description", "market"}
+    allowed_fields = numeric_fields | string_fields | {"active"}
 
     with _watchlist_lock:
         items = load_watchlist()
@@ -834,12 +1032,10 @@ def update_watchlist_item(item_id):
                         val = data[field]
                         if field in numeric_fields:
                             val = float(val)
+                        elif field in string_fields:
+                            val = str(val)
                         elif field == "active":
                             val = bool(val)
-                        elif field == "trusted_sellers":
-                            val = [str(s).strip().lower() for s in val if str(s).strip()]
-                        elif field == "min_feedback_score":
-                            val = int(val)
                         items[i][field] = val
                 save_watchlist(items)
                 return jsonify(items[i])
