@@ -1063,7 +1063,7 @@
           <span class="bpc-upload-status" id="bpc-upload-status"></span>
         </div>
 
-        <p class="bpc-mode-note"><i class="ti ti-info-circle"></i> If a brand is given, each part is searched as brand + part number (e.g. "Meyle 3282280008") first, falling back to the part number alone in quotes if that returns fewer than 3 results. Without a brand, the part number is searched in quotes first, then without quotes as a fallback.</p>
+        <p class="bpc-mode-note"><i class="ti ti-info-circle"></i> Each part runs a single exact-match search — the same standard search the Search tab uses — using brand + part number in quotes if a brand is given (e.g. "Meyle 3282280008"), or just the part number in quotes otherwise. No fallback searches. Listings from your own stores (added via the ⭐ My Stores panel) are always excluded from results.</p>
 
         <div class="bpc-options">
           <div class="bpc-opt-group">
@@ -3816,51 +3816,18 @@ async function bpcFetchSearchResults(q, market) {
 async function bpcSearchPart(part, opts) {
   const term  = (part.partNumber || part.description || '').trim();
   const brand = (part.brand || '').trim();
-  if (!term) return { found: false, matchMethod: 'notfound', trustedFallback: false, listings: [] };
+  if (!term) return { found: false, matchMethod: 'notfound', trustedFallback: false, ownExcludedCount: 0, listings: [] };
 
-  let raw, matchMethod;
+  // Identical to the Search tab's own exact-match mode: one quoted query, no
+  // fallbacks or alternate endpoints. Brand + part number when a brand is known
+  // disambiguates part numbers that are reused across manufacturers.
+  const q = brand ? `"${brand} ${term}"` : `"${term}"`;
+  const matchMethod = brand ? 'brand_part' : 'part_only';
 
-  if (brand) {
-    // Brand disambiguates part numbers that are reused across manufacturers
-    // (e.g. "3282280008" matches both Meyle and BGA listings).
-    const brandRaw = await bpcFetchSearchResults(`${brand} ${term}`, opts.market);
-    if (brandRaw.length >= 3) {
-      raw = brandRaw;
-      matchMethod = 'brand_part';
-    } else {
-      const partOnlyRaw = await bpcFetchSearchResults(`"${term}"`, opts.market);
-      if (partOnlyRaw.length > 0) {
-        raw = partOnlyRaw;
-        matchMethod = 'part_only';
-      } else if (brandRaw.length > 0) {
-        raw = brandRaw;
-        matchMethod = 'brand_part';
-      } else {
-        raw = [];
-        matchMethod = 'notfound';
-      }
-    }
-  } else {
-    const quotedRaw = await bpcFetchSearchResults(`"${term}"`, opts.market);
-    if (quotedRaw.length >= 3) {
-      raw = quotedRaw;
-      matchMethod = 'part_only';
-    } else {
-      const unquotedRaw = await bpcFetchSearchResults(term, opts.market);
-      if (unquotedRaw.length > 0) {
-        raw = unquotedRaw;
-        matchMethod = 'part_only';
-      } else if (quotedRaw.length > 0) {
-        raw = quotedRaw;
-        matchMethod = 'part_only';
-      } else {
-        raw = [];
-        matchMethod = 'notfound';
-      }
-    }
-  }
+  const raw = await bpcFetchSearchResults(q, opts.market);
 
-  const items = raw
+  const ownStores = new Set(myStores.map(s => s.username));
+  const allItems = raw
     .map(i => ({
       title:     i.title || '',
       price:     parseFloat(i.price?.value || 0),
@@ -3868,14 +3835,20 @@ async function bpcSearchPart(part, opts) {
       url:       i.itemWebUrl || '#',
       condition: i.condition || ''
     }))
-    .filter(i => i.price > 0)
+    .filter(i => i.price > 0);
+
+  const ownExcludedCount = allItems.filter(i => ownStores.has(i.seller)).length;
+  const items = allItems
+    .filter(i => !ownStores.has(i.seller))
     .sort((a, b) => a.price - b.price);
 
-  if (!items.length) return { found: false, matchMethod: 'notfound', trustedFallback: false, listings: [] };
+  if (!items.length) return { found: false, matchMethod: 'notfound', trustedFallback: false, ownExcludedCount, listings: [] };
 
   let trustedFallback = false;
   let pool = items;
   if (opts.compare === 'trusted') {
+    // items already excludes own stores, so a store can never be trusted here
+    // even if it's also saved as a "trusted seller" — own listings are never used.
     const trusted = items.filter(i => savedSellers.includes(i.seller));
     if (trusted.length >= 3) {
       pool = trusted;
@@ -3892,6 +3865,7 @@ async function bpcSearchPart(part, opts) {
     found: true,
     trustedFallback,
     matchMethod,
+    ownExcludedCount,
     matchedTitle:     used[0].title,
     competitorLowest: used[0].price,
     marketAverage:    parseFloat(marketAverage.toFixed(2)),
@@ -3961,7 +3935,7 @@ async function startBulkPriceCheck() {
     try {
       const search = await bpcSearchPart(part, opts);
       if (!search.found) {
-        result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', matchMethod: 'notfound', trustedFallback: false, listings: [] };
+        result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', matchMethod: 'notfound', trustedFallback: false, ownExcludedCount: search.ownExcludedCount || 0, listings: [] };
       } else {
         const cls = bpcClassify(part.yourPrice, search.competitorLowest, opts.threshold);
         result = {
@@ -3976,12 +3950,13 @@ async function startBulkPriceCheck() {
           competitorCount:  search.competitorCount,
           matchMethod:      search.matchMethod,
           trustedFallback:  search.trustedFallback,
+          ownExcludedCount: search.ownExcludedCount || 0,
           listings:         search.listings,
           ...cls
         };
       }
     } catch {
-      result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', matchMethod: 'notfound', trustedFallback: false, listings: [] };
+      result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', matchMethod: 'notfound', trustedFallback: false, ownExcludedCount: 0, listings: [] };
     }
 
     result.idx = monitorResults.length;
@@ -4015,13 +3990,19 @@ function bpcViewBtnHtml(r) {
     : '—';
 }
 
+function bpcOwnExcludedNote(r) {
+  const n = r.ownExcludedCount || 0;
+  if (!n) return '';
+  return `<span class="bpc-fallback-note">${n} own listing${n === 1 ? '' : 's'} excluded</span>`;
+}
+
 function bpcRowHtml(r) {
   const S = '£';
   const viewBtn = bpcViewBtnHtml(r);
 
   if (r.status === 'notfound') {
     return `<tr class="bpc-row-notfound">
-      <td>${r.partNumber || '—'}</td><td class="col-desc">${r.description || '—'}</td>
+      <td>${r.partNumber || '—'}</td><td class="col-desc">${r.description || '—'}${bpcOwnExcludedNote(r)}</td>
       <td>${S}${(r.yourPrice || 0).toFixed(2)}</td>
       <td>—</td><td>—</td><td>—</td><td>—</td><td>0</td>
       <td class="col-desc">—</td>
@@ -4036,7 +4017,7 @@ function bpcRowHtml(r) {
     : '';
   const emoji    = r.status === 'action' ? '🔴' : r.status === 'opportunity' ? '🟡' : '🟢';
   const label    = r.status === 'action' ? 'Action Needed' : r.status === 'opportunity' ? 'Opportunity' : 'OK';
-  const fallbackNote = r.trustedFallback ? '<span class="bpc-fallback-note">Trusted seller fallback</span>' : '';
+  const fallbackNote = (r.trustedFallback ? '<span class="bpc-fallback-note">Trusted seller fallback</span>' : '') + bpcOwnExcludedNote(r);
   const diffSign = r.priceDiff > 0 ? '+' : r.priceDiff < 0 ? '-' : '';
   return `<tr class="${rowClass}">
     <td>${r.partNumber || '—'}</td>
@@ -4145,6 +4126,7 @@ function bpcExportExcel() {
       if (r.matchMethod === 'part_only') reason = 'Matched on part number only — verify the brand manually. ' + reason;
       if (r.trustedFallback) reason += ' — Trusted seller fallback';
     }
+    if (r.ownExcludedCount) reason += ` — ${r.ownExcludedCount} own listing${r.ownExcludedCount === 1 ? '' : 's'} excluded`;
 
     aoa.push([
       r.partNumber || '', r.description || '', r.yourPrice,
