@@ -630,7 +630,7 @@
   .bpc-table tr.bpc-row-action td { background: #FCEBEB; }
   .bpc-table tr.bpc-row-opportunity td { background: #FEF3C7; }
   .bpc-table tr.bpc-row-notfound td { color: #d97706; font-style: italic; }
-  .bpc-table tr.bpc-row-unverified td { background: #FEF3E0; color: #92400E; }
+  .bpc-table tr.bpc-row-lowconf td { background: #FEF3E0; color: #92400E; }
   .bpc-table .col-desc { max-width: 240px; white-space: normal; }
   .bpc-fallback-note { font-size: 10px; color: var(--text-muted); font-style: italic; display: block; white-space: normal; }
   .bpc-mode-note { font-size: 12px; color: var(--text-muted); background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; display: flex; align-items: center; gap: 7px; margin-bottom: 14px; }
@@ -1063,7 +1063,7 @@
           <span class="bpc-upload-status" id="bpc-upload-status"></span>
         </div>
 
-        <p class="bpc-mode-note"><i class="ti ti-info-circle"></i> Every part is searched as an exact match and every returned listing is verified against the part number before its price is used.</p>
+        <p class="bpc-mode-note"><i class="ti ti-info-circle"></i> Each part is matched via eBay Item Specifics (Manufacturer Part Number / Interchange / OEM number) first, falling back to an exact title search only when too few specific matches are found.</p>
 
         <div class="bpc-options">
           <div class="bpc-opt-group">
@@ -1121,7 +1121,7 @@
           <span class="bpc-live-pill">🔴 Action needed <strong id="bpc-live-action">0</strong></span>
           <span class="bpc-live-pill">🟡 Opportunities <strong id="bpc-live-opportunity">0</strong></span>
           <span class="bpc-live-pill">🟢 OK <strong id="bpc-live-ok">0</strong></span>
-          <span class="bpc-live-pill">🟠 Unverified <strong id="bpc-live-unverified">0</strong></span>
+          <span class="bpc-live-pill">🔴 Low confidence <strong id="bpc-live-unverified">0</strong></span>
         </div>
       </div>
 
@@ -3742,7 +3742,8 @@ async function bpcParseFile(file) {
       return {
         partNumber:  String(norm.part_number ?? norm.partnumber ?? norm.part ?? '').trim(),
         description: String(norm.description ?? '').trim(),
-        yourPrice:   parseFloat(norm.your_price ?? norm.yourprice ?? norm.price ?? '') || 0
+        yourPrice:   parseFloat(norm.your_price ?? norm.yourprice ?? norm.price ?? '') || 0,
+        brand:       String(norm.brand ?? norm.manufacturer ?? '').trim()
       };
     }).filter(r => r.partNumber || r.description);
 
@@ -3766,10 +3767,10 @@ async function bpcParseFile(file) {
   }
 }
 
-function bpcConfidence(count) {
-  if (count >= 10) return 'High';
-  if (count >= 5)  return 'Medium';
-  return 'Low';
+function bpcMatchMethodBadge(method) {
+  if (method === 'exact_spec')  return '🟢 Spec match';
+  if (method === 'interchange') return '🟡 Interchange match';
+  return '🔴 Title match';
 }
 
 function bpcClassify(yourPrice, competitorLowest, thresholdPct) {
@@ -3794,88 +3795,89 @@ function bpcClassify(yourPrice, competitorLowest, thresholdPct) {
   return { status: 'ok', action: 'Hold', suggestedPrice: yourPrice, reason: `Price within ${thresholdPct}% of the nearest competitor` };
 }
 
-// Strips punctuation so "08.9371.10" matches titles that render the same
-// number as "08-9371-10", "089371 10", etc.
-function bpcNormalizeForMatch(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
-
-function bpcTitleMatchesTerm(title, term) {
-  const normTerm = bpcNormalizeForMatch(term);
-  if (!normTerm) return false;
-  return bpcNormalizeForMatch(title).includes(normTerm);
-}
+// Priority used to pick the single "best" match method to show for a part
+// when its used listings were found via more than one search stage.
+const MATCH_METHOD_PRIORITY = { exact_spec: 0, interchange: 1, title_match: 2 };
 
 async function bpcSearchPart(part, opts) {
-  const term = (part.partNumber || part.description || '').trim();
-  if (!term) return { found: false, verified: false, trustedFallback: false, listings: [] };
+  const partNumber = (part.partNumber || part.description || '').trim();
+  if (!partNumber) return { found: false, trustedFallback: false, listings: [], confidence: 'Low' };
 
-  const q = `"${term}"`;
+  const params = new URLSearchParams({ part_number: partNumber, market: opts.market, limit: 50 });
+  if (part.brand) params.set('brand', part.brand);
 
-  let raw = [];
+  let data;
   try {
-    const params = new URLSearchParams({ q, limit: 50, sort: 'price', market: opts.market });
-    const res  = await fetch(`${backendUrl}/search?${params}`, { signal: AbortSignal.timeout(15000) });
-    const data = await res.json();
-    raw = data.itemSummaries || [];
-  } catch { raw = []; }
+    const res = await fetch(`${backendUrl}/search/by-part?${params}`, { signal: AbortSignal.timeout(20000) });
+    data = await res.json();
+  } catch {
+    return { found: false, trustedFallback: false, listings: [], confidence: 'Low' };
+  }
 
+  const raw = data.itemSummaries || [];
   const items = raw
     .map(i => ({
-      title:     i.title || '',
-      price:     parseFloat(i.price?.value || 0),
-      seller:    (i.seller?.username || '').toLowerCase(),
-      url:       i.itemWebUrl || '#',
-      condition: i.condition || ''
+      title:       i.title || '',
+      price:       parseFloat(i.price?.value || 0),
+      seller:      (i.seller?.username || '').toLowerCase(),
+      url:         i.itemWebUrl || '#',
+      condition:   i.condition || '',
+      matchMethod: i.matchMethod || 'title_match'
     }))
     .filter(i => i.price > 0)
     .sort((a, b) => a.price - b.price);
+
+  if (!items.length) {
+    return { found: false, trustedFallback: false, listings: [], counts: data.counts || {}, confidence: data.confidence || 'Low' };
+  }
 
   let trustedFallback = false;
   let pool = items;
   if (opts.compare === 'trusted') {
     const trusted = items.filter(i => savedSellers.includes(i.seller));
-    if (trusted.length) {
+    if (trusted.length >= 3) {
       pool = trusted;
-    } else if (items.length) {
+    } else {
       trustedFallback = true;
       pool = items;
     }
   }
 
-  if (!pool.length) return { found: false, verified: false, trustedFallback: false, listings: [] };
-
-  const withVerified = pool.map(i => ({ ...i, verified: bpcTitleMatchesTerm(i.title, term) }));
-  const listings      = withVerified.slice(0, 5);
-  const verifiedItems = withVerified.filter(i => i.verified);
-
-  if (!verifiedItems.length) {
-    return { found: true, verified: false, trustedFallback, matchedTitle: pool[0].title, listings };
-  }
-
-  const used = verifiedItems.slice(0, opts.resultsPerPart);
+  const used = pool.slice(0, opts.resultsPerPart);
   const marketAverage = used.reduce((s, i) => s + i.price, 0) / used.length;
+  const matchMethod = used.reduce(
+    (best, i) => (MATCH_METHOD_PRIORITY[i.matchMethod] < MATCH_METHOD_PRIORITY[best] ? i.matchMethod : best),
+    'title_match'
+  );
 
   return {
     found: true,
-    verified: true,
     trustedFallback,
-    matchedTitle:      used[0].title,
-    competitorLowest:  used[0].price,
-    marketAverage:     parseFloat(marketAverage.toFixed(2)),
-    competitorCount:   used.length,
-    listings
+    matchedTitle:     used[0].title,
+    competitorLowest: used[0].price,
+    marketAverage:    parseFloat(marketAverage.toFixed(2)),
+    competitorCount:  used.length,
+    matchMethod,
+    counts:           data.counts || {},
+    confidence:       data.confidence || 'Low',
+    listings:         pool.slice(0, 5)
   };
 }
 
 function bpcCounts(results) {
   return results.reduce((acc, r) => { acc[r.status] = (acc[r.status] || 0) + 1; return acc; },
-    { action: 0, opportunity: 0, ok: 0, notfound: 0, unverified: 0 });
+    { action: 0, opportunity: 0, ok: 0, notfound: 0 });
+}
+
+function bpcLowConfidenceCount(results) {
+  return results.filter(r => r.status !== 'notfound' && r.confidence === 'Low').length;
 }
 
 function bpcUpdateLiveCounts() {
   const counts = bpcCounts(monitorResults);
   document.getElementById('bpc-live-action').textContent      = counts.action;
   document.getElementById('bpc-live-opportunity').textContent = counts.opportunity;
-  document.getElementById('bpc-live-unverified').textContent  = counts.unverified;
+  document.getElementById('bpc-live-unverified').textContent  = bpcLowConfidenceCount(monitorResults);
   document.getElementById('bpc-live-ok').textContent           = counts.ok;
 }
 
@@ -3924,16 +3926,6 @@ async function startBulkPriceCheck() {
       const search = await bpcSearchPart(part, opts);
       if (!search.found) {
         result = { partNumber: part.partNumber, description: part.description, yourPrice: part.yourPrice, status: 'notfound', trustedFallback: false, listings: [] };
-      } else if (!search.verified) {
-        result = {
-          partNumber:      part.partNumber,
-          description:     part.description,
-          yourPrice:       part.yourPrice,
-          status:          'unverified',
-          matchedTitle:    search.matchedTitle,
-          trustedFallback: search.trustedFallback,
-          listings:        search.listings
-        };
       } else {
         const cls = bpcClassify(part.yourPrice, search.competitorLowest, opts.threshold);
         result = {
@@ -3946,7 +3938,8 @@ async function startBulkPriceCheck() {
           priceDiff:        parseFloat((part.yourPrice - search.competitorLowest).toFixed(2)),
           priceDiffPct:     parseFloat((((part.yourPrice - search.competitorLowest) / (part.yourPrice || search.competitorLowest || 1)) * 100).toFixed(1)),
           competitorCount:  search.competitorCount,
-          confidence:       bpcConfidence(search.competitorCount),
+          matchMethod:      search.matchMethod,
+          confidence:       search.confidence,
           trustedFallback:  search.trustedFallback,
           listings:         search.listings,
           ...cls
@@ -3997,24 +3990,16 @@ function bpcRowHtml(r) {
       <td>${S}${(r.yourPrice || 0).toFixed(2)}</td>
       <td>—</td><td>—</td><td>—</td><td>—</td><td>0</td>
       <td class="col-desc">—</td>
+      <td>—</td><td>—</td>
       <td>🟠 Not Found</td><td>—</td><td>—</td>
       <td>${viewBtn}</td>
     </tr>`;
   }
 
-  if (r.status === 'unverified') {
-    const fallbackNote = r.trustedFallback ? '<span class="bpc-fallback-note">Trusted seller fallback</span>' : '';
-    return `<tr class="bpc-row-unverified">
-      <td>${r.partNumber || '—'}</td><td class="col-desc">${r.description || '—'}${fallbackNote}</td>
-      <td>${S}${r.yourPrice.toFixed(2)}</td>
-      <td>—</td><td>—</td><td>—</td><td>—</td><td>0</td>
-      <td class="col-desc">${r.matchedTitle || '—'}</td>
-      <td>🟠 Unverified Match</td><td>—</td><td>—</td>
-      <td>${viewBtn}</td>
-    </tr>`;
-  }
-
-  const rowClass = r.status === 'action' ? 'bpc-row-action' : r.status === 'opportunity' ? 'bpc-row-opportunity' : '';
+  const rowClass = r.status === 'action' ? 'bpc-row-action'
+    : r.status === 'opportunity' ? 'bpc-row-opportunity'
+    : r.confidence === 'Low' ? 'bpc-row-lowconf'
+    : '';
   const emoji    = r.status === 'action' ? '🔴' : r.status === 'opportunity' ? '🟡' : '🟢';
   const label    = r.status === 'action' ? 'Action Needed' : r.status === 'opportunity' ? 'Opportunity' : 'OK';
   const fallbackNote = r.trustedFallback ? '<span class="bpc-fallback-note">Trusted seller fallback</span>' : '';
@@ -4029,6 +4014,8 @@ function bpcRowHtml(r) {
     <td>${r.priceDiffPct.toFixed(1)}%</td>
     <td>${r.competitorCount}</td>
     <td class="col-desc">${r.matchedTitle || '—'}</td>
+    <td>${bpcMatchMethodBadge(r.matchMethod)}</td>
+    <td>${r.confidence || '—'}</td>
     <td>${emoji} ${label}</td>
     <td>${r.action}</td>
     <td>${S}${r.suggestedPrice.toFixed(2)}</td>
@@ -4044,7 +4031,7 @@ function bpcShowMatches(idx) {
     <div class="bpc-match-item">
       <div class="bpc-match-title">
         <a href="${l.url}" target="_blank" rel="noopener">${l.title || '(no title)'}</a>
-        <span class="bpc-match-verified ${l.verified ? 'yes' : 'no'}">${l.verified ? 'Verified' : 'Not verified'}</span>
+        <span class="bpc-match-verified ${l.matchMethod === 'exact_spec' ? 'yes' : 'no'}">${bpcMatchMethodBadge(l.matchMethod)}</span>
       </div>
       <div class="bpc-match-price">£${l.price.toFixed(2)}</div>
     </div>`).join('');
@@ -4058,11 +4045,16 @@ function bpcRenderResults() {
   if (!monitorResults.length) { area.innerHTML = ''; return; }
 
   const counts = bpcCounts(monitorResults);
+  const lowConfidenceCount = bpcLowConfidenceCount(monitorResults);
   const revenueImpact = monitorResults
     .filter(r => r.status === 'action' || r.status === 'opportunity')
     .reduce((sum, r) => sum + (r.suggestedPrice - r.yourPrice), 0);
 
-  const filtered = monitorResults.filter(r => monitorFilter === 'all' || r.status === monitorFilter);
+  const filtered = monitorResults.filter(r => {
+    if (monitorFilter === 'all') return true;
+    if (monitorFilter === 'lowconfidence') return r.status !== 'notfound' && r.confidence === 'Low';
+    return r.status === monitorFilter;
+  });
   const rows = filtered.map(bpcRowHtml).join('');
   const pill = (key, labelHtml) => `<button class="pill${monitorFilter === key ? ' active' : ''}" onclick="bpcSetFilter('${key}')">${labelHtml}</button>`;
 
@@ -4072,7 +4064,7 @@ function bpcRenderResults() {
       <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#A32D2D">${counts.action}</div><div class="bpc-summary-label">🔴 Action Needed</div></div>
       <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${counts.opportunity}</div><div class="bpc-summary-label">🟡 Opportunities</div></div>
       <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#3B6D11">${counts.ok}</div><div class="bpc-summary-label">🟢 Competitive</div></div>
-      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${counts.unverified}</div><div class="bpc-summary-label">🟠 Unverified</div></div>
+      <div class="bpc-summary-item"><div class="bpc-summary-value" style="color:#92400E">${lowConfidenceCount}</div><div class="bpc-summary-label">🔴 Low Confidence</div></div>
       <div class="bpc-summary-item"><div class="bpc-summary-value">£${revenueImpact.toFixed(2)}</div><div class="bpc-summary-label">Est. Impact / Unit</div></div>
     </div>
 
@@ -4082,13 +4074,13 @@ function bpcRenderResults() {
         ${pill('action', `🔴 Action Needed (${counts.action})`)}
         ${pill('opportunity', `🟡 Opportunities (${counts.opportunity})`)}
         ${pill('ok', `🟢 OK (${counts.ok})`)}
-        ${pill('unverified', `🟠 Unverified (${counts.unverified})`)}
+        ${pill('lowconfidence', `🔴 Low Confidence (${lowConfidenceCount})`)}
         ${pill('notfound', `Not Found (${counts.notfound})`)}
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)">
           <input type="checkbox" style="width:14px;height:14px;accent-color:var(--accent)" ${monitorIncludeNotFound ? 'checked' : ''} onchange="bpcToggleIncludeNotFound(this.checked)" />
-          Include not-found / unverified in export
+          Include not-found parts in export
         </label>
         <button class="bulk-export-btn" onclick="bpcExportExcel()"><i class="ti ti-file-spreadsheet"></i> Download Excel</button>
       </div>
@@ -4099,48 +4091,55 @@ function bpcRenderResults() {
         <thead><tr>
           <th>Part Number</th><th>Description</th><th>Your Price</th><th>Competitor Lowest</th>
           <th>Market Avg</th><th>Diff (£)</th><th>Diff (%)</th><th>Competitors</th><th>Matched Listing</th>
-          <th>Status</th><th>Action</th><th>Suggested Price</th><th>Matches</th>
+          <th>Match Method</th><th>Confidence</th><th>Status</th><th>Action</th><th>Suggested Price</th><th>Matches</th>
         </tr></thead>
-        <tbody>${rows || '<tr><td colspan="13" style="text-align:center;color:var(--text-muted);padding:20px">No parts match this filter</td></tr>'}</tbody>
+        <tbody>${rows || '<tr><td colspan="15" style="text-align:center;color:var(--text-muted);padding:20px">No parts match this filter</td></tr>'}</tbody>
       </table>
     </div>`;
 }
 
 function bpcExportExcel() {
   if (!monitorResults.length || typeof XLSX === 'undefined') { alert('No results to export yet.'); return; }
-  const rows = monitorResults.filter(r => (r.status !== 'notfound' && r.status !== 'unverified') || monitorIncludeNotFound);
-  if (!rows.length) { alert('No results to export — tick "Include not-found / unverified in export" if all parts were excluded.'); return; }
+  const rows = monitorResults.filter(r => r.status !== 'notfound' || monitorIncludeNotFound);
+  if (!rows.length) { alert('No results to export — tick "Include not-found parts in export" if all parts were excluded.'); return; }
 
-  const aoa = [['Part Number', 'Description', 'Current Price (£)', 'Suggested Price (£)', 'Competitor Lowest (£)', 'Market Average (£)', 'Confidence', 'Action', 'Reason']];
+  const aoa = [['Part Number', 'Description', 'Current Price (£)', 'Suggested Price (£)', 'Competitor Lowest (£)', 'Market Average (£)', 'Match Method', 'Confidence', 'Action', 'Reason']];
   rows.forEach(r => {
-    const noPricing = r.status === 'notfound' || r.status === 'unverified';
+    const noPricing = r.status === 'notfound';
     let reason;
     if (r.status === 'notfound') reason = 'No matching listings found on eBay';
-    else if (r.status === 'unverified') reason = `No listing title matched the part number — top result was "${r.matchedTitle || ''}"`;
-    else reason = r.reason + (r.trustedFallback ? ' — Trusted seller fallback' : '');
+    else {
+      reason = r.reason;
+      if (r.matchMethod === 'title_match') reason = 'Title match — lower confidence. ' + reason;
+      if (r.trustedFallback) reason += ' — Trusted seller fallback';
+    }
 
     aoa.push([
       r.partNumber || '', r.description || '', r.yourPrice,
       noPricing ? '' : r.suggestedPrice,
       noPricing ? '' : r.competitorLowest,
       noPricing ? '' : r.marketAverage,
+      noPricing ? '' : bpcMatchMethodBadge(r.matchMethod),
       noPricing ? '' : r.confidence,
-      r.status === 'notfound' ? 'Not Found' : r.status === 'unverified' ? 'Unverified' : r.action,
+      r.status === 'notfound' ? 'Not Found' : r.action,
       reason
     ]);
   });
 
   const ws = XLSX.utils.aoa_to_sheet(aoa);
-  xlsxApplyHdr(ws, ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']);
+  xlsxApplyHdr(ws, ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']);
 
   const actionFill = { patternType: 'solid', fgColor: { rgb: 'FCEBEB' } };
   const oppFill     = { patternType: 'solid', fgColor: { rgb: 'FEF3C7' } };
-  const unverifiedFill = { patternType: 'solid', fgColor: { rgb: 'FEF3E0' } };
+  const lowConfFill = { patternType: 'solid', fgColor: { rgb: 'FEF3E0' } };
 
   let rIdx = 2;
   rows.forEach(row => {
-    const fill = row.status === 'action' ? actionFill : row.status === 'opportunity' ? oppFill : row.status === 'unverified' ? unverifiedFill : null;
-    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'].forEach(col => {
+    const fill = row.status === 'action' ? actionFill
+      : row.status === 'opportunity' ? oppFill
+      : row.confidence === 'Low' ? lowConfFill
+      : null;
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].forEach(col => {
       const cell = ws[`${col}${rIdx}`];
       if (cell && fill) cell.s = { ...(cell.s || {}), fill };
     });

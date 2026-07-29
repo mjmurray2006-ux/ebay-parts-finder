@@ -583,6 +583,134 @@ def search():
         return jsonify({"error": str(e)}), 500
 
 
+VEHICLE_PARTS_CATEGORY_ID = "6030"  # eBay "Vehicle Parts & Accessories" category
+
+
+def _browse_search_raw(token, market, limit, aspect_filter=None, q=None):
+    params = {"limit": limit, "category_ids": VEHICLE_PARTS_CATEGORY_ID}
+    if aspect_filter:
+        params["aspect_filter"] = aspect_filter
+    if q:
+        params["q"] = q
+
+    resp = requests.get(
+        f"{_ebay_base_url()}/buy/browse/v1/item_summary/search",
+        headers={
+            "Authorization":           f"Bearer {token}",
+            "X-EBAY-C-MARKETPLACE-ID": market,
+            "Content-Type":            "application/json",
+        },
+        params=params,
+        timeout=15,
+    )
+    resp.raise_for_status()
+    return resp.json().get("itemSummaries", [])
+
+
+def _tag_items(items, stage):
+    tagged = []
+    for it in items:
+        it = dict(it)
+        it["matchMethod"] = stage
+        if stage == "title_match":
+            it["matchNote"] = "Title match — lower confidence"
+        tagged.append(it)
+    return tagged
+
+
+def _dedupe_into(seen_ids, existing, new_items):
+    for it in new_items:
+        item_id = it.get("itemId")
+        if item_id and item_id not in seen_ids:
+            seen_ids.add(item_id)
+            existing.append(it)
+
+
+@app.route("/search/by-part")
+def search_by_part():
+    """Three-stage part search: item specifics -> interchange/OEM numbers -> title fallback."""
+    part_number = request.args.get("part_number", "").strip()
+    if not part_number:
+        return jsonify({"error": "Missing part_number parameter"}), 400
+
+    brand = request.args.get("brand", "").strip()
+    market = request.args.get("market", "EBAY_GB")
+    limit  = min(int(request.args.get("limit", 50)), 200)
+
+    def aspect_filter_for(aspect_name):
+        parts = [f"categoryId:{VEHICLE_PARTS_CATEGORY_ID}", f"{aspect_name}:{{{part_number}}}"]
+        if brand:
+            parts.append(f"Brand:{{{brand}}}")
+        return ",".join(parts)
+
+    try:
+        token = get_token()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    seen_ids = set()
+    combined = []
+    stage_errors = []
+
+    # Stage 1 — Manufacturer Part Number item specific (most accurate)
+    try:
+        stage1_items = _browse_search_raw(
+            token, market, limit,
+            aspect_filter=aspect_filter_for("Manufacturer Part Number"),
+        )
+        _dedupe_into(seen_ids, combined, _tag_items(stage1_items, "exact_spec"))
+    except requests.HTTPError as e:
+        stage_errors.append({"stage": "exact_spec", "error": str(e)})
+    except Exception as e:
+        stage_errors.append({"stage": "exact_spec", "error": str(e)})
+
+    # Stage 2 — Interchange / Reference OE-OEM number item specifics
+    if len(combined) < 3:
+        for aspect_name in ("Interchange Part Number", "Reference OE/OEM Number"):
+            try:
+                stage2_items = _browse_search_raw(
+                    token, market, limit,
+                    aspect_filter=aspect_filter_for(aspect_name),
+                )
+                _dedupe_into(seen_ids, combined, _tag_items(stage2_items, "interchange"))
+            except Exception as e:
+                stage_errors.append({"stage": "interchange", "aspect": aspect_name, "error": str(e)})
+
+    # Stage 3 — exact title fallback
+    if len(combined) < 3:
+        try:
+            stage3_items = _browse_search_raw(token, market, limit, q=f'"{part_number}"')
+            _dedupe_into(seen_ids, combined, _tag_items(stage3_items, "title_match"))
+        except Exception as e:
+            stage_errors.append({"stage": "title_match", "error": str(e)})
+
+    counts = {
+        "exact_spec":  sum(1 for i in combined if i["matchMethod"] == "exact_spec"),
+        "interchange": sum(1 for i in combined if i["matchMethod"] == "interchange"),
+        "title_match": sum(1 for i in combined if i["matchMethod"] == "title_match"),
+    }
+
+    total = len(combined)
+    if total < 3:
+        confidence = "Low"
+    elif counts["exact_spec"] >= 5:
+        confidence = "High"
+    elif counts["interchange"] > 0 or counts["exact_spec"] >= 3:
+        confidence = "Medium"
+    else:
+        confidence = "Low"
+
+    return jsonify({
+        "itemSummaries": combined[:limit],
+        "total":         total,
+        "counts":        counts,
+        "confidence":    confidence,
+        "part_number":   part_number,
+        "brand":         brand,
+        "stage_errors":  stage_errors,
+    })
+
+
 @app.route("/seller")
 def seller_search():
     username = request.args.get("username", "").strip()
