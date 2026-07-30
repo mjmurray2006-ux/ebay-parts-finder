@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 backend/data/
 backend/.scheduler.lock
+.claude/
+.agents/
+skills-lock.json
