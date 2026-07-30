@@ -4461,9 +4461,18 @@ async function wlRunScan() {
   btn.disabled = true;
   prog.classList.add('show');
   try {
-    const res  = await fetch(`${backendUrl}/watchlist/scan`, { method: 'POST', signal: AbortSignal.timeout(600000) });
+    const res  = await fetch(`${backendUrl}/watchlist/scan`, { method: 'POST', signal: AbortSignal.timeout(15000) });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `Server error ${res.status}`);
+
+    // Scan runs in the background on the server — poll status until it finishes,
+    // rather than holding one HTTP request open for minutes (which hosting
+    // platforms/proxies will kill for large watchlists).
+    while (true) {
+      await new Promise(r => setTimeout(r, 3000));
+      await wlFetchStatus();
+      if (!wlScanStatusData.scanning) break;
+    }
     await wlRefreshAll();
   } catch (err) {
     alert('Scan failed: ' + (err.message || 'Unknown error'));

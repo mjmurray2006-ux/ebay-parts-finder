@@ -939,8 +939,10 @@ def scan_status():
 
 @app.route("/watchlist/scan", methods=["POST"])
 def trigger_scan():
-    result, status = run_scan()
-    return jsonify(result), status
+    if _scan_status["scanning"]:
+        return jsonify({"error": "Scan already in progress"}), 409
+    threading.Thread(target=run_scan, daemon=True).start()
+    return jsonify({"started": True}), 202
 
 
 @app.route("/watchlist", methods=["GET"])
