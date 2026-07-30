@@ -47,7 +47,9 @@ _scan_status    = {
     "alerts_found": 0,
     "email_sent":   False,
     "scanning":     False,
+    "scan_started_at": None,
 }
+SCAN_STALE_SECONDS = 600  # if a scan has been "in progress" longer than this, treat it as crashed
 _last_scan_results = []  # most recent scan's per-item results, in-memory, for the weekly digest
 
 
@@ -249,10 +251,13 @@ def scan_watchlist_item(item):
 
 def run_scan(send_daily_email=True):
     global _scan_status, _last_scan_results
-    if _scan_status["scanning"]:
+    started_at = _scan_status.get("scan_started_at")
+    stale = started_at is not None and (time.time() - started_at) > SCAN_STALE_SECONDS
+    if _scan_status["scanning"] and not stale:
         return {"error": "Scan already in progress"}, 409
 
-    _scan_status["scanning"] = True
+    _scan_status["scanning"]        = True
+    _scan_status["scan_started_at"] = time.time()
     lower_items  = []
     raise_items  = []
     clear_items  = []
@@ -357,6 +362,7 @@ def run_scan(send_daily_email=True):
             "alerts_found":  alerts_count,
             "email_sent":    email_sent,
             "scanning":      False,
+            "scan_started_at": None,
         })
 
         return {
@@ -381,7 +387,8 @@ def run_scan(send_daily_email=True):
         }, 200
 
     except Exception as e:
-        _scan_status["scanning"] = False
+        _scan_status["scanning"]        = False
+        _scan_status["scan_started_at"] = None
         return {"error": str(e)}, 500
 
 
@@ -939,7 +946,9 @@ def scan_status():
 
 @app.route("/watchlist/scan", methods=["POST"])
 def trigger_scan():
-    if _scan_status["scanning"]:
+    started_at = _scan_status.get("scan_started_at")
+    stale = started_at is not None and (time.time() - started_at) > SCAN_STALE_SECONDS
+    if _scan_status["scanning"] and not stale:
         return jsonify({"error": "Scan already in progress"}), 409
     threading.Thread(target=run_scan, daemon=True).start()
     return jsonify({"started": True}), 202
