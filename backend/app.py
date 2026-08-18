@@ -1,10 +1,12 @@
 import os
 import io
 import re
+import csv
 import time
 import uuid
 import json
 import base64
+import sqlite3
 import threading
 from datetime import datetime, timedelta, timezone
 
@@ -37,6 +39,14 @@ ALERT_EMAIL_FROM = os.environ.get("ALERT_EMAIL_FROM", "alerts@apd.co.uk")
 WATCHLIST_FILE       = os.path.join(os.path.dirname(os.path.abspath(__file__)), "watchlist.json")
 TRUSTED_SELLERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "trusted_sellers.json")
 MIN_FEEDBACK_SCORE   = 1000
+
+# ─── Marshall price list persistence ──────────────────────────────────────────
+# Marshall's monthly sheets run to hundreds of thousands of rows, so — unlike the
+# watchlist/trusted-sellers JSON files above — this uses SQLite rather than a
+# read-whole-file/write-whole-file JSON blob.
+PRICE_DB_FILE        = os.path.join(os.path.dirname(os.path.abspath(__file__)), "marshall_prices.db")
+QUOTE_TEMPLATE_FILE  = os.path.join(os.path.dirname(os.path.abspath(__file__)), "quote_request_template.xlsx")
+_price_db_lock       = threading.Lock()
 
 # ─── In-memory state ──────────────────────────────────────────────────────────
 _token_cache    = {"token": None, "expires_at": 0}
@@ -118,6 +128,184 @@ def load_trusted_sellers():
 def save_trusted_sellers(sellers):
     with open(TRUSTED_SELLERS_FILE, "w", encoding="utf-8") as f:
         json.dump(sellers, f, indent=2)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Marshall price list — import, storage, lookup
+#
+# Marshall's monthly sheets list RRP only (not APD's cost — that still has to be
+# emailed to Marshall separately per part). There is no markup/margin calculation
+# here: the sheet's price is stored and shown as-is as the RRP.
+#
+# Column layout varies month to month and isn't assumed fixed — headers are
+# matched defensively against a list of known aliases (see COLUMN_ALIASES)
+# rather than by fixed position.
+#
+# Duplicate part numbers (across files, or re-imports of the same file later)
+# are resolved by "most recent import wins": each import UPSERTs by part_number,
+# so newer data always overwrites older data for that part. When one import
+# batch contains multiple files with an overlapping part number, files are
+# processed in the order they were uploaded and the later file wins.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+COLUMN_ALIASES = {
+    "part_number":        ["part number", "part no", "partnumber", "part num"],
+    "description":        ["description", "desc"],
+    "rrp":                ["retail price", "rrp", "price", "list price", "trade price"],
+    "discount_code":      ["discount code"],
+    "surcharge":          ["surcharge"],
+    "superseded_part_no": ["superseding part no", "superseded part no", "supersession", "superseded by"],
+    "unit_of_issue":      ["unit of issue", "unit"],
+    "lead_time":          ["lead time", "leadtime"],
+}
+
+
+def get_price_db():
+    conn = sqlite3.connect(PRICE_DB_FILE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_price_db():
+    conn = get_price_db()
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS parts (
+                part_number         TEXT PRIMARY KEY,
+                description         TEXT,
+                rrp                 REAL,
+                discount_code       TEXT,
+                surcharge           REAL,
+                superseded_part_no  TEXT,
+                unit_of_issue       TEXT,
+                lead_time           TEXT,
+                brand               TEXT,
+                source_file         TEXT,
+                imported_at         TEXT
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_parts_description ON parts(description)")
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _norm_header(h):
+    return re.sub(r"\s+", " ", str(h or "").strip().lower()).rstrip(".")
+
+
+def _resolve_columns(headers):
+    """Map canonical field names to column indices by matching header text against
+    COLUMN_ALIASES, rather than assuming a fixed column order/name. If the same
+    field's header appears more than once (Marshall's Jaguar sheets duplicate the
+    'Superseding part no.' column), the first occurrence wins."""
+    normalized = [_norm_header(h) for h in headers]
+    resolved = {}
+    for field, aliases in COLUMN_ALIASES.items():
+        for idx, h in enumerate(normalized):
+            if h in aliases:
+                resolved[field] = idx
+                break
+    return resolved
+
+
+def _safe_float(val):
+    if val in (None, ""):
+        return None
+    try:
+        return round(float(val), 2)
+    except (ValueError, TypeError):
+        return None
+
+
+def _extract_row(row, cols):
+    def get(field):
+        idx = cols.get(field)
+        if idx is None or idx >= len(row):
+            return None
+        val = row[idx]
+        if val is None:
+            return None
+        return str(val).strip()
+
+    part_number = get("part_number")
+    if not part_number:
+        return None
+
+    return {
+        "part_number":        part_number.upper(),
+        "description":        get("description") or "",
+        "rrp":                _safe_float(get("rrp")),
+        "discount_code":      get("discount_code") or "",
+        "surcharge":          _safe_float(get("surcharge")),
+        "superseded_part_no": (get("superseded_part_no") or "").upper() or None,
+        "unit_of_issue":      get("unit_of_issue") or "",
+        "lead_time":          get("lead_time") or "",
+    }
+
+
+def _parse_csv_price_sheet(raw_bytes):
+    text   = raw_bytes.decode("utf-8-sig", errors="replace")
+    reader = csv.reader(io.StringIO(text))
+    try:
+        headers = next(reader)
+    except StopIteration:
+        raise ValueError("File is empty")
+
+    cols = _resolve_columns(headers)
+    if "part_number" not in cols or "rrp" not in cols:
+        raise ValueError(f"Could not find a Part Number / Retail Price column. Headers found: {headers}")
+
+    for row in reader:
+        if not row or not any(c.strip() for c in row if c):
+            continue
+        rec = _extract_row(row, cols)
+        if rec:
+            yield rec
+
+
+def _parse_xlsx_price_sheet(raw_bytes):
+    wb = openpyxl.load_workbook(io.BytesIO(raw_bytes), read_only=True, data_only=True)
+    ws = wb.worksheets[0]
+    rows_iter = ws.iter_rows(values_only=True)
+    try:
+        headers = next(rows_iter)
+    except StopIteration:
+        raise ValueError("File is empty")
+
+    cols = _resolve_columns(headers)
+    if "part_number" not in cols or "rrp" not in cols:
+        raise ValueError(f"Could not find a Part Number / Retail Price column. Headers found: {list(headers)}")
+
+    for row in rows_iter:
+        if row is None or not any(row):
+            continue
+        rec = _extract_row(row, cols)
+        if rec:
+            yield rec
+
+
+def parse_price_sheet(raw_bytes, filename):
+    ext = os.path.splitext(filename)[1].lower()
+    if ext in (".csv", ".txt"):
+        return list(_parse_csv_price_sheet(raw_bytes))
+    if ext in (".xlsx", ".xlsm"):
+        return list(_parse_xlsx_price_sheet(raw_bytes))
+    if ext == ".xls":
+        raise ValueError("Legacy .xls format isn't supported — please save as .xlsx or .csv and re-upload.")
+    raise ValueError(f"Unsupported file type '{ext}' — expected .csv or .xlsx")
+
+
+def guess_brand(filename):
+    stem = os.path.splitext(os.path.basename(filename))[0].strip().upper()
+    if stem.startswith("JPF"):
+        return "Jaguar"
+    if stem.startswith("LPF"):
+        return "Land Rover"
+    return ""
+
+
+init_price_db()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1119,6 +1307,170 @@ def export_watchlist_excel():
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
         download_name=f"mam_reprice_{today}.xlsx",
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Routes — Marshall price list
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/parts/import", methods=["POST"])
+def import_price_sheets():
+    files = request.files.getlist("files")
+    if not files:
+        return jsonify({"error": "No files uploaded — attach one or more Marshall price sheets"}), 400
+
+    brand_overrides = request.form.to_dict()  # optional: brand_<original filename> -> "Jaguar" etc.
+
+    file_results = []
+    with _price_db_lock:
+        conn = get_price_db()
+        try:
+            for f in files:
+                filename = f.filename or "upload"
+                raw = f.read()
+                try:
+                    rows = parse_price_sheet(raw, filename)
+                except ValueError as e:
+                    file_results.append({"file": filename, "error": str(e), "rows_imported": 0})
+                    continue
+
+                brand = brand_overrides.get(f"brand_{filename}") or guess_brand(filename)
+                now   = datetime.now(timezone.utc).isoformat()
+                records = [
+                    (
+                        r["part_number"], r["description"], r["rrp"], r["discount_code"],
+                        r["surcharge"], r["superseded_part_no"], r["unit_of_issue"], r["lead_time"],
+                        brand, filename, now,
+                    )
+                    for r in rows
+                ]
+
+                if not records:
+                    file_results.append({
+                        "file": filename, "brand": brand, "rows_imported": 0,
+                        "error": "No usable rows found in this file",
+                    })
+                    continue
+
+                conn.executemany("""
+                    INSERT INTO parts (part_number, description, rrp, discount_code, surcharge,
+                                        superseded_part_no, unit_of_issue, lead_time, brand, source_file, imported_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(part_number) DO UPDATE SET
+                        description=excluded.description,
+                        rrp=excluded.rrp,
+                        discount_code=excluded.discount_code,
+                        surcharge=excluded.surcharge,
+                        superseded_part_no=excluded.superseded_part_no,
+                        unit_of_issue=excluded.unit_of_issue,
+                        lead_time=excluded.lead_time,
+                        brand=excluded.brand,
+                        source_file=excluded.source_file,
+                        imported_at=excluded.imported_at
+                """, records)
+                conn.commit()
+                file_results.append({"file": filename, "brand": brand, "rows_imported": len(records)})
+
+            total_parts = conn.execute("SELECT COUNT(*) FROM parts").fetchone()[0]
+        finally:
+            conn.close()
+
+    return jsonify({"files": file_results, "total_parts": total_parts}), 200
+
+
+@app.route("/parts/search", methods=["GET"])
+def search_parts():
+    q     = (request.args.get("q") or "").strip()
+    limit = max(1, min(int(request.args.get("limit", 50) or 50), 200))
+    if not q:
+        return jsonify({"results": [], "total": 0})
+
+    conn = get_price_db()
+    try:
+        q_upper = q.upper()
+        exact = conn.execute(
+            "SELECT * FROM parts WHERE part_number = ?", (q_upper,)
+        ).fetchall()
+        rest = conn.execute(
+            """
+            SELECT * FROM parts
+            WHERE part_number != ? AND (part_number LIKE ? OR description LIKE ?)
+            ORDER BY part_number
+            LIMIT ?
+            """,
+            (q_upper, f"{q_upper}%", f"%{q}%", limit),
+        ).fetchall()
+        rows = (list(exact) + list(rest))[:limit]
+        return jsonify({"results": [dict(r) for r in rows], "total": len(rows)})
+    finally:
+        conn.close()
+
+
+@app.route("/parts/stats", methods=["GET"])
+def parts_stats():
+    conn = get_price_db()
+    try:
+        total       = conn.execute("SELECT COUNT(*) FROM parts").fetchone()[0]
+        last_import = conn.execute("SELECT MAX(imported_at) FROM parts").fetchone()[0]
+        by_brand    = conn.execute(
+            "SELECT COALESCE(NULLIF(brand, ''), 'Unknown') AS brand, COUNT(*) AS n, MAX(imported_at) AS last "
+            "FROM parts GROUP BY brand ORDER BY n DESC"
+        ).fetchall()
+        return jsonify({
+            "total_parts": total,
+            "last_import": last_import,
+            "by_brand": [dict(r) for r in by_brand],
+        })
+    finally:
+        conn.close()
+
+
+@app.route("/parts/quote-request", methods=["POST"])
+def generate_quote_request():
+    data = request.get_json(silent=True)
+    lines = data.get("lines") if isinstance(data, dict) else None
+    if not isinstance(lines, list) or not lines:
+        return jsonify({"error": "JSON body must include a non-empty 'lines' array"}), 400
+
+    if not os.path.exists(QUOTE_TEMPLATE_FILE):
+        return jsonify({"error": "Quote request template not found on the server"}), 500
+
+    wb = openpyxl.load_workbook(QUOTE_TEMPLATE_FILE)
+    ws = wb["Quote Request"] if "Quote Request" in wb.sheetnames else wb.active
+
+    # Data starts at row 5 in the template; rows 1-4 are the title/instructions/
+    # header and there's a footer note a little further down. Insert extra rows
+    # if there are more lines than the template has room for, so a big quote
+    # never overwrites the footer instead of just running past the pre-formatted area.
+    TEMPLATE_DATA_ROWS = 47  # rows 5–51 in the stock template
+    start_row = 5
+    if len(lines) > TEMPLATE_DATA_ROWS:
+        ws.insert_rows(start_row + TEMPLATE_DATA_ROWS, amount=len(lines) - TEMPLATE_DATA_ROWS)
+
+    for i, line in enumerate(lines):
+        if not isinstance(line, dict):
+            continue
+        row = start_row + i
+        ws.cell(row=row, column=1, value=line.get("part_number") or "")
+        ws.cell(row=row, column=2, value=line.get("description") or "")
+        ws.cell(row=row, column=3, value=line.get("superseded_part_no") or "")
+        ws.cell(row=row, column=4, value=line.get("qty") or 1)
+        ws.cell(row=row, column=5, value=line.get("cost_price"))
+        ws.cell(row=row, column=6, value=line.get("rrp"))
+        ws.cell(row=row, column=7, value=line.get("lead_time") or "")
+        ws.cell(row=row, column=8, value=line.get("notes") or "")
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    return send_file(
+        buf,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name=f"APD_Marshall_Quote_Request_{today}.xlsx",
     )
 
 

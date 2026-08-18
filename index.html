@@ -777,6 +777,24 @@
   .wl-chart-wrap { height: 220px; margin-bottom: 20px; }
   .wl-modal-section { margin-bottom: 22px; }
   .wl-modal-section h5 { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+
+  /* Marshall Price List tab */
+  .mp-import-files { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .mp-import-file-row { display: flex; align-items: center; gap: 10px; font-size: 12.5px; padding: 8px 10px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); }
+  .mp-import-file-row .mp-file-name { font-weight: 600; flex: 1; }
+  .mp-import-file-row select { height: 30px; font-size: 12px; border: 0.5px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); }
+  .mp-import-file-row .mp-file-remove { cursor: pointer; color: var(--text-muted); border: none; background: none; font-size: 16px; line-height: 1; }
+  .mp-import-file-row .mp-file-remove:hover { color: #A32D2D; }
+  .mp-search-wrap { display: flex; gap: 10px; margin-bottom: 16px; }
+  .mp-search-wrap input { flex: 1; height: 40px; padding: 0 14px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-size: 14px; }
+  .mp-results-hint { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+  .mp-basket-empty { font-size: 12.5px; color: var(--text-muted); padding: 10px 0; }
+  .mp-basket-row { display: grid; grid-template-columns: 110px 1fr 90px 70px 90px 90px 1fr 30px; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 12px; }
+  .mp-basket-row:last-child { border-bottom: none; }
+  .mp-basket-row input { height: 30px; padding: 0 8px; border: 0.5px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 12px; width: 100%; }
+  .mp-basket-row .mp-basket-remove { cursor: pointer; color: var(--text-muted); border: none; background: none; font-size: 16px; }
+  .mp-basket-row .mp-basket-remove:hover { color: #A32D2D; }
+  .mp-basket-hdr { display: grid; grid-template-columns: 110px 1fr 90px 70px 90px 90px 1fr 30px; gap: 8px; font-size: 10.5px; font-weight: 600; color: var(--text-muted); padding-bottom: 6px; border-bottom: 0.5px solid var(--border); }
 </style>
 </head>
 <body>
@@ -835,6 +853,7 @@
     <div class="tab" onclick="switchTab('library')"><i class="ti ti-folders"></i> Item Specifics Library</div>
     <div class="tab" onclick="switchTab('monitor')"><i class="ti ti-report-money"></i> Price Monitor</div>
     <div class="tab" onclick="switchTab('watchlist')"><i class="ti ti-bell"></i> Price Watchlist</div>
+    <div class="tab" onclick="switchTab('quotes')"><i class="ti ti-file-invoice"></i> Marshall Price List</div>
   </div>
 
   <!-- Search Tab -->
@@ -1351,6 +1370,76 @@
     </div>
   </div>
 
+  <!-- Marshall Price List Tab -->
+  <div id="tab-quotes" class="tab-content">
+    <div class="container">
+
+      <div id="mp-dash" class="wl-dash"></div>
+
+      <div class="wl-section">
+        <h4><i class="ti ti-file-upload" style="color:var(--accent)"></i> Import Marshall Price Sheets</h4>
+        <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px">
+          Upload one or more of Marshall's monthly price sheets (.csv or .xlsx). Column layout can vary month to
+          month — headers are matched automatically. If the same part number appears in more than one file (or a
+          re-import), the most recently uploaded data wins.
+        </p>
+        <div class="bpc-upload-zone" id="mp-drop-zone" onclick="document.getElementById('mp-file-input').click()"
+             ondragover="event.preventDefault(); this.classList.add('drag')"
+             ondragleave="this.classList.remove('drag')"
+             ondrop="mpHandleDrop(event)">
+          <i class="ti ti-file-upload"></i>
+          <p><strong>Click to upload</strong> or drag &amp; drop Marshall price sheet(s)<br>
+          Accepts multiple .csv / .xlsx files at once</p>
+        </div>
+        <input type="file" id="mp-file-input" accept=".csv,.xlsx,.xls" multiple style="display:none" onchange="mpHandleFileInput(event)" />
+
+        <div class="mp-import-files" id="mp-import-files"></div>
+
+        <div class="bpc-upload-actions" style="margin-top:12px">
+          <button class="wl-btn primary" id="mp-import-btn" onclick="mpImportFiles()" style="display:none"><i class="ti ti-upload"></i> Import Selected Files</button>
+          <span class="bpc-upload-status" id="mp-import-status"></span>
+        </div>
+      </div>
+
+      <div class="wl-section">
+        <h4><i class="ti ti-search" style="color:var(--accent)"></i> Look Up A Part</h4>
+        <div class="mp-search-wrap">
+          <input type="text" id="mp-query" placeholder="Search by part number or description..." oninput="mpDebouncedSearch()" onkeydown="if(event.key==='Enter')mpSearch()" />
+          <button class="wl-btn primary" onclick="mpSearch()"><i class="ti ti-search"></i> Search</button>
+        </div>
+        <div class="mp-results-hint" id="mp-results-hint"></div>
+        <div class="wl-table-wrap">
+          <table class="wl-table">
+            <thead><tr>
+              <th>Part Number</th><th>Description</th><th>Brand</th><th>RRP (ex VAT)</th>
+              <th>Superseded By</th><th>Unit</th><th>Lead Time</th><th>Source</th><th></th>
+            </tr></thead>
+            <tbody id="mp-results-body"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px">Import a price sheet, then search by part number or description above</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="wl-section">
+        <h4><i class="ti ti-clipboard-list" style="color:var(--accent)"></i> Quote Request Basket</h4>
+        <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px">
+          Parts added from the lookup above. Marshall's sheets don't include APD's cost price — that's still emailed
+          to Marshall separately — so fill in Cost Price here only if you already know it. When ready, download a
+          filled copy of the Parts Quote Request template to send to Marshall.
+        </p>
+        <div class="mp-basket-hdr">
+          <span>Part Number</span><span>Description</span><span>Superseded By</span><span>Qty</span>
+          <span>Cost Price</span><span>RRP</span><span>Notes</span><span></span>
+        </div>
+        <div id="mp-basket-body"><div class="mp-basket-empty">No parts added yet — search above and click "Add to Quote"</div></div>
+        <div class="bpc-upload-actions" style="margin-top:14px">
+          <button class="wl-btn primary" onclick="mpDownloadQuote()"><i class="ti ti-download"></i> Download Quote Request</button>
+          <button class="wl-btn" onclick="mpClearBasket()"><i class="ti ti-trash"></i> Clear Basket</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1403,6 +1492,7 @@ function switchTab(name) {
   if (name === 'specifics') { /* nothing to pre-render */ }
   if (name === 'library' && !libData) libLoadSaved();
   if (name === 'watchlist' && !wlLoaded) wlInit();
+  if (name === 'quotes' && !mpLoaded) mpInit();
 }
 
 // ── State ──────────────────────────────────────────────────
@@ -4911,6 +5001,261 @@ async function wlLoadLiveListings(part) {
       </div>`).join('');
   } catch {
     el.textContent = 'Could not load live listings.';
+  }
+}
+
+// ── Marshall Price List ───────────────────────────────────────
+// Note: unlike the Watchlist bulk-import above, files here are uploaded raw to
+// the backend and parsed server-side (not with the client-side XLSX library) —
+// Marshall's sheets run to hundreds of thousands of rows, too large to parse
+// in the browser and post as one JSON payload.
+let mpLoaded       = false;
+let mpPendingFiles = [];   // [{ file, brand }]
+let mpBasket       = [];   // [{ part_number, description, superseded_part_no, qty, cost_price, rrp, lead_time, notes }]
+let mpLastResults  = [];
+let mpSearchTimer  = null;
+
+function mpEsc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function mpInit() {
+  mpLoaded = true;
+  if (!backendUrl) {
+    document.getElementById('mp-dash').innerHTML = '<div class="wl-dash-card"><div class="wl-dash-label">Please configure your backend URL in the Search tab first.</div></div>';
+    return;
+  }
+  await mpRefreshStats();
+  mpRenderBasket();
+}
+
+async function mpRefreshStats() {
+  try {
+    const res  = await fetch(`${backendUrl}/parts/stats`, { signal: AbortSignal.timeout(15000) });
+    const data = await res.json();
+    const brandLine  = (data.by_brand || []).map(b => `${b.brand}: ${b.n.toLocaleString()}`).join(' · ') || '—';
+    const lastImport = data.last_import ? new Date(data.last_import).toLocaleString('en-GB') : 'Never';
+    document.getElementById('mp-dash').innerHTML = `
+      <div class="wl-dash-card"><div class="wl-dash-value">${(data.total_parts || 0).toLocaleString()}</div><div class="wl-dash-label">Parts Loaded</div></div>
+      <div class="wl-dash-card"><div class="wl-dash-value" style="font-size:13.5px">${lastImport}</div><div class="wl-dash-label">Last Import</div></div>
+      <div class="wl-dash-card"><div class="wl-dash-value" style="font-size:12.5px">${brandLine}</div><div class="wl-dash-label">By Brand</div></div>
+    `;
+  } catch {
+    document.getElementById('mp-dash').innerHTML = '<div class="wl-dash-card"><div class="wl-dash-label">Could not load stats — check your backend URL.</div></div>';
+  }
+}
+
+function mpGuessBrand(filename) {
+  const stem = filename.replace(/\.[^.]+$/, '').toUpperCase();
+  if (stem.startsWith('JPF')) return 'Jaguar';
+  if (stem.startsWith('LPF')) return 'Land Rover';
+  return '';
+}
+
+function mpQueueFiles(files) {
+  files.forEach(file => mpPendingFiles.push({ file, brand: mpGuessBrand(file.name) }));
+  mpRenderPendingFiles();
+}
+function mpHandleDrop(event) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('drag');
+  mpQueueFiles(Array.from(event.dataTransfer.files || []));
+}
+function mpHandleFileInput(event) {
+  mpQueueFiles(Array.from(event.target.files || []));
+  event.target.value = '';
+}
+function mpRemovePendingFile(i) {
+  mpPendingFiles.splice(i, 1);
+  mpRenderPendingFiles();
+}
+function mpRenderPendingFiles() {
+  const wrap = document.getElementById('mp-import-files');
+  const btn  = document.getElementById('mp-import-btn');
+  if (!mpPendingFiles.length) {
+    wrap.innerHTML = '';
+    btn.style.display = 'none';
+    return;
+  }
+  btn.style.display = 'inline-flex';
+  wrap.innerHTML = mpPendingFiles.map((entry, i) => `
+    <div class="mp-import-file-row">
+      <span class="mp-file-name">${mpEsc(entry.file.name)}</span>
+      <span style="color:var(--text-muted)">${(entry.file.size / 1024 / 1024).toFixed(1)} MB</span>
+      <select onchange="mpPendingFiles[${i}].brand=this.value">
+        <option value="" ${entry.brand === '' ? 'selected' : ''}>Brand: Unknown</option>
+        <option value="Jaguar" ${entry.brand === 'Jaguar' ? 'selected' : ''}>Jaguar</option>
+        <option value="Land Rover" ${entry.brand === 'Land Rover' ? 'selected' : ''}>Land Rover</option>
+      </select>
+      <button class="mp-file-remove" onclick="mpRemovePendingFile(${i})" title="Remove">&times;</button>
+    </div>
+  `).join('');
+}
+
+async function mpImportFiles() {
+  if (!backendUrl) { alert('Please configure your backend URL in the Search tab first.'); return; }
+  if (!mpPendingFiles.length) return;
+  const status = document.getElementById('mp-import-status');
+  const btn    = document.getElementById('mp-import-btn');
+  btn.disabled = true;
+  status.className = 'bpc-upload-status';
+  status.textContent = `Uploading ${mpPendingFiles.length} file(s) — this can take a little while for large sheets...`;
+
+  const formData = new FormData();
+  mpPendingFiles.forEach(entry => {
+    formData.append('files', entry.file, entry.file.name);
+    if (entry.brand) formData.append(`brand_${entry.file.name}`, entry.brand);
+  });
+
+  try {
+    const res  = await fetch(`${backendUrl}/parts/import`, { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Import failed');
+
+    const files = data.files || [];
+    const errs  = files.filter(f => f.error);
+    const ok    = files.filter(f => !f.error);
+    let msg = ok.map(f => `${f.file}: ${f.rows_imported.toLocaleString()} rows${f.brand ? ' (' + f.brand + ')' : ''}`).join(', ');
+    if (errs.length) msg += (msg ? ' — ' : '') + errs.map(f => `${f.file}: ${f.error}`).join('; ');
+    status.textContent = `✓ ${msg}. Master list now has ${(data.total_parts || 0).toLocaleString()} parts.`;
+    status.className = 'bpc-upload-status ' + (errs.length ? 'err' : 'ok');
+
+    mpPendingFiles = [];
+    mpRenderPendingFiles();
+    await mpRefreshStats();
+  } catch (err) {
+    status.textContent = '✗ ' + (err.message || 'Import failed');
+    status.className = 'bpc-upload-status err';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function mpDebouncedSearch() {
+  clearTimeout(mpSearchTimer);
+  mpSearchTimer = setTimeout(mpSearch, 350);
+}
+
+async function mpSearch() {
+  if (!backendUrl) { alert('Please configure your backend URL in the Search tab first.'); return; }
+  const q    = document.getElementById('mp-query').value.trim();
+  const hint = document.getElementById('mp-results-hint');
+  const body = document.getElementById('mp-results-body');
+  if (!q) {
+    body.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px">Enter a part number or description above</td></tr>';
+    hint.textContent = '';
+    return;
+  }
+  hint.textContent = 'Searching...';
+  try {
+    const res  = await fetch(`${backendUrl}/parts/search?q=${encodeURIComponent(q)}&limit=50`, { signal: AbortSignal.timeout(15000) });
+    const data = await res.json();
+    mpLastResults = data.results || [];
+    hint.textContent = mpLastResults.length
+      ? `${mpLastResults.length} result${mpLastResults.length === 1 ? '' : 's'}${mpLastResults.length === 50 ? ' (showing first 50)' : ''}`
+      : 'No matches found.';
+    if (!mpLastResults.length) {
+      body.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px">No matching parts found</td></tr>';
+      return;
+    }
+    body.innerHTML = mpLastResults.map((r, i) => `
+      <tr>
+        <td>${mpEsc(r.part_number)}</td>
+        <td class="col-desc">${mpEsc(r.description || '')}</td>
+        <td>${mpEsc(r.brand || '')}</td>
+        <td>${r.rrp != null ? '£' + Number(r.rrp).toFixed(2) : '—'}</td>
+        <td>${mpEsc(r.superseded_part_no || '')}</td>
+        <td>${mpEsc(r.unit_of_issue || '')}</td>
+        <td>${mpEsc(r.lead_time || '')}</td>
+        <td>${mpEsc(r.source_file || '')}</td>
+        <td><button class="wl-row-btn" onclick="mpAddToBasket(${i})">+ Add to Quote</button></td>
+      </tr>
+    `).join('');
+  } catch {
+    hint.textContent = 'Search failed — check your backend URL and try again.';
+  }
+}
+
+function mpAddToBasket(i) {
+  const r = mpLastResults[i];
+  if (!r) return;
+  mpBasket.push({
+    part_number:         r.part_number,
+    description:         r.description || '',
+    superseded_part_no:  r.superseded_part_no || '',
+    qty:                 1,
+    cost_price:          '',
+    rrp:                 r.rrp != null ? r.rrp : '',
+    lead_time:           r.lead_time || '',
+    notes:               '',
+  });
+  mpRenderBasket();
+}
+
+function mpRemoveFromBasket(i) {
+  mpBasket.splice(i, 1);
+  mpRenderBasket();
+}
+
+function mpClearBasket() {
+  mpBasket = [];
+  mpRenderBasket();
+}
+
+function mpRenderBasket() {
+  const wrap = document.getElementById('mp-basket-body');
+  if (!mpBasket.length) {
+    wrap.innerHTML = '<div class="mp-basket-empty">No parts added yet — search above and click "Add to Quote"</div>';
+    return;
+  }
+  wrap.innerHTML = mpBasket.map((b, i) => `
+    <div class="mp-basket-row">
+      <span>${mpEsc(b.part_number)}</span>
+      <span>${mpEsc(b.description)}</span>
+      <span>${mpEsc(b.superseded_part_no)}</span>
+      <input type="number" min="1" step="1" value="${b.qty}" onchange="mpBasket[${i}].qty=parseInt(this.value)||1">
+      <input type="number" min="0" step="0.01" value="${b.cost_price}" placeholder="—" onchange="mpBasket[${i}].cost_price=this.value">
+      <span>${b.rrp !== '' ? '£' + Number(b.rrp).toFixed(2) : '—'}</span>
+      <input type="text" value="${mpEsc(b.notes)}" placeholder="Notes" onchange="mpBasket[${i}].notes=this.value">
+      <button class="mp-basket-remove" onclick="mpRemoveFromBasket(${i})" title="Remove">&times;</button>
+    </div>
+  `).join('');
+}
+
+async function mpDownloadQuote() {
+  if (!backendUrl) { alert('Please configure your backend URL in the Search tab first.'); return; }
+  if (!mpBasket.length) { alert('Add at least one part to the basket first.'); return; }
+  try {
+    const lines = mpBasket.map(b => ({
+      part_number:         b.part_number,
+      description:         b.description,
+      superseded_part_no:  b.superseded_part_no,
+      qty:                 b.qty,
+      cost_price:          b.cost_price === '' ? null : parseFloat(b.cost_price),
+      rrp:                 b.rrp === '' ? null : parseFloat(b.rrp),
+      lead_time:           b.lead_time,
+      notes:               b.notes,
+    }));
+    const res = await fetch(`${backendUrl}/parts/quote-request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lines }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to generate quote request');
+    }
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `APD_Marshall_Quote_Request_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('Could not generate quote request: ' + (err.message || 'unknown error'));
   }
 }
 </script>

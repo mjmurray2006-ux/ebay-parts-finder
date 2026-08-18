@@ -2,6 +2,8 @@ __pycache__/
 *.pyc
 backend/data/
 backend/.scheduler.lock
+backend/*.db
+myton-marshalls-parts=finder/
 .claude/
 .agents/
 skills-lock.json
