@@ -24,6 +24,7 @@
     --accent: #1e2a4e;
     --accent-hover: #2a3a68;
     --accent-bg: #eef1f8;
+    --accent-rgb: 30, 42, 78;
 
     --danger: #A32D2D;      --danger-bg: #FCEBEB;  --danger-border: #F09595;
     --success: #3B6D11;     --success-bg: #EAF3DE; --success-border: #9FE1CB;
@@ -35,6 +36,7 @@
 
     --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
     --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
     --dur-fast: 140ms;
     --dur-base: 200ms;
     --dur-modal: 220ms;
@@ -50,6 +52,7 @@
       --accent: #7C8FC9;
       --accent-hover: #93A4D6;
       --accent-bg: #1e2536;
+      --accent-rgb: 124, 143, 201;
 
       --danger: #F09595;      --danger-bg: rgba(163,45,45,0.22);  --danger-border: rgba(240,149,149,0.35);
       --success: #9FE1CB;     --success-bg: rgba(59,109,17,0.22);  --success-border: rgba(159,225,203,0.3);
@@ -93,10 +96,22 @@
   .tab-content.active { animation: fadeSlideUp var(--dur-modal) var(--ease-out); }
 
   /* Login */
-  #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); }
+  #login-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background:
+      radial-gradient(600px 500px at 15% 12%, rgba(var(--accent-rgb), 0.10), transparent 60%),
+      radial-gradient(700px 600px at 85% 90%, rgba(var(--accent-rgb), 0.07), transparent 60%),
+      var(--bg);
+  }
   .login-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 40px 32px; width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; animation: scaleIn 320ms var(--ease-out); }
+  .login-card > * { animation: fadeSlideUp var(--dur-base) var(--ease-out) backwards; }
+  .login-card > *:nth-child(1) { animation-delay: 60ms; }
+  .login-card > *:nth-child(2) { animation-delay: 100ms; }
+  .login-card > *:nth-child(3) { animation-delay: 130ms; }
+  .login-card > *:nth-child(4) { animation-delay: 160ms; }
+  .login-card > *:nth-child(5) { animation-delay: 190ms; }
   .login-logo { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-md); margin-bottom: 4px; }
-  .login-card h2 { font-size: 18px; font-weight: 600; }
+  .login-card h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.015em; }
   .login-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
   .login-card input { width: 100%; height: 42px; padding: 0 14px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 15px; background: var(--bg); color: var(--text); transition: border-color var(--dur-base) ease, box-shadow var(--dur-base) ease; }
   .login-card input:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
@@ -105,7 +120,6 @@
   .login-error { font-size: 13px; color: var(--danger); background: var(--danger-bg); border: 0.5px solid var(--danger-border); border-radius: var(--radius-sm); padding: 8px 12px; display: none; width: 100%; }
 
   /* App */
-  #app { display: none; }
   header { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 0 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; height: 56px; }
   .header-logo { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm); }
   header h1 { font-size: 16px; font-weight: 600; flex: 1; letter-spacing: -0.01em; }
@@ -456,7 +470,7 @@
   .settings-btn:hover { color: #d97706; border-color: #f59e0b; }
   .settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200; display: none; }
   .settings-overlay.open { display: block; animation: overlayFadeIn var(--dur-modal) ease; }
-  .settings-panel { position: fixed; right: 0; top: 0; bottom: 0; width: 370px; max-width: 95vw; background: var(--surface); box-shadow: var(--shadow-lg); border-left: 0.5px solid var(--border); z-index: 201; transform: translateX(100%); transition: transform var(--dur-modal) var(--ease-out); overflow-y: auto; display: flex; flex-direction: column; }
+  .settings-panel { position: fixed; right: 0; top: 0; bottom: 0; width: 370px; max-width: 95vw; background: var(--surface); box-shadow: var(--shadow-lg); border-left: 0.5px solid var(--border); z-index: 201; transform: translateX(100%); transition: transform var(--dur-modal) var(--ease-drawer); overflow-y: auto; display: flex; flex-direction: column; }
   .settings-panel.open { transform: translateX(0); }
   .settings-hdr { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 0.5px solid var(--border); flex-shrink: 0; }
   .settings-hdr h2 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
@@ -630,29 +644,6 @@
   .isp-val-more { font-size: 11px; color: var(--accent); cursor: pointer; background: none; border: none; padding: 2px 4px; font-weight: 600; }
   .isp-val-more:hover { text-decoration: underline; }
 
-  /* Item Specifics Library */
-  .lib-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
-  .lib-header h2 { font-size: 19px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-  .lib-header-actions { display: flex; gap: 8px; }
-  .lib-status { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; min-height: 16px; }
-  .lib-status.err { color: #A32D2D; }
-  .lib-layout { display: flex; gap: 16px; align-items: flex-start; }
-  .lib-tree { width: 280px; flex-shrink: 0; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px; max-height: 760px; overflow-y: auto; }
-  .lib-tree-empty { font-size: 12px; color: var(--text-muted); padding: 14px 10px; text-align: center; line-height: 1.5; }
-  .lib-group { margin-bottom: 2px; }
-  .lib-group-header { width: 100%; display: flex; align-items: center; gap: 6px; background: none; border: none; padding: 8px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); text-align: left; }
-  .lib-group-header:hover { background: var(--bg); }
-  .lib-group-count { margin-left: auto; font-size: 11px; color: var(--text-muted); background: var(--bg); border: 0.5px solid var(--border); border-radius: 99px; padding: 1px 7px; }
-  .lib-group-body { display: flex; flex-direction: column; gap: 4px; padding: 2px 4px 8px 22px; }
-  .lib-cat-item { text-align: left; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 7px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 1px; }
-  .lib-cat-item:hover { border-color: var(--accent); background: var(--accent-bg); }
-  .lib-cat-item.active { border-color: var(--accent); background: var(--accent-bg); }
-  .lib-cat-name { font-size: 12.5px; font-weight: 600; }
-  .lib-cat-date { font-size: 10.5px; color: var(--text-muted); }
-  .lib-main { flex: 1; min-width: 0; }
-  .lib-empty { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 60px 20px; text-align: center; color: var(--text-muted); }
-  .lib-empty i { font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.5; }
-
   /* Price Monitor — Bulk Price Check */
   .bpc-upload-zone { border: 1.5px dashed var(--border-strong); border-radius: var(--radius); padding: 26px 20px; text-align: center; background: var(--bg); cursor: pointer; transition: border-color var(--dur-base) ease, background-color var(--dur-base) ease; margin-bottom: 10px; }
   .bpc-upload-zone:hover, .bpc-upload-zone.drag { border-color: var(--accent); background: var(--accent-bg); }
@@ -731,8 +722,9 @@
   .wl-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 20px; }
   .wl-section h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
   .wl-add-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-  .wl-add-tab { padding: 6px 14px; border-radius: 99px; font-size: 12.5px; font-weight: 500; cursor: pointer; border: 0.5px solid var(--border); background: var(--bg); color: var(--text-muted); }
+  .wl-add-tab { padding: 6px 14px; border-radius: 99px; font-size: 12.5px; font-weight: 500; cursor: pointer; border: 0.5px solid var(--border); background: var(--bg); color: var(--text-muted); transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, border-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out); }
   .wl-add-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .wl-add-tab:active { transform: scale(0.97); }
   .wl-add-panel { display: none; }
   .wl-add-panel.active { display: block; }
   .wl-form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
@@ -795,6 +787,71 @@
   .mp-basket-row .mp-basket-remove { cursor: pointer; color: var(--text-muted); border: none; background: none; font-size: 16px; }
   .mp-basket-row .mp-basket-remove:hover { color: #A32D2D; }
   .mp-basket-hdr { display: grid; grid-template-columns: 110px 1fr 90px 70px 90px 90px 1fr 30px; gap: 8px; font-size: 10.5px; font-weight: 600; color: var(--text-muted); padding-bottom: 6px; border-bottom: 0.5px solid var(--border); }
+
+  /* ── App shell / global header ─────────────────────────── */
+  #shell { display: none; }
+  .gh-brand { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .section-switcher { display: flex; gap: 2px; background: var(--bg); border: 0.5px solid var(--border); border-radius: 99px; padding: 3px; }
+  .sec-tab { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 99px; border: none; background: none; color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background-color var(--dur-base) ease, color var(--dur-base) ease; }
+  .sec-tab:hover { color: var(--text); }
+  .sec-tab.active { background: var(--accent); color: #fff; }
+  .gh-actions { display: flex; align-items: center; gap: 8px; }
+  .header-icon-btn { padding: 5px 10px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); background: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 13px; }
+  .header-icon-btn:hover { color: var(--text); border-color: var(--border-strong); }
+  .icon-badge { background: var(--accent); color: #fff; border-radius: 99px; padding: 1px 7px; font-size: 11px; }
+  @media (max-width: 900px) { .section-switcher .sec-tab span, header h1 { display: none; } }
+
+  /* ── Screens ────────────────────────────────────────────── */
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeSlideUp var(--dur-modal) var(--ease-out); }
+
+  /* Dashboard */
+  .dash-wrap { max-width: 760px; margin: 0 auto; padding: 64px 20px; text-align: center; }
+  .dash-wrap h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .dash-wrap > p { color: var(--text-muted); margin-bottom: 36px; font-size: 15px; }
+  .dash-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .dash-tile { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; transition: box-shadow var(--dur-base) ease, transform var(--dur-base) var(--ease-out), border-color var(--dur-base) ease; animation: fadeSlideUp var(--dur-base) var(--ease-out) backwards; }
+  .dash-tile:nth-child(1) { animation-delay: 60ms; }
+  .dash-tile:nth-child(2) { animation-delay: 100ms; }
+  .dash-tile:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--accent); }
+  .dash-tile-icon { width: 56px; height: 56px; border-radius: var(--radius); background: radial-gradient(circle at 30% 25%, rgba(var(--accent-rgb), 0.16), rgba(var(--accent-rgb), 0.08)); display: flex; align-items: center; justify-content: center; transition: transform var(--dur-base) var(--ease-out); }
+  .dash-tile i { font-size: 26px; color: var(--accent); }
+  @media (hover: hover) and (pointer: fine) {
+    .dash-tile:hover .dash-tile-icon { transform: scale(1.08); }
+  }
+  .dash-tile h3 { font-size: 17px; font-weight: 600; }
+  .dash-tile p { font-size: 13px; color: var(--text-muted); }
+
+  /* Icon chip — reserved for top-level identity markers (screens, panel headers) */
+  .icon-chip { width: 30px; height: 30px; border-radius: var(--radius-sm); background: radial-gradient(circle at 30% 25%, rgba(var(--accent-rgb), 0.18), rgba(var(--accent-rgb), 0.09)); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .icon-chip i { font-size: 16px; color: var(--accent); }
+  .icon-chip-sm { width: 24px; height: 24px; border-radius: 6px; }
+  .icon-chip-sm i { font-size: 13px; }
+  .icon-chip-gold { background: radial-gradient(circle at 30% 25%, rgba(217,119,6,0.20), rgba(217,119,6,0.10)); }
+  .icon-chip-gold i { color: #d97706; }
+
+  /* Generic page header */
+  .page-header { margin-bottom: 20px; }
+  .page-header h2 { font-size: 19px; font-weight: 700; display: flex; align-items: center; gap: 8px; letter-spacing: -0.015em; }
+  .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Sub-section header within a screen (e.g. Marshalls within Myton Parts) */
+  .page-subheader { margin: 8px 0 16px; padding-top: 16px; border-top: 0.5px solid var(--border); }
+  .page-subheader h3 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 7px; letter-spacing: -0.01em; }
+  .page-subheader p { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+
+  /* Settings panel sub-tabs + wide variant (Dashboard & Compare) */
+  .settings-subtabs { display: flex; gap: 14px; padding: 0 20px; border-bottom: 0.5px solid var(--border); flex-shrink: 0; }
+  .settings-subtab { padding: 10px 2px; margin-bottom: -1px; border: none; background: none; font-size: 12.5px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: color var(--dur-base) ease, border-color var(--dur-base) ease; }
+  .settings-subtab:hover { color: var(--text); }
+  .settings-subtab.active { color: #d97706; border-bottom-color: #d97706; }
+  .settings-panel.wide { width: 860px; }
+
+  /* Tracker panel (mirrors settings panel) */
+  .tracker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200; display: none; }
+  .tracker-overlay.open { display: block; animation: overlayFadeIn var(--dur-modal) ease; }
+  .tracker-panel { position: fixed; right: 0; top: 0; bottom: 0; width: 760px; max-width: 95vw; background: var(--surface); box-shadow: var(--shadow-lg); border-left: 0.5px solid var(--border); z-index: 201; transform: translateX(100%); transition: transform var(--dur-modal) var(--ease-drawer); overflow-y: auto; display: flex; flex-direction: column; }
+  .tracker-panel.open { transform: translateX(0); }
 </style>
 </head>
 <body>
@@ -803,7 +860,7 @@
 <div id="login-screen">
   <div class="login-card">
     <img src="apd-logo.jpg" alt="APD" class="login-logo" />
-    <h2>eBay Parts Finder</h2>
+    <h2>APD Parts Tools</h2>
     <p>Enter the team password to continue.</p>
     <input type="password" id="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkPassword()" />
     <button onclick="checkPassword()">Sign in</button>
@@ -811,24 +868,144 @@
   </div>
 </div>
 
-<!-- App -->
-<div id="app">
+<!-- App Shell -->
+<div id="shell">
   <header>
     <img src="apd-logo.jpg" alt="APD" class="header-logo" />
-    <h1>eBay Parts Finder</h1>
-    <span style="font-size:12px;color:var(--text-muted);background:var(--bg);border:0.5px solid var(--border);padding:3px 8px;border-radius:99px;">Team tool</span>
-    <button class="settings-btn" onclick="openSettings()"><i class="ti ti-star" style="font-size:15px;color:#d97706"></i> My Stores</button>
-    <button class="logout-btn" onclick="logout()"><i class="ti ti-logout" style="font-size:13px"></i> Sign out</button>
+    <div class="gh-brand" onclick="switchSection('dashboard')" title="Dashboard">
+      <h1>APD Parts Tools</h1>
+    </div>
+    <nav class="section-switcher">
+      <button class="sec-tab" data-section="myton" onclick="switchSection('myton')"><i class="ti ti-building-warehouse"></i> Myton Parts</button>
+      <button class="sec-tab" data-section="ebay" onclick="switchSection('ebay')"><i class="ti ti-building-store"></i> eBay Parts Finder</button>
+    </nav>
+    <div class="gh-actions">
+      <button class="header-icon-btn" id="tracker-icon-btn" onclick="openTracker()" style="display:none">
+        <i class="ti ti-chart-line"></i> Tracker <span id="tracker-count" class="icon-badge" style="display:none">0</span>
+      </button>
+      <button class="header-icon-btn" id="stores-icon-btn" onclick="openSettings()" style="display:none">
+        <i class="ti ti-star" style="color:#d97706"></i> My Stores
+      </button>
+      <button class="logout-btn" onclick="logout()"><i class="ti ti-logout" style="font-size:13px"></i> Sign out</button>
+    </div>
   </header>
+
+  <!-- Dashboard Screen -->
+  <div id="dashboard-screen" class="screen active">
+    <div class="dash-wrap">
+      <h2>Welcome back</h2>
+      <p>Choose a tool to get started.</p>
+      <div class="dash-tiles">
+        <button class="dash-tile" onclick="switchSection('myton')">
+          <div class="dash-tile-icon"><i class="ti ti-building-warehouse"></i></div>
+          <h3>Myton Parts</h3>
+          <p>Marshalls &amp; more coming soon</p>
+        </button>
+        <button class="dash-tile" onclick="switchSection('ebay')">
+          <div class="dash-tile-icon"><i class="ti ti-building-store"></i></div>
+          <h3>eBay Parts Finder</h3>
+          <p>Search, pricing &amp; monitoring tools</p>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Myton Parts Screen -->
+  <div id="myton-screen" class="screen">
+    <div class="container">
+
+      <div class="page-header">
+        <h2><span class="icon-chip"><i class="ti ti-building-warehouse"></i></span> Myton Parts</h2>
+        <p>Myton supplier tools. More sections will be added here over time.</p>
+      </div>
+
+      <!-- Marshalls (supplier) -->
+      <div class="page-subheader">
+        <h3><span class="icon-chip icon-chip-sm"><i class="ti ti-file-invoice"></i></span> Marshalls</h3>
+        <p>Import Marshall's price sheets, look up parts, and generate quote requests.</p>
+      </div>
+
+      <div id="mp-dash" class="wl-dash"></div>
+
+      <div class="wl-section">
+        <h4><i class="ti ti-file-upload" style="color:var(--accent)"></i> Import Marshall Price Sheets</h4>
+        <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px">
+          Upload one or more of Marshall's monthly price sheets (.csv or .xlsx). Column layout can vary month to
+          month — headers are matched automatically. If the same part number appears in more than one file (or a
+          re-import), the most recently uploaded data wins.
+        </p>
+        <div class="bpc-upload-zone" id="mp-drop-zone" onclick="document.getElementById('mp-file-input').click()"
+             ondragover="event.preventDefault(); this.classList.add('drag')"
+             ondragleave="this.classList.remove('drag')"
+             ondrop="mpHandleDrop(event)">
+          <i class="ti ti-file-upload"></i>
+          <p><strong>Click to upload</strong> or drag &amp; drop Marshall price sheet(s)<br>
+          Accepts multiple .csv / .xlsx files at once</p>
+        </div>
+        <input type="file" id="mp-file-input" accept=".csv,.xlsx,.xls" multiple style="display:none" onchange="mpHandleFileInput(event)" />
+
+        <div class="mp-import-files" id="mp-import-files"></div>
+
+        <div class="bpc-upload-actions" style="margin-top:12px">
+          <button class="wl-btn primary" id="mp-import-btn" onclick="mpImportFiles()" style="display:none"><i class="ti ti-upload"></i> Import Selected Files</button>
+          <span class="bpc-upload-status" id="mp-import-status"></span>
+        </div>
+      </div>
+
+      <div class="wl-section">
+        <h4><i class="ti ti-search" style="color:var(--accent)"></i> Look Up A Part</h4>
+        <div class="mp-search-wrap">
+          <input type="text" id="mp-query" placeholder="Search by part number or description..." oninput="mpDebouncedSearch()" onkeydown="if(event.key==='Enter')mpSearch()" />
+          <button class="wl-btn primary" onclick="mpSearch()"><i class="ti ti-search"></i> Search</button>
+        </div>
+        <div class="mp-results-hint" id="mp-results-hint"></div>
+        <div class="wl-table-wrap">
+          <table class="wl-table">
+            <thead><tr>
+              <th>Part Number</th><th>Description</th><th>Brand</th><th>RRP (ex VAT)</th>
+              <th>Superseded By</th><th>Unit</th><th>Lead Time</th><th>Source</th><th></th>
+            </tr></thead>
+            <tbody id="mp-results-body"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px">Import a price sheet, then search by part number or description above</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="wl-section">
+        <h4><i class="ti ti-clipboard-list" style="color:var(--accent)"></i> Quote Request Basket</h4>
+        <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px">
+          Parts added from the lookup above. Marshall's sheets don't include APD's cost price — that's still emailed
+          to Marshall separately — so fill in Cost Price here only if you already know it. When ready, download a
+          filled copy of the Parts Quote Request template to send to Marshall.
+        </p>
+        <div class="mp-basket-hdr">
+          <span>Part Number</span><span>Description</span><span>Superseded By</span><span>Qty</span>
+          <span>Cost Price</span><span>RRP</span><span>Notes</span><span></span>
+        </div>
+        <div id="mp-basket-body"><div class="mp-basket-empty">No parts added yet — search above and click "Add to Quote"</div></div>
+        <div class="bpc-upload-actions" style="margin-top:14px">
+          <button class="wl-btn primary" onclick="mpDownloadQuote()"><i class="ti ti-download"></i> Download Quote Request</button>
+          <button class="wl-btn" onclick="mpClearBasket()"><i class="ti ti-trash"></i> Clear Basket</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- eBay Parts Finder Screen -->
+  <div id="ebay-screen" class="screen">
 
   <!-- Settings panel -->
   <div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
   <div class="settings-panel" id="settings-panel">
     <div class="settings-hdr">
-      <h2><i class="ti ti-star" style="color:#d97706"></i> My Stores</h2>
+      <h2><span class="icon-chip icon-chip-gold"><i class="ti ti-star"></i></span> My Stores</h2>
       <button onclick="closeSettings()"><i class="ti ti-x"></i></button>
     </div>
-    <div class="settings-body">
+    <div class="settings-subtabs">
+      <button class="settings-subtab active" id="settings-subtab-manage" onclick="switchSettingsView('manage')">Manage Stores</button>
+      <button class="settings-subtab" id="settings-subtab-compare" onclick="switchSettingsView('compare')">Dashboard &amp; Compare</button>
+    </div>
+    <div class="settings-body" id="settings-view-manage">
       <h3><i class="ti ti-star" style="color:#d97706"></i> Own Store Usernames</h3>
       <p>Add your own eBay store usernames. Your listings will be highlighted in gold throughout all tabs — clearly separated from competitors.</p>
       <div class="settings-store-row">
@@ -840,20 +1017,83 @@
         <span class="no-my-stores">No stores added yet</span>
       </div>
     </div>
+    <div class="settings-body" id="settings-view-compare" style="display:none">
+      <!-- Head to Head -->
+      <div class="h2h-section">
+        <h3><i class="ti ti-arrows-left-right" style="color:var(--accent)"></i> Head to Head Comparison</h3>
+        <p>Compare one of your stores against a competitor seller for a specific search term.</p>
+        <div class="h2h-controls">
+          <select id="h2h-own"><option value="">Your store…</option></select>
+          <span class="h2h-vs">vs</span>
+          <select id="h2h-comp"><option value="">Competitor…</option></select>
+          <input type="text" id="h2h-query" placeholder="Search term e.g. BMW E46 brake pads" onkeydown="if(event.key==='Enter')runH2H()" />
+          <button class="h2h-go" id="h2h-go-btn" onclick="runH2H()"><i class="ti ti-arrows-left-right"></i> Compare</button>
+        </div>
+        <div id="h2h-results" style="margin-top:16px"></div>
+      </div>
+
+      <div id="stores-area"></div>
+    </div>
+  </div>
+
+  <!-- Tracker panel -->
+  <div class="tracker-overlay" id="tracker-overlay" onclick="closeTracker()"></div>
+  <div class="tracker-panel" id="tracker-panel">
+    <div class="settings-hdr">
+      <h2><span class="icon-chip"><i class="ti ti-chart-line"></i></span> Price Tracker</h2>
+      <button onclick="closeTracker()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="settings-body">
+      <!-- Add part form -->
+      <div class="add-part-form">
+        <h3><i class="ti ti-plus" style="color:var(--accent)"></i> Add part to track</h3>
+        <div class="add-part-row">
+          <input type="text" id="add-part-query" placeholder="Part name or number e.g. BMW E46 front brake pads" onkeydown="if(event.key==='Enter')trackPartManually()" />
+          <select id="add-part-days">
+            <option value="7">7 days</option>
+            <option value="14">14 days</option>
+            <option value="30" selected>30 days</option>
+            <option value="60">60 days</option>
+            <option value="90">90 days</option>
+          </select>
+          <button class="add-part-btn" id="add-part-btn" onclick="trackPartManually()">
+            <i class="ti ti-player-play"></i> Start Tracking
+          </button>
+        </div>
+        <div class="add-part-status" id="add-part-status"></div>
+      </div>
+
+      <!-- Price drop notification area -->
+      <div id="drop-banner-area"></div>
+
+      <div class="tracker-header">
+        <div>
+          <p style="font-size:13px;color:var(--text-muted)">Track up to 10 parts — prices auto-update once per day</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="tracker-limit" id="tracker-limit">0 / 10 parts tracked</span>
+          <button class="refresh-all-btn" onclick="refreshAll()"><i class="ti ti-refresh"></i> Refresh all</button>
+        </div>
+      </div>
+
+      <div id="tracker-area">
+        <div class="tracker-empty">
+          <i class="ti ti-chart-line"></i>
+          <p>No parts tracked yet</p>
+          <p style="font-size:13px;margin-top:8px">Add a part above or click <strong>Track price</strong> on any search result</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab('search')"><i class="ti ti-search"></i> Search</div>
-    <div class="tab" onclick="switchTab('tracker')"><i class="ti ti-chart-line"></i> Price Tracker <span id="tracker-count" style="background:var(--accent);color:#fff;border-radius:99px;padding:1px 7px;font-size:11px;display:none">0</span></div>
     <div class="tab" onclick="switchTab('bulk')"><i class="ti ti-list-search"></i> Bulk Search</div>
     <div class="tab" onclick="switchTab('pricing')"><i class="ti ti-tag"></i> Price Positioning</div>
-    <div class="tab" onclick="switchTab('stores')"><i class="ti ti-star" style="color:#d97706"></i> My Stores</div>
     <div class="tab" onclick="switchTab('keywords')"><i class="ti ti-typography"></i> Keyword Analyser</div>
     <div class="tab" onclick="switchTab('specifics')"><i class="ti ti-list-details"></i> Item Specifics</div>
-    <div class="tab" onclick="switchTab('library')"><i class="ti ti-folders"></i> Item Specifics Library</div>
     <div class="tab" onclick="switchTab('monitor')"><i class="ti ti-report-money"></i> Price Monitor</div>
     <div class="tab" onclick="switchTab('watchlist')"><i class="ti ti-bell"></i> Price Watchlist</div>
-    <div class="tab" onclick="switchTab('quotes')"><i class="ti ti-file-invoice"></i> Marshall Price List</div>
   </div>
 
   <!-- Search Tab -->
@@ -950,53 +1190,6 @@
     </div>
   </div>
 
-  <!-- Price Tracker Tab -->
-  <div id="tab-tracker" class="tab-content">
-    <div class="container">
-
-      <!-- Add part form -->
-      <div class="add-part-form">
-        <h3><i class="ti ti-plus" style="color:var(--accent)"></i> Add part to track</h3>
-        <div class="add-part-row">
-          <input type="text" id="add-part-query" placeholder="Part name or number e.g. BMW E46 front brake pads" onkeydown="if(event.key==='Enter')trackPartManually()" />
-          <select id="add-part-days">
-            <option value="7">7 days</option>
-            <option value="14">14 days</option>
-            <option value="30" selected>30 days</option>
-            <option value="60">60 days</option>
-            <option value="90">90 days</option>
-          </select>
-          <button class="add-part-btn" id="add-part-btn" onclick="trackPartManually()">
-            <i class="ti ti-player-play"></i> Start Tracking
-          </button>
-        </div>
-        <div class="add-part-status" id="add-part-status"></div>
-      </div>
-
-      <!-- Price drop notification area -->
-      <div id="drop-banner-area"></div>
-
-      <div class="tracker-header">
-        <div>
-          <h2><i class="ti ti-chart-line" style="color:var(--accent)"></i> Price Tracker</h2>
-          <p style="font-size:13px;color:var(--text-muted);margin-top:4px">Track up to 10 parts — prices auto-update once per day</p>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <span class="tracker-limit" id="tracker-limit">0 / 10 parts tracked</span>
-          <button class="refresh-all-btn" onclick="refreshAll()"><i class="ti ti-refresh"></i> Refresh all</button>
-        </div>
-      </div>
-
-      <div id="tracker-area">
-        <div class="tracker-empty">
-          <i class="ti ti-chart-line"></i>
-          <p>No parts tracked yet</p>
-          <p style="font-size:13px;margin-top:8px">Add a part above or click <strong>Track price</strong> on any search result</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Bulk Search Tab -->
   <div id="tab-bulk" class="tab-content">
     <div class="container">
@@ -1076,29 +1269,6 @@
     </div>
   </div>
 
-  <!-- My Stores Tab -->
-  <div id="tab-stores" class="tab-content">
-    <div class="container">
-
-      <!-- Head to Head -->
-      <div class="h2h-section">
-        <h3><i class="ti ti-arrows-left-right" style="color:var(--accent)"></i> Head to Head Comparison</h3>
-        <p>Compare one of your stores against a competitor seller for a specific search term.</p>
-        <div class="h2h-controls">
-          <select id="h2h-own"><option value="">Your store…</option></select>
-          <span class="h2h-vs">vs</span>
-          <select id="h2h-comp"><option value="">Competitor…</option></select>
-          <input type="text" id="h2h-query" placeholder="Search term e.g. BMW E46 brake pads" onkeydown="if(event.key==='Enter')runH2H()" />
-          <button class="h2h-go" id="h2h-go-btn" onclick="runH2H()"><i class="ti ti-arrows-left-right"></i> Compare</button>
-        </div>
-        <div id="h2h-results" style="margin-top:16px"></div>
-      </div>
-
-      <div id="stores-area"></div>
-
-    </div>
-  </div>
-
   <!-- Keyword Analyser Tab -->
   <div id="tab-keywords" class="tab-content">
     <div class="container">
@@ -1141,45 +1311,6 @@
 
       <div id="isp-categories"></div>
       <div id="isp-results"></div>
-
-    </div>
-  </div>
-
-  <!-- Item Specifics Library Tab -->
-  <div id="tab-library" class="tab-content">
-    <div class="container">
-
-      <div class="lib-header">
-        <div>
-          <h2><i class="ti ti-folders" style="color:var(--accent)"></i> Item Specifics Library</h2>
-          <p style="font-size:13px;color:var(--text-muted);margin-top:4px">Pre-fetched item specifics for all your product categories, organised by group.</p>
-        </div>
-        <div class="lib-header-actions">
-          <button class="isp-btn" id="lib-refresh-btn" onclick="libRefreshAll()"><i class="ti ti-refresh"></i> Refresh All</button>
-          <button class="export-btn" id="lib-export-btn" onclick="libExportAllExcel()"><i class="ti ti-file-spreadsheet"></i> Export All to Excel</button>
-        </div>
-      </div>
-
-      <div class="bulk-progress" id="lib-progress">
-        <div class="progress-label">
-          <span>Fetching <strong><span id="lib-done">0</span> of <span id="lib-total">0</span></strong> categories</span>
-          <span id="lib-pct" style="color:var(--accent);font-weight:500">0%</span>
-        </div>
-        <div class="progress-track"><div class="progress-fill" id="lib-fill"></div></div>
-        <div class="progress-current" id="lib-current"></div>
-      </div>
-
-      <div class="lib-status" id="lib-status"></div>
-
-      <div class="lib-layout">
-        <div class="lib-tree" id="lib-tree"></div>
-        <div class="lib-main" id="lib-main">
-          <div class="lib-empty">
-            <i class="ti ti-folder-open"></i>
-            <p>Select a category from the left to view its item specifics</p>
-          </div>
-        </div>
-      </div>
 
     </div>
   </div>
@@ -1370,75 +1501,7 @@
     </div>
   </div>
 
-  <!-- Marshall Price List Tab -->
-  <div id="tab-quotes" class="tab-content">
-    <div class="container">
-
-      <div id="mp-dash" class="wl-dash"></div>
-
-      <div class="wl-section">
-        <h4><i class="ti ti-file-upload" style="color:var(--accent)"></i> Import Marshall Price Sheets</h4>
-        <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px">
-          Upload one or more of Marshall's monthly price sheets (.csv or .xlsx). Column layout can vary month to
-          month — headers are matched automatically. If the same part number appears in more than one file (or a
-          re-import), the most recently uploaded data wins.
-        </p>
-        <div class="bpc-upload-zone" id="mp-drop-zone" onclick="document.getElementById('mp-file-input').click()"
-             ondragover="event.preventDefault(); this.classList.add('drag')"
-             ondragleave="this.classList.remove('drag')"
-             ondrop="mpHandleDrop(event)">
-          <i class="ti ti-file-upload"></i>
-          <p><strong>Click to upload</strong> or drag &amp; drop Marshall price sheet(s)<br>
-          Accepts multiple .csv / .xlsx files at once</p>
-        </div>
-        <input type="file" id="mp-file-input" accept=".csv,.xlsx,.xls" multiple style="display:none" onchange="mpHandleFileInput(event)" />
-
-        <div class="mp-import-files" id="mp-import-files"></div>
-
-        <div class="bpc-upload-actions" style="margin-top:12px">
-          <button class="wl-btn primary" id="mp-import-btn" onclick="mpImportFiles()" style="display:none"><i class="ti ti-upload"></i> Import Selected Files</button>
-          <span class="bpc-upload-status" id="mp-import-status"></span>
-        </div>
-      </div>
-
-      <div class="wl-section">
-        <h4><i class="ti ti-search" style="color:var(--accent)"></i> Look Up A Part</h4>
-        <div class="mp-search-wrap">
-          <input type="text" id="mp-query" placeholder="Search by part number or description..." oninput="mpDebouncedSearch()" onkeydown="if(event.key==='Enter')mpSearch()" />
-          <button class="wl-btn primary" onclick="mpSearch()"><i class="ti ti-search"></i> Search</button>
-        </div>
-        <div class="mp-results-hint" id="mp-results-hint"></div>
-        <div class="wl-table-wrap">
-          <table class="wl-table">
-            <thead><tr>
-              <th>Part Number</th><th>Description</th><th>Brand</th><th>RRP (ex VAT)</th>
-              <th>Superseded By</th><th>Unit</th><th>Lead Time</th><th>Source</th><th></th>
-            </tr></thead>
-            <tbody id="mp-results-body"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px">Import a price sheet, then search by part number or description above</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="wl-section">
-        <h4><i class="ti ti-clipboard-list" style="color:var(--accent)"></i> Quote Request Basket</h4>
-        <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px">
-          Parts added from the lookup above. Marshall's sheets don't include APD's cost price — that's still emailed
-          to Marshall separately — so fill in Cost Price here only if you already know it. When ready, download a
-          filled copy of the Parts Quote Request template to send to Marshall.
-        </p>
-        <div class="mp-basket-hdr">
-          <span>Part Number</span><span>Description</span><span>Superseded By</span><span>Qty</span>
-          <span>Cost Price</span><span>RRP</span><span>Notes</span><span></span>
-        </div>
-        <div id="mp-basket-body"><div class="mp-basket-empty">No parts added yet — search above and click "Add to Quote"</div></div>
-        <div class="bpc-upload-actions" style="margin-top:14px">
-          <button class="wl-btn primary" onclick="mpDownloadQuote()"><i class="ti ti-download"></i> Download Quote Request</button>
-          <button class="wl-btn" onclick="mpClearBasket()"><i class="ti ti-trash"></i> Clear Basket</button>
-        </div>
-      </div>
-
-    </div>
-  </div>
+  </div><!-- /ebay-screen -->
 
 </div>
 
@@ -1450,8 +1513,8 @@ function checkPassword() {
   if (document.getElementById('pw-input').value === PASSWORD) {
     sessionStorage.setItem('parts_auth', '1');
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    initApp();
+    document.getElementById('shell').style.display = 'block';
+    switchSection('dashboard');
   } else {
     document.getElementById('login-error').style.display = 'block';
     document.getElementById('pw-input').value = '';
@@ -1461,19 +1524,32 @@ function checkPassword() {
 function logout() { sessionStorage.removeItem('parts_auth'); location.reload(); }
 if (sessionStorage.getItem('parts_auth') === '1') {
   document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
+  document.getElementById('shell').style.display = 'block';
 }
 
-// ── Tabs ───────────────────────────────────────────────────
+// ── Sections (top-level: Dashboard / Myton Parts / eBay Parts Finder / Marshalls) ──
+let ebayLoaded = false;
+function switchSection(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sec-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(`${name}-screen`).classList.add('active');
+  const navBtn = document.querySelector(`.sec-tab[data-section="${name}"]`);
+  if (navBtn) navBtn.classList.add('active');
+
+  const isEbay = name === 'ebay';
+  document.getElementById('tracker-icon-btn').style.display = isEbay ? 'flex' : 'none';
+  document.getElementById('stores-icon-btn').style.display = isEbay ? 'flex' : 'none';
+
+  if (name === 'ebay' && !ebayLoaded) { ebayLoaded = true; initApp(); }
+  if (name === 'myton' && !mpLoaded) mpInit();
+}
+
+// ── Tabs (within eBay Parts Finder) ─────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelector(`.tab[onclick="switchTab('${name}')"]`).classList.add('active');
   document.getElementById(`tab-${name}`).classList.add('active');
-  if (name === 'tracker') {
-    renderTracker();
-    autoRefreshStale();
-  }
   if (name === 'bulk') {
     renderBulkResults();
     const hint = document.getElementById('bulk-seller-hint');
@@ -1487,12 +1563,9 @@ function switchTab(name) {
       ? `(${savedSellers.length} seller${savedSellers.length > 1 ? 's' : ''} saved)`
       : '(no sellers saved — add them in the Search tab)';
   }
-  if (name === 'stores') renderStoresDash();
   if (name === 'keywords') { /* nothing to pre-render */ }
   if (name === 'specifics') { /* nothing to pre-render */ }
-  if (name === 'library' && !libData) libLoadSaved();
   if (name === 'watchlist' && !wlLoaded) wlInit();
-  if (name === 'quotes' && !mpLoaded) mpInit();
 }
 
 // ── State ──────────────────────────────────────────────────
@@ -1517,11 +1590,6 @@ let ispCategories = [];
 let ispSelectedCategory = null;
 let ispData       = null;
 let ispExpanded   = {};
-let libData       = null;
-let libSelectedKey = null;
-let libSelectedCat = null;
-let libExpandedGroups = {};
-let libExpanded   = {};
 let monitorParts     = [];
 let monitorResults    = JSON.parse(localStorage.getItem('bulk_price_check_results') || '[]');
 let monitorCancelled  = false;
@@ -1548,7 +1616,6 @@ function initApp() {
   bpcRenderResults();
   setTimeout(autoRefreshStale, 1200);
 }
-if (sessionStorage.getItem('parts_auth') === '1') initApp();
 
 // ── Backend ────────────────────────────────────────────────
 async function saveBackend() {
@@ -2657,6 +2724,27 @@ function closeSettings() {
   document.getElementById('settings-overlay').classList.remove('open');
   document.getElementById('settings-panel').classList.remove('open');
 }
+function switchSettingsView(view) {
+  const panel = document.getElementById('settings-panel');
+  document.getElementById('settings-view-manage').style.display = view === 'manage' ? 'block' : 'none';
+  document.getElementById('settings-view-compare').style.display = view === 'compare' ? 'block' : 'none';
+  document.getElementById('settings-subtab-manage').classList.toggle('active', view === 'manage');
+  document.getElementById('settings-subtab-compare').classList.toggle('active', view === 'compare');
+  panel.classList.toggle('wide', view === 'compare');
+  if (view === 'compare') renderStoresDash();
+}
+
+// ── Price Tracker panel ──────────────────────────────────────
+function openTracker() {
+  document.getElementById('tracker-overlay').classList.add('open');
+  document.getElementById('tracker-panel').classList.add('open');
+  renderTracker();
+  autoRefreshStale();
+}
+function closeTracker() {
+  document.getElementById('tracker-overlay').classList.remove('open');
+  document.getElementById('tracker-panel').classList.remove('open');
+}
 function addMyStore() {
   const uInput = document.getElementById('my-store-username');
   const lInput = document.getElementById('my-store-label');
@@ -3661,344 +3749,6 @@ function exportSpecificsExcel() {
     XLSX.writeFile(wb, `item-specifics-${safe}-${xlsxDateStr()}.xlsx`);
   } catch (err) {
     console.error('Item Specifics export failed:', err);
-    alert(`Excel export failed: ${err.message || err}`);
-  }
-}
-
-// ── Item Specifics Library ──────────────────────────────────
-async function libLoadSaved() {
-  if (!backendUrl) return;
-  const status = document.getElementById('lib-status');
-  try {
-    const res = await fetch(`${backendUrl}/api/taxonomy/saved-categories`, { signal: AbortSignal.timeout(20000) });
-    if (!res.ok) throw new Error(`Server error ${res.status}`);
-    libData = await res.json();
-    status.className = 'lib-status';
-    status.textContent = '';
-
-    if (libSelectedKey) {
-      const [gk, fn] = libSelectedKey.split('/');
-      const group = libData.groups.find(g => g.key === gk);
-      libSelectedCat = group && group.categories.find(c => c.filename === fn);
-      if (!libSelectedCat) libSelectedKey = null;
-    }
-
-    renderLibTree();
-    if (libSelectedCat) renderLibMain(libSelectedCat);
-  } catch (err) {
-    status.className = 'lib-status err';
-    status.textContent = `Error loading saved categories: ${err.message || err}`;
-  }
-}
-
-function libToggleGroup(key) {
-  libExpandedGroups[key] = libExpandedGroups[key] === false ? true : false;
-  renderLibTree();
-}
-
-function renderLibTree() {
-  const container = document.getElementById('lib-tree');
-  if (!libData || !libData.groups.length) {
-    container.innerHTML = `<div class="lib-tree-empty">No categories fetched yet.<br>Click "Refresh All" above to fetch item specifics for all your product categories.</div>`;
-    return;
-  }
-
-  container.innerHTML = libData.groups.map(g => {
-    const expanded = libExpandedGroups[g.key] !== false;
-    const items = g.categories.map(c => {
-      const key = `${g.key}/${c.filename}`;
-      const active = libSelectedKey === key ? ' active' : '';
-      const fetchedDate = c.fetchedAt ? new Date(c.fetchedAt).toLocaleDateString('en-GB') : 'never';
-      return `
-        <button class="lib-cat-item${active}" onclick="libSelectCategory('${g.key}','${c.filename}')">
-          <span class="lib-cat-name">${c.ebayCategory?.categoryName || c.searchTerm}</span>
-          <span class="lib-cat-date">Fetched ${fetchedDate}</span>
-        </button>`;
-    }).join('');
-
-    return `
-      <div class="lib-group">
-        <button class="lib-group-header" onclick="libToggleGroup('${g.key}')">
-          <i class="ti ti-chevron-${expanded ? 'down' : 'right'}"></i>
-          <i class="ti ti-folder${expanded ? '-open' : ''}"></i>
-          <span>${g.label}</span>
-          <span class="lib-group-count">${g.categories.length}</span>
-        </button>
-        <div class="lib-group-body" style="display:${expanded ? 'flex' : 'none'}">${items}</div>
-      </div>`;
-  }).join('');
-}
-
-function libSelectCategory(groupKey, filename) {
-  const group = libData && libData.groups.find(g => g.key === groupKey);
-  const cat   = group && group.categories.find(c => c.filename === filename);
-  if (!cat) return;
-  libSelectedKey = `${groupKey}/${filename}`;
-  libSelectedCat = cat;
-  renderLibTree();
-  renderLibMain(cat);
-}
-
-function libToggleValues(idx) {
-  libExpanded[idx] = !libExpanded[idx];
-  if (libSelectedCat) renderLibMain(libSelectedCat);
-}
-
-function libMapToIspData(cat) {
-  return {
-    aspects: (cat.aspects || []).map(a => ({
-      name: a.name,
-      requirementLevel: a.level,
-      dataType: a.dataType,
-      mode: a.mode,
-      supportsMultipleValues: a.multiValue,
-      enabledForVariations: a.enabledForVariations,
-      allowedValues: a.values || [],
-      searchCount: a.searchCount || 0,
-    })),
-    summary: cat.counts || { total: 0, required: 0, recommended: 0, optional: 0 },
-    category: { categoryName: cat.ebayCategory?.categoryName || cat.searchTerm, breadcrumb: cat.ebayCategory?.path || '' },
-    market: cat.marketplace,
-  };
-}
-
-function libExportSingleExcel(groupKey, filename) {
-  const group = libData && libData.groups.find(g => g.key === groupKey);
-  const cat   = group && group.categories.find(c => c.filename === filename);
-  if (!cat) return;
-  ispData = libMapToIspData(cat);
-  exportSpecificsExcel();
-}
-
-function renderLibMain(cat) {
-  const aspects    = cat.aspects || [];
-  const counts     = cat.counts  || { total: 0, required: 0, recommended: 0, optional: 0 };
-  const rowClass   = { REQUIRED: 'isp-row-required', RECOMMENDED: 'isp-row-recommended', OPTIONAL: 'isp-row-optional' };
-  const badgeClass = { REQUIRED: 'isp-badge-required', RECOMMENDED: 'isp-badge-recommended', OPTIONAL: 'isp-badge-optional' };
-  const catKey     = `${cat.group}/${cat.filename}`;
-
-  const rows = aspects.map((a, i) => {
-    const values   = a.values || [];
-    const idx      = `${catKey}:${i}`;
-    const expanded = !!libExpanded[idx];
-    const shown    = expanded ? values : values.slice(0, 10);
-    const chips    = shown.map(v => `<span class="isp-val-chip">${v}</span>`).join('');
-    const more     = values.length > 10
-      ? `<button class="isp-val-more" onclick="libToggleValues('${idx}')">${expanded ? 'Show less' : `+${values.length - 10} more`}</button>`
-      : '';
-    const valuesCell = values.length
-      ? `${chips}${more}`
-      : `<span style="color:var(--text-muted);font-style:italic">—</span>`;
-
-    return `<tr class="${rowClass[a.level] || ''}">
-      <td class="col-name">${a.name}</td>
-      <td><span class="isp-badge ${badgeClass[a.level] || ''}">${a.level}</span></td>
-      <td>${a.mode === 'FREE_TEXT' ? 'Free text' : 'Dropdown / selection'}</td>
-      <td>${a.multiValue ? 'Yes' : 'No'}</td>
-      <td>${a.enabledForVariations ? 'Yes' : 'No'}</td>
-      <td class="isp-values-cell">${valuesCell}</td>
-      <td>${(a.searchCount || 0).toLocaleString()}</td>
-    </tr>`;
-  }).join('');
-
-  const fetchedStr = cat.fetchedAt ? new Date(cat.fetchedAt).toLocaleString('en-GB') : 'Never';
-
-  document.getElementById('lib-main').innerHTML = `
-    <div class="isp-stats-grid">
-      <div class="isp-stat-card">
-        <div class="isp-stat-value">${counts.total}</div>
-        <div class="isp-stat-label">Total specifics</div>
-      </div>
-      <div class="isp-stat-card hl-red">
-        <div class="isp-stat-value">${counts.required}</div>
-        <div class="isp-stat-label">Required</div>
-      </div>
-      <div class="isp-stat-card hl-green">
-        <div class="isp-stat-value">${counts.recommended}</div>
-        <div class="isp-stat-label">Recommended</div>
-      </div>
-      <div class="isp-stat-card hl-grey">
-        <div class="isp-stat-value">${counts.optional}</div>
-        <div class="isp-stat-label">Optional</div>
-      </div>
-    </div>
-
-    <div class="isp-table-section">
-      <div class="isp-table-header">
-        <h3><i class="ti ti-list-details" style="color:var(--accent)"></i> ${cat.ebayCategory?.categoryName || cat.searchTerm} <span style="font-size:12px;font-weight:400;color:var(--text-muted)">(${cat.ebayCategory?.path || ''})</span></h3>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:11px;color:var(--text-muted)">Last fetched: ${fetchedStr}</span>
-          <button class="export-btn" onclick="libExportSingleExcel('${cat.group}','${cat.filename}')"><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
-        </div>
-      </div>
-      <div class="isp-table-wrap">
-        <table class="isp-table">
-          <thead><tr>
-            <th>Name</th>
-            <th>Requirement</th>
-            <th>Entry Mode</th>
-            <th>Multiple Values</th>
-            <th>Variations</th>
-            <th>Allowed Values</th>
-            <th>Search Relevance</th>
-          </tr></thead>
-          <tbody>${rows || `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">No item specifics found for this category.</td></tr>`}</tbody>
-        </table>
-      </div>
-    </div>`;
-}
-
-function libSleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-async function libPollStatus() {
-  const status = document.getElementById('lib-status');
-  while (true) {
-    await libSleep(1500);
-    let data;
-    try {
-      const res = await fetch(`${backendUrl}/api/taxonomy/bulk-fetch/status`, { signal: AbortSignal.timeout(10000) });
-      data = await res.json();
-    } catch {
-      continue;
-    }
-
-    const total     = data.total || 0;
-    const completed = data.completed || 0;
-    const pct       = total ? Math.round((completed / total) * 100) : 0;
-    document.getElementById('lib-total').textContent   = total;
-    document.getElementById('lib-done').textContent    = completed;
-    document.getElementById('lib-fill').style.width    = `${pct}%`;
-    document.getElementById('lib-pct').textContent     = `${pct}%`;
-    document.getElementById('lib-current').textContent = data.current ? `Fetching "${data.current}"…` : '';
-
-    if (!data.running) {
-      const failed = (data.results || []).filter(r => r.status === 'error');
-      status.className = failed.length ? 'lib-status err' : 'lib-status';
-      status.textContent = failed.length
-        ? `Done — ${data.results.length - failed.length} succeeded, ${failed.length} failed. See console for details.`
-        : `Done — all ${data.results.length} categories refreshed.`;
-      if (failed.length) console.warn('Bulk fetch errors:', failed);
-      await libLoadSaved();
-      return;
-    }
-  }
-}
-
-async function libRefreshAll() {
-  if (!backendUrl) {
-    document.getElementById('lib-status').textContent = 'Please set your backend URL in the Search tab first.';
-    return;
-  }
-  const btn      = document.getElementById('lib-refresh-btn');
-  const status   = document.getElementById('lib-status');
-  const progress = document.getElementById('lib-progress');
-
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Refreshing…';
-  status.className = 'lib-status';
-  status.textContent = '';
-  progress.classList.add('show');
-  document.getElementById('lib-fill').style.width = '0%';
-  document.getElementById('lib-pct').textContent = '0%';
-  document.getElementById('lib-done').textContent = '0';
-  document.getElementById('lib-total').textContent = '0';
-  document.getElementById('lib-current').textContent = 'Starting…';
-
-  try {
-    const res = await fetch(`${backendUrl}/api/taxonomy/bulk-fetch`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-      signal: AbortSignal.timeout(15000),
-    });
-    if (res.status === 409) {
-      status.className = 'lib-status err';
-      status.textContent = 'A refresh is already in progress — watching its progress…';
-      await libPollStatus();
-      return;
-    }
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error || `Server error ${res.status}`);
-    }
-    await libPollStatus();
-  } catch (err) {
-    status.className = 'lib-status err';
-    status.textContent = `Error: ${err.message || 'Could not reach the backend.'}`;
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-refresh"></i> Refresh All';
-    progress.classList.remove('show');
-  }
-}
-
-function libSanitizeSheetName(name, used) {
-  const base = (name || 'Sheet').replace(/[\\/?*[\]:]/g, ' ').trim().slice(0, 28) || 'Sheet';
-  let candidate = base;
-  let n = 2;
-  while (used.has(candidate.toLowerCase())) {
-    candidate = `${base} ${n}`.slice(0, 31);
-    n++;
-  }
-  used.add(candidate.toLowerCase());
-  return candidate;
-}
-
-function libExportAllExcel() {
-  if (!libData || !libData.groups.length) { alert('No saved categories yet — click "Refresh All" first.'); return; }
-  if (typeof XLSX === 'undefined') { alert('The Excel export library failed to load. Check your internet connection or ad-blocker, then refresh the page and try again.'); return; }
-
-  try {
-    const wb   = XLSX.utils.book_new();
-    const used = new Set();
-
-    const aoaSummary = [['Item Specifics Library — Summary'], [], ['Group', 'Category', 'eBay Category', 'Total', 'Required', 'Recommended', 'Optional', 'Last Fetched']];
-    libData.groups.forEach(g => {
-      g.categories.forEach(c => {
-        aoaSummary.push([
-          g.label, c.searchTerm, c.ebayCategory?.categoryName || '',
-          c.counts?.total || 0, c.counts?.required || 0, c.counts?.recommended || 0, c.counts?.optional || 0,
-          c.fetchedAt ? new Date(c.fetchedAt).toLocaleString('en-GB') : '',
-        ]);
-      });
-    });
-    const wsSummary = XLSX.utils.aoa_to_sheet(aoaSummary);
-    xlsxApplyHdr(wsSummary, ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']);
-    xlsxAutoWidth(wsSummary, aoaSummary.slice(2));
-    XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
-    used.add('summary');
-
-    const XLSX_CELL_LIMIT = 32000;
-    const joinValues = (values) => {
-      const joined = (values || []).join('; ');
-      return joined.length <= XLSX_CELL_LIMIT ? joined : joined.slice(0, XLSX_CELL_LIMIT) + '… (truncated)';
-    };
-
-    libData.groups.forEach(g => {
-      g.categories.forEach(c => {
-        const sheetName = libSanitizeSheetName(c.ebayCategory?.categoryName || c.searchTerm, used);
-        const aoa = [['Name', 'Requirement Level', 'Data Type', 'Entry Mode', 'Multiple Values', 'Variations', 'Allowed Values Count', 'Allowed Values', 'Search Relevance']];
-        (c.aspects || []).forEach(a => {
-          aoa.push([
-            a.name, a.level, a.dataType || '',
-            a.mode === 'FREE_TEXT' ? 'Free text' : 'Dropdown / selection',
-            a.multiValue ? 'Yes' : 'No',
-            a.enabledForVariations ? 'Yes' : 'No',
-            (a.values || []).length,
-            joinValues(a.values),
-            a.searchCount || 0,
-          ]);
-        });
-        const ws = XLSX.utils.aoa_to_sheet(aoa);
-        xlsxApplyHdr(ws, ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']);
-        xlsxAutoWidth(ws, aoa);
-        XLSX.utils.book_append_sheet(wb, ws, sheetName);
-      });
-    });
-
-    XLSX.writeFile(wb, `item-specifics-library-${xlsxDateStr()}.xlsx`);
-  } catch (err) {
-    console.error('Library export failed:', err);
     alert(`Excel export failed: ${err.message || err}`);
   }
 }
